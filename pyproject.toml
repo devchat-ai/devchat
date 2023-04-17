@@ -1,0 +1,6 @@
+[tool.poetry]
+name = "devchat"
+version = "0.1.0"
+
+[tool.poetry.scripts]
+devchat = "devchat._cli:main"
