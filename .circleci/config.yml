@@ -7,7 +7,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/python:3.11
+      - image: python:3.11
     steps:
       - checkout
       - run:
@@ -25,7 +25,12 @@ jobs:
       - run:
           name: Run pytest
           command: |
-            . venv/bin
+            . venv/bin/activate
+            pytest
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
+workflows:
+  build-deploy:
+    jobs:
+      - build
