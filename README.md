@@ -1,2 +1,3 @@
-# devchat
-The last app developed on Git. All the rest will be on Cove.
+# DevChat
+
+The last app developed on `git`. All the rest on [`cove`](https://www.covespace.dev).
