@@ -21,11 +21,13 @@ jobs:
           name: Run pylint
           command: |
             . venv/bin/activate
+            export PYTHONPATH=.
             pylint devchat
       - run:
           name: Run pytest
           command: |
             . venv/bin/activate
+            export PYTHONPATH=.
             pytest
 
 # Orchestrate jobs using workflows
