@@ -1,10 +1,10 @@
-"""This module contains the Message class for working with OpenAI chat API messages."""
+"""This module contains the Message class for working with chat API messages."""
 
 
 from typing import Optional
 
 class Message:
-    """A class to represent a message in a conversation with OpenAI's chat API.
+    """A class to represent a message in a conversation with chat API.
 
     Attributes:
         role (str): The role of the author of the message. One of 'system', 'user', or 'assistant'.
