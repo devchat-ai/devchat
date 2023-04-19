@@ -1,8 +1,5 @@
-"""This module defines the Chat interface for managing chat-related interactions with different
-chat systems, such as OpenAI's chat API."""
-
 from typing import List, Iterator
-from devchat.message import Message
+from message import Message
 
 class Chat:
     """

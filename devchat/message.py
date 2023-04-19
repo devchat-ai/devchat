@@ -1,6 +1,3 @@
-"""This module contains the Message class for working with chat API messages."""
-
-
 from typing import Optional
 
 class Message:
