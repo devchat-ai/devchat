@@ -37,24 +37,21 @@ class OpenAIChat(Chat):
         Prompt the chat system with a list of Message objects.
 
         Args:
-            messages (List[Message]): A list of Message objects representing the conversation so far.
+            messages (List[Message]): A list of messages representing the conversation so far.
         """
-        pass  # Implementation goes here
 
     def complete_response(self) -> str:
         """
         Retrieve a complete response JSON string from the chat system.
 
         Returns:
-            str: A JSON string representing the complete response from the chat system.
+            str: A JSON string representing the complete response.
         """
-        pass  # Implementation goes here
 
     def stream_response(self) -> str:
         """
         Retrieve a streamed response from the chat system.
 
         Returns:
-            str: An iterator of JSON strings representing the streamed response from the chat system.
+            str: An iterator of JSON strings representing the streamed response.
         """
-        pass  # Implementation goes here
