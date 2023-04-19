@@ -1,5 +1,5 @@
 from typing import List, Iterator
-from message import Message
+from devchat.message import Message
 
 class Chat:
     """
