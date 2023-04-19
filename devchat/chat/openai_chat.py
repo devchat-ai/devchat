@@ -1,5 +1,6 @@
 from typing import Optional, Union, List, Dict
 from pydantic import BaseModel, Field
+import openai
 from devchat.message import Message
 from devchat.chat import Chat
 
@@ -31,6 +32,7 @@ class OpenAIChat(Chat):
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
         self.config = config
+        self._messages = []
 
     def prompt(self, messages: List[Message]) -> None:
         """
@@ -39,6 +41,7 @@ class OpenAIChat(Chat):
         Args:
             messages (List[Message]): A list of messages representing the conversation so far.
         """
+        self._messages = [str(msg) for msg in messages]
 
     def complete_response(self) -> str:
         """
@@ -47,6 +50,21 @@ class OpenAIChat(Chat):
         Returns:
             str: A JSON string representing the complete response.
         """
+        response = openai.ChatCompletion.create(
+            model=self.config.model,
+            messages=self._messages,
+            temperature=self.config.temperature,
+            top_p=self.config.top_p,
+            n=self.config.num_choices,
+            stream=self.config.stream,
+            stop=self.config.stop,
+            max_tokens=self.config.max_tokens,
+            presence_penalty=self.config.presence_penalty,
+            frequency_penalty=self.config.frequency_penalty,
+            logit_bias=self.config.logit_bias,
+            user=self.config.user,
+        )
+        return response
 
     def stream_response(self) -> str:
         """

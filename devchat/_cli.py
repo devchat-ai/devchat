@@ -5,6 +5,7 @@ This module contains the main function for the devchat CLI.
 import json
 import click
 from pydantic import ValidationError
+from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 
 @click.command()
@@ -32,8 +33,8 @@ def main(config_file):
         try:
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            chat.prompt("Hello!")
-            chat.complete_response()
+            chat.prompt([Message("user", "Hello, world!")])
+            # chat.complete_response()
             click.echo(f"Config: {openai_config}")
         except ValidationError as error:
             click.echo(f"Error: {error}")

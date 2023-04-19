@@ -14,7 +14,6 @@ class Chat(ABC):
     @abstractmethod
     def prompt(self, messages: List[Message]) -> None:
         """Send a list of Message objects as a prompt to the chat system."""
-        raise NotImplementedError()
 
     @abstractmethod
     def complete_response(self) -> str:
@@ -24,7 +23,6 @@ class Chat(ABC):
         Returns:
             str: A JSON string representing the complete response from the chat system.
         """
-        raise NotImplementedError()
 
     def stream_response(self) -> Iterator[str]:
         """
