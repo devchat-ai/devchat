@@ -50,3 +50,25 @@ def test_tab_content():
 def test_none_name():
     message = Message("user", "Hello, World!", None)
     assert message.to_dict() == {"role": "user", "content": "Hello, World!"}
+
+def test_from_dict():
+    message_data = {
+        "content": "Welcome to the chat.",
+        "role": "system"
+    }
+    message = Message.from_dict(message_data)
+    assert message.role == "system"
+    assert message.content == "Welcome to the chat."
+    assert message.name is None
+
+def test_from_dict_with_name():
+    message_data = {
+        "content": "Hello, Assistant!",
+        "role": "user",
+        "name": "JohnDoe"
+    }
+    message = Message.from_dict(message_data)
+    assert message.role == "user"
+    assert message.content == "Hello, Assistant!"
+    assert message.name == "JohnDoe"
+    
