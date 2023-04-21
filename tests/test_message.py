@@ -16,8 +16,8 @@ def test_invalid_role():
         Message("invalid_role", "Hello, World!")
 
 def test_none_content():
-    with pytest.raises(ValueError):
-        Message(role="user", content=None)
+    message = Message(role="user", content=None)
+    assert message.content is None
 
 def test_empty_content():
     with pytest.raises(ValueError):
@@ -26,10 +26,6 @@ def test_empty_content():
 def test_blank_content():
     with pytest.raises(ValueError):
         Message("user", "  ")
-
-def test_none_content():
-    with pytest.raises(ValueError):
-        Message("user", None)
 
 def test_invalid_name():
     with pytest.raises(ValueError):
