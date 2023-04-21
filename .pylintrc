@@ -1,0 +1,7 @@
+[MESSAGES CONTROL]
+disable=
+    too-few-public-methods,
+    missing-module-docstring
+
+[MASTER]
+extension-pkg-whitelist=pydantic
