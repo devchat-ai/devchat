@@ -31,9 +31,9 @@ class Prompt:
         """
         response_data = json.loads(response_str)
 
-        if response_data['model'] != self.model:
+        if not response_data['model'].startswith(self.model):
             raise ValueError(f"Model mismatch: expected '{self.model}', "
-                             "got '{response_data['model']}'")
+                             f"got '{response_data['model']}'")
 
         self.response_meta = {
             'id': response_data['id'],

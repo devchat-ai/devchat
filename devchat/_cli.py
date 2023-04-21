@@ -2,15 +2,18 @@
 This module contains the main function for the devchat CLI.
 """
 
+from typing import Optional
 import json
 import click
 from pydantic import ValidationError
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
+from devchat.utils import is_valid_hash
 
 @click.command()
-@click.argument('config_file', type=click.Path(exists=True, readable=True))
-def main(config_file):
+@click.option('-r', '--reference', default='', help='Reference to prompt IDs')
+@click.argument('content')
+def main(content: str, reference: Optional[str]):
     """
     Main function to run the chat application with the specified configuration file.
     
@@ -19,24 +22,43 @@ def main(config_file):
     and retrieving responses. If the LLM is not recognized, it will print an error message.
     
     Args:
-        config_file (str): Path to the JSON configuration file containing LLM and API settings.
-        
-    Raises:
-        ValidationError: If there's a validation error in the configuration data.
+        content (str): One or more lines of text for the Message object.
+        reference (str): Reference to prompt IDs.
     """
-    with open(config_file, 'r', encoding='utf-8') as file:
-        config_data = json.load(file)
+    default_config_data = {
+        'llm': 'OpenAI',
+        'OpenAI': {
+            'model': 'gpt-3.5-turbo',
+            'temperature': 0.2
+        }
+    }
 
-    llm = config_data.get('llm', 'OpenAI')  # Default to OpenAI if not specified
+    try:
+        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
+            config_data = json.load(file)
+    except FileNotFoundError:
+        config_data = default_config_data
+
+    message = Message("user", content)
+    if reference:
+        # split the reference argument by comma and strip whitespace
+        hash_values = [value.strip() for value in reference.split(',') if value.strip()]
+
+        # validate the hash values and handle errors accordingly
+        for value in hash_values:
+            if not is_valid_hash(value):
+                click.echo(f"Invalid hash value: {value}")
+
+    llm = config_data.get('llm')
 
     if llm == 'OpenAI':
         try:
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            chat.prompt([Message("user", "Hello, world!")])
-            # chat.complete_response()
-            click.echo(f"Config: {openai_config}")
+            chat.prompt([message])
+            response_str = json.dumps(chat.complete_response())
         except ValidationError as error:
-            click.echo(f"Error: {error}")
+            response_str = f"Error: {error}"
     else:
-        click.echo(f"Unknown LLM: {llm}")
+        response_str = f"Unknown LLM: {llm}"
+    click.echo(response_str)

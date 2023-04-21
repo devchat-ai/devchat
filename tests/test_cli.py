@@ -1,44 +1,59 @@
+import os
 import json
+import shutil
 import tempfile
 from click.testing import CliRunner
 from devchat._cli import main
+from devchat.prompt import Prompt
 
-def test_main_openai():
+runner = CliRunner()
+
+def test_main_no_args():
+    result = runner.invoke(main)
+    assert result.exit_code == 2
+
+def test_main_with_content():
+    content = "What is the capital of France?"
+    result = runner.invoke(main, [content])
+    assert result.exit_code == 0
+
+    prompt = Prompt("gpt-3.5-turbo")
+    prompt.set_response(result.output.strip())
+    assert prompt.response_meta is not None
+    assert prompt.response_time is not None
+    assert prompt.request_tokens is not None
+    assert prompt.response_tokens is not None
+    assert prompt.messages is not None
+
+def test_main_with_temp_config_file():
     config_data = {
-        "llm": "OpenAI",
-        "OpenAI": {
-            "model": "text-davinci-002",
-            "temperature": 0.8,
-            "num_choices": 1,
+        'llm': 'OpenAI',
+        'OpenAI': {
+            'model': 'gpt-3.5-turbo',
+            'temperature': 0.2
         }
     }
 
-    with tempfile.NamedTemporaryFile('w+', encoding='utf-8', delete=False) as config_file:
-        json.dump(config_data, config_file)
-        config_file.flush()
+    temp_dir = tempfile.mkdtemp()
+    temp_config_path = os.path.join(temp_dir, ".chatconfig.json")
 
-        runner = CliRunner()
-        result = runner.invoke(main, [config_file.name])
+    with open(temp_config_path, "w") as temp_config_file:
+        json.dump(config_data, temp_config_file)
 
-        assert result.exit_code == 0
-        expected_output = (
-            "Config: model='text-davinci-002' temperature=0.8 top_p=1 num_choices=1 "
-            "stream=False stop=None max_tokens=None presence_penalty=0 "
-            "frequency_penalty=0 logit_bias=None user=None"
-        )
-        assert expected_output in result.output
+    original_cwd = os.getcwd()
+    os.chdir(temp_dir)
 
-def test_main_unknown_llm():
-    config_data = {
-        "llm": "UnknownLLM",
-    }
+    content = "What is the capital of Spain?"
+    result = runner.invoke(main, [content])
+    assert result.exit_code == 0
 
-    with tempfile.NamedTemporaryFile('w+', encoding='utf-8', delete=False) as config_file:
-        json.dump(config_data, config_file)
-        config_file.flush()
+    prompt = Prompt("gpt-3.5-turbo")
+    prompt.set_response(result.output.strip())
+    assert prompt.response_meta is not None
+    assert prompt.response_time is not None
+    assert prompt.request_tokens is not None
+    assert prompt.response_tokens is not None
+    assert prompt.messages is not None
 
-        runner = CliRunner()
-        result = runner.invoke(main, [config_file.name])
-
-        assert result.exit_code == 0
-        assert "Unknown LLM: UnknownLLM" in result.output
+    os.chdir(original_cwd)
+    shutil.rmtree(temp_dir)

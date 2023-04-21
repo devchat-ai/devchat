@@ -11,7 +11,7 @@ def test_prompt_init_and_set_response():
       "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
       "object": "chat.completion",
       "created": 1677649420,
-      "model": "gpt-3.5-turbo",
+      "model": "gpt-3.5-turbo-0301",
       "usage": {"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87},
       "choices": [
         {
@@ -55,7 +55,7 @@ def test_prompt_model_mismatch():
       ],
       "created": 1677825456,
       "id": "chatcmpl-6ptKqrhgRoVchm58Bby0UvJzq2ZuQ",
-      "model": "gpt-3.5-turbo-0301",
+      "model": "gpt-4",
       "object": "chat.completion",
       "usage": {
         "completion_tokens": 301,
