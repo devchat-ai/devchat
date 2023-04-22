@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Iterator
 from devchat.message import Message
 
+
 class Chat(ABC):
     """
     Chat interface for managing chat-related interactions.

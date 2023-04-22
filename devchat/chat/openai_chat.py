@@ -27,6 +27,7 @@ class OpenAIChatConfig(BaseModel):
         """
         extra = Extra.forbid
 
+
 class OpenAIChat(Chat):
     """
     OpenAIChat class that handles communication with the OpenAI Chat API.
@@ -74,7 +75,6 @@ class OpenAIChat(Chat):
         )
         return response
 
-
     def stream_response(self) -> Iterator[str]:
         """
         Retrieve a streamed response from the chat system.
@@ -98,4 +98,3 @@ class OpenAIChat(Chat):
             **config_params
         )
         return response
-

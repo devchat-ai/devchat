@@ -1,5 +1,6 @@
 from typing import Optional, Dict
 
+
 class Message:
     """A class to represent a message in a conversation with chat API.
 
