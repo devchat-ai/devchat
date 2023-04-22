@@ -10,17 +10,18 @@ from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.utils import is_valid_hash
 
+
 @click.command()
 @click.option('-r', '--reference', default='', help='Reference to prompt IDs')
 @click.argument('content')
 def main(content: str, reference: Optional[str]):
     """
     Main function to run the chat application with the specified configuration file.
-    
+
     This function reads the configuration file, initializes the chat system based on the
     specified large language model (LLM), and performs interactions with the user by sending prompts
     and retrieving responses. If the LLM is not recognized, it will print an error message.
-    
+
     Args:
         content (str): One or more lines of text for the Message object.
         reference (str): Reference to prompt IDs.
@@ -56,9 +57,16 @@ def main(content: str, reference: Optional[str]):
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
             chat.prompt([message])
-            response_str = json.dumps(chat.complete_response())
+
+            if openai_config.stream:
+                response_iterator = chat.stream_response()
+                for response_chunk in response_iterator:
+                    click.echo(response_chunk)
+            else:
+                response_str = chat.complete_response()
+                click.echo(response_str)
+
         except ValidationError as error:
-            response_str = f"Error: {error}"
+            click.echo(f"Error: {error}")
     else:
-        response_str = f"Unknown LLM: {llm}"
-    click.echo(response_str)
+        click.echo(f"Unknown LLM: {llm}")
