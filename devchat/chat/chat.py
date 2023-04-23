@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from typing import List, Iterator
 from devchat.message import Message
 
+
 class Chat(ABC):
     """
     Chat interface for managing chat-related interactions.
 
     This interface defines methods for prompting a chat system with
     a list of Message objects and retrieving responses, either as a
-    complete response or as a streamed response.
+    complete response or as a streaming response.
     """
 
     @abstractmethod
@@ -26,10 +27,10 @@ class Chat(ABC):
 
     def stream_response(self) -> Iterator[str]:
         """
-        Retrieve a streamed response as an iterator of JSON strings from the chat system.
+        Retrieve a streaming response as an iterator of JSON strings from the chat system.
 
         Returns:
-            Iterator[str]: An iterator over JSON strings representing the streamed response
+            Iterator[str]: An iterator over JSON strings representing the streaming response
                            events from the chat system.
         """
         raise NotImplementedError("stream_response() not supported.")

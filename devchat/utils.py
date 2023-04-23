@@ -1,5 +1,6 @@
 import re
 
+
 def is_valid_hash(hash_str):
     """Check if a string is a valid hash value."""
     # Hash values are usually alphanumeric with a fixed length

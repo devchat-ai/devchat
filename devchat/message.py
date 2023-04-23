@@ -1,5 +1,6 @@
 from typing import Optional, Dict
 
+
 class Message:
     """A class to represent a message in a conversation with chat API.
 
@@ -10,7 +11,7 @@ class Message:
                               underscores, with a maximum length of 64 characters.
     """
 
-    def __init__(self, role: str, content: str, name: Optional[str] = None):
+    def __init__(self, role: str, content: str = None, name: Optional[str] = None):
         self.role = role
         self.content = content
         self.name = name
@@ -56,7 +57,11 @@ class Message:
         Returns:
             bool: True if the content is valid, False otherwise.
         """
-        return bool(self.content and self.content.strip())
+        if self.content is None:
+            return True
+        if not self.content.strip():
+            return False
+        return True
 
     def _validate_name(self) -> bool:
         """Validate the name attribute.

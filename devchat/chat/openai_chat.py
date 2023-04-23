@@ -1,8 +1,9 @@
-from typing import Optional, Union, List, Dict
-from pydantic import BaseModel, Field
+from typing import Optional, Union, List, Dict, Iterator
+from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.message import Message
 from devchat.chat import Chat
+
 
 class OpenAIChatConfig(BaseModel):
     """
@@ -11,7 +12,7 @@ class OpenAIChatConfig(BaseModel):
     model: str
     temperature: Optional[float] = Field(None, ge=0, le=2)
     top_p: Optional[float] = Field(None, ge=0, le=1)
-    num_choices: Optional[int] = Field(None, ge=1)
+    n: Optional[int] = Field(None, ge=1)
     stream: Optional[bool] = Field(None)
     stop: Optional[Union[str, List[str]]] = Field(None)
     max_tokens: Optional[int] = Field(None, ge=1)
@@ -19,6 +20,13 @@ class OpenAIChatConfig(BaseModel):
     frequency_penalty: Optional[float] = Field(None, ge=-2.0, le=2.0)
     logit_bias: Optional[Dict[int, float]] = Field(None)
     user: Optional[str] = Field(None)
+
+    class Config:
+        """
+        Configuration class to forbid extra fields in the model.
+        """
+        extra = Extra.forbid
+
 
 class OpenAIChat(Chat):
     """
@@ -57,16 +65,36 @@ class OpenAIChat(Chat):
             if value is not None
         }
 
+        # Update the 'stream' parameter to False for complete_response
+        config_params = config_params.copy()
+        config_params['stream'] = False
+
         response = openai.ChatCompletion.create(
             messages=self._messages,
             **config_params
         )
         return response
 
-    def stream_response(self) -> str:
+    def stream_response(self) -> Iterator[str]:
         """
-        Retrieve a streamed response from the chat system.
+        Retrieve a streaming response from the chat system.
 
         Returns:
-            str: An iterator of JSON strings representing the streamed response.
+            str: An iterator of JSON strings representing the streaming response.
         """
+        # Filter the config parameters with non-None values
+        config_params = {
+            key: value
+            for key, value in self.config.dict().items()
+            if value is not None
+        }
+
+        # Update the 'stream' parameter to True for stream_response
+        config_params = config_params.copy()
+        config_params['stream'] = True
+
+        response = openai.ChatCompletion.create(
+            messages=self._messages,
+            **config_params
+        )
+        return response
