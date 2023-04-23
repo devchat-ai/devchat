@@ -8,6 +8,7 @@ import click
 from pydantic import ValidationError
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
+from devchat.prompt import Prompt
 from devchat.utils import is_valid_hash
 
 
@@ -56,15 +57,28 @@ def main(content: str, reference: Optional[str]):
         try:
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
+            prompt = Prompt(chat.config.model)
             chat.prompt([message])
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()
                 for response_chunk in response_iterator:
-                    click.echo(response_chunk)
+                    delta_str = prompt.append_response(str(response_chunk))
+                    if delta_str is None:
+                        click.echo()
+                    else:
+                        click.echo(delta_str, nl=False)
+                for i in range(1, len(prompt.responses)):
+                    click.echo(f"[{i}]: {prompt.responses[i].content}")
+
             else:
-                response_str = chat.complete_response()
-                click.echo(response_str)
+                response_str = str(chat.complete_response())
+                prompt.set_response(response_str)
+                if len(prompt.responses) == 1:
+                    click.echo(prompt.responses[0].content)
+                else:
+                    for index, response in prompt.responses.items():
+                        click.echo(f"[{index}]: {response.content}")
 
         except ValidationError as error:
             click.echo(f"Error: {error}")

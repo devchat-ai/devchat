@@ -1,0 +1,8 @@
+{
+    "llm": "OpenAI",
+    "OpenAI": {
+        "model": "gpt-4",
+        "temperature": 0.2,
+        "stream": true
+    }
+}

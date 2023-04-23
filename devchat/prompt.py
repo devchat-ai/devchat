@@ -16,12 +16,12 @@ class Prompt:
     """
 
     def __init__(self, model: str):
-        self.model = model
-        self.response_meta = None
-        self.response_time = None
-        self.request_tokens = None
-        self.response_tokens = None
-        self.responses = {}
+        self.model: str = model
+        self.response_meta: dict = None
+        self.response_time: int = None
+        self.request_tokens: int = None
+        self.response_tokens: int = None
+        self.responses: dict = {}
 
     def set_response(self, response_str: str):
         """
@@ -41,21 +41,25 @@ class Prompt:
         self.request_tokens = response_data['usage']['prompt_tokens']
         self.response_tokens = response_data['usage']['completion_tokens']
 
-        self.responses = [
-            Message.from_dict(choice['message'])
+        self.responses = {
+            choice['index']: Message.from_dict(choice['message'])
             for choice in response_data['choices']
-        ]
+        }
 
-    def append_response(self, response_str: str):
+    def append_response(self, delta_str: str) -> str:
         """
-        Append the content of a streamed API response to the existing messages.
+        Append the content of a streaming response to the existing messages.
 
         Args:
-            response_str (str): The JSON-formatted response string from the chat API.
+            delta_str (str): The JSON-formatted delta string from the chat API.
+
+        Returns:
+            str: The delta content with index 0. None when the response is over.
         """
-        response_data = json.loads(response_str)
+        response_data = json.loads(delta_str)
         self._validate_model(response_data)
 
+        delta_content = ""
         for choice in response_data['choices']:
             delta = choice.get('delta')
             index = choice.get('index')
@@ -65,6 +69,8 @@ class Prompt:
 
             if not delta:
                 # An empty delta indicates the end of the message
+                if index == 0:
+                    delta_content = None
                 continue
 
             role = delta.get('role')
@@ -73,7 +79,8 @@ class Prompt:
             if role is not None:
                 if index not in self.responses:
                     self.responses[index] = Message(role)
-            elif content is not None:
+
+            if content is not None:
                 if index in self.responses:
                     message = self.responses[index]
                     if message.content is None:
@@ -82,6 +89,11 @@ class Prompt:
                         message.content += content
                 else:
                     raise ValueError(f"Role information for index {index} is missing.")
+
+            if index == 0 and content is not None:
+                delta_content = content
+
+        return delta_content
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):

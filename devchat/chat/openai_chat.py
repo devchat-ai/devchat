@@ -77,10 +77,10 @@ class OpenAIChat(Chat):
 
     def stream_response(self) -> Iterator[str]:
         """
-        Retrieve a streamed response from the chat system.
+        Retrieve a streaming response from the chat system.
 
         Returns:
-            str: An iterator of JSON strings representing the streamed response.
+            str: An iterator of JSON strings representing the streaming response.
         """
         # Filter the config parameters with non-None values
         config_params = {
