@@ -156,5 +156,12 @@ def print_help():
             "stream": true
         }
     }
+
+    Note: If you are using an OpenAI's model, you must have an API key to use the CLI.
+    Run the following command line before using the CLI:
+
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    ```
     """
     click.echo(help_text)
