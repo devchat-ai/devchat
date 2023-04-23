@@ -1,6 +1,7 @@
 """
-This module contains the main function for the devchat CLI.
+This module contains the main function for the DevChat CLI.
 """
+
 
 from typing import Optional
 import json
@@ -9,24 +10,25 @@ from pydantic import ValidationError
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
-from devchat.utils import is_valid_hash
 
 
 @click.command()
-@click.option('-r', '--reference', default='', help='Reference to prompt IDs')
-@click.argument('content')
-def main(content: str, reference: Optional[str]):
+@click.argument('content', required=False)
+@click.option('-h', '--help', is_flag=True, help='Show the help message and exit.')
+def main(content: Optional[str], help: bool):
     """
-    Main function to run the chat application with the specified configuration file.
+    Main function to run the chat application.
 
-    This function reads the configuration file, initializes the chat system based on the
-    specified large language model (LLM), and performs interactions with the user by sending prompts
-    and retrieving responses. If the LLM is not recognized, it will print an error message.
-
-    Args:
-        content (str): One or more lines of text for the Message object.
-        reference (str): Reference to prompt IDs.
+    This function initializes the chat system based on the specified large language model (LLM),
+    and performs interactions with the user by sending prompts and retrieving responses.
     """
+    if help:
+        print_help()
+        return
+
+    if content is None:
+        content = click.get_text_stream('stdin').read()
+
     default_config_data = {
         'llm': 'OpenAI',
         'OpenAI': {
@@ -42,14 +44,6 @@ def main(content: str, reference: Optional[str]):
         config_data = default_config_data
 
     message = Message("user", content)
-    if reference:
-        # split the reference argument by comma and strip whitespace
-        hash_values = [value.strip() for value in reference.split(',') if value.strip()]
-
-        # validate the hash values and handle errors accordingly
-        for value in hash_values:
-            if not is_valid_hash(value):
-                click.echo(f"Invalid hash value: {value}")
 
     llm = config_data.get('llm')
 
@@ -84,3 +78,83 @@ def main(content: str, reference: Optional[str]):
             click.echo(f"Error: {error}")
     else:
         click.echo(f"Unknown LLM: {llm}")
+
+
+def print_help():
+    """
+    Print the help message for the DevChat CLI.
+    """
+    help_text = """
+    This manual provides instructions on how to use the DevChat CLI,
+    a command-line interface for interacting with a large language model (LLM).
+
+    Usage
+    -----
+
+    To use the DevChat CLI, run the following command:
+
+    ```
+    devchat [OPTIONS] [CONTENT]
+    ```
+
+    Arguments
+    ---------
+
+    - `content` (optional): One or more lines of text for the Message object.
+                            If not provided, the CLI will read from standard input.
+
+    Options
+    -------
+
+    - `-h`, `--help`: Show the help message and exit.
+
+    Examples
+    --------
+
+    ### Single-line input
+
+    To send a single-line message to the LLM, provide the content as an argument:
+
+    ```
+    devchat "What is the capital of France?"
+    ```
+
+    ### Multi-line input using here-doc
+
+    To send a multi-line message to the LLM, use the here-doc syntax:
+
+    ```bash
+    devchat << EOF
+    What is the capital of France?
+    Can you tell me more about its history?
+    EOF
+    ```
+
+    Configuration
+    -------------
+
+    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
+    If the file is not found, it uses the following default configuration:
+
+    ```json
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.2
+        }
+    }
+    ```
+
+    To customize the configuration, create a `.chatconfig.json` file in the current directory and
+    modify the settings as needed. We recoommend the following settings:
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-4",
+            "temperature": 0.2,
+            "stream": true
+        }
+    }
+    """
+    click.echo(help_text)
