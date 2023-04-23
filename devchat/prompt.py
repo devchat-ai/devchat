@@ -21,7 +21,7 @@ class Prompt:
         self.response_time = None
         self.request_tokens = None
         self.response_tokens = None
-        self.messages = {}
+        self.responses = {}
 
     def set_response(self, response_str: str):
         """
@@ -41,7 +41,7 @@ class Prompt:
         self.request_tokens = response_data['usage']['prompt_tokens']
         self.response_tokens = response_data['usage']['completion_tokens']
 
-        self.messages = [
+        self.responses = [
             Message.from_dict(choice['message'])
             for choice in response_data['choices']
         ]
@@ -71,11 +71,11 @@ class Prompt:
             content = delta.get('content')
 
             if role is not None:
-                if index not in self.messages:
-                    self.messages[index] = Message(role)
+                if index not in self.responses:
+                    self.responses[index] = Message(role)
             elif content is not None:
-                if index in self.messages:
-                    message = self.messages[index]
+                if index in self.responses:
+                    message = self.responses[index]
                     if message.content is None:
                         message.content = content
                     else:

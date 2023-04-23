@@ -23,7 +23,7 @@ def test_main_with_content():
     assert prompt.response_time is not None
     assert prompt.request_tokens is not None
     assert prompt.response_tokens is not None
-    assert prompt.messages is not None
+    assert prompt.responses is not None
 
 def test_main_with_temp_config_file():
     config_data = {
@@ -53,7 +53,7 @@ def test_main_with_temp_config_file():
     assert prompt.response_time is not None
     assert prompt.request_tokens is not None
     assert prompt.response_tokens is not None
-    assert prompt.messages is not None
+    assert prompt.responses is not None
 
     os.chdir(original_cwd)
     shutil.rmtree(temp_dir)
