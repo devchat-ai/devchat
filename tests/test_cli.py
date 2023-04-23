@@ -10,7 +10,7 @@ runner = CliRunner()
 
 def test_main_no_args():
     result = runner.invoke(main)
-    assert result.exit_code == 2
+    assert result.exit_code == 1
 
 
 def test_main_with_content():
