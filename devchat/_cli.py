@@ -3,10 +3,12 @@ This module contains the main function for the DevChat CLI.
 """
 
 
+import os
 from typing import Optional
 import json
+import sys
 import rich_click as click
-from pydantic import ValidationError
+from contextlib import contextmanager
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
@@ -18,6 +20,15 @@ click.rich_click.USE_MARKDOWN = True
 @click.group()
 def main():
     pass
+
+
+@contextmanager
+def handle_errors():
+    try:
+        yield
+    except Exception as error:
+        click.echo(f"Error: {error}", err=True)
+        sys.exit(os.EX_SOFTWARE)
 
 
 @main.command()
@@ -41,13 +52,13 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     To send a single-line message to the LLM, provide the content as an argument:
 
     ```bash
-    devchat "What is the capital of France?"
+    devchat prompt "What is the capital of France?"
     ```
 
     To send a multi-line message to the LLM, use the here-doc syntax:
 
     ```bash
-    devchat << 'EOF'
+    devchat prompt << 'EOF'
     What is the capital of France?
     Can you tell me more about its history?
     EOF
@@ -116,7 +127,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     llm = config_data.get('llm')
 
     if llm == 'OpenAI':
-        try:
+        with handle_errors():
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
             prompt = Prompt(chat.config.model)
@@ -141,11 +152,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
                 else:
                     for index, response in prompt.responses.items():
                         click.echo(f"[{index}]: {response.content}")
-
-        except ValidationError as error:
-            click.echo(f"Error: {error}")
     else:
-        click.echo(f"Unknown LLM: {llm}")
+        click.echo(f"Unknown LLM: {llm}", err=True)
+        sys.exit(os.EX_DATAERR)
 
 
 @main.command()
