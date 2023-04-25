@@ -5,11 +5,14 @@ This module contains the main function for the DevChat CLI.
 
 from typing import Optional
 import json
-import click
+import rich_click as click
 from pydantic import ValidationError
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
+
+
+click.rich_click.USE_MARKDOWN = True
 
 
 @click.group()
@@ -19,18 +22,75 @@ def main():
 
 @main.command()
 @click.argument('content', required=False)
-@click.option('-h', '--help', is_flag=True, help='Show the help message and exit.')
-def prompt(content: Optional[str], help: bool):
+@click.option('-p', '--parent', help='Input the previous prompt hash to continue the conversation.')
+@click.option('-r', '--reference', help='Input one or more specific previous prompt hashes to '
+              'include in the current prompt.')
+@click.option('--header', help='Input one or more files for the prompt header.')
+@click.option('--context', help='Input one or more files for the prompt context.')
+def prompt(content: Optional[str], parent: Optional[str], reference: Optional[str],
+           header: Optional[str], context: Optional[str]):
     """
     Main function to run the chat application.
 
     This function initializes the chat system based on the specified large language model (LLM),
     and performs interactions with the user by sending prompts and retrieving responses.
-    """
-    if help:
-        print_help()
-        return
 
+    Examples
+    --------
+
+    To send a single-line message to the LLM, provide the content as an argument:
+
+    ```bash
+    devchat "What is the capital of France?"
+    ```
+
+    To send a multi-line message to the LLM, use the here-doc syntax:
+
+    ```bash
+    devchat << 'EOF'
+    What is the capital of France?
+    Can you tell me more about its history?
+    EOF
+    ```
+
+    Note the quotes around EOF in the first line, to prevent the shell from expanding variables.
+
+    Configuration
+    -------------
+
+    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
+    If the file is not found, it uses the following default configuration:
+    ```json
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.2
+        }
+    }
+    ```
+
+    To customize the configuration, create a `.chatconfig.json` file in the current directory and
+    modify the settings as needed. We recoommend the following settings:
+    ```json
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-4",
+            "temperature": 0.2,
+            "stream": true
+        }
+    }
+    ```
+
+    Note: To use OpenAI's APIs, you must have an API key to run the CLI.
+    Run the following command line with your API key:
+
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    ```
+
+    """
     if content is None:
         content = click.get_text_stream('stdin').read()
 
@@ -97,91 +157,3 @@ def log(skip, max_count):
     """
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
     pass
-
-
-def print_help():
-    """
-    Print the help message for the DevChat CLI.
-    """
-    help_text = """
-    This manual provides instructions on how to use the DevChat CLI,
-    a command-line interface for interacting with a large language model (LLM).
-
-    Usage
-    -----
-
-    To use the DevChat CLI, run the following command:
-
-    ```
-    devchat [OPTIONS] [CONTENT]
-    ```
-
-    Arguments
-    ---------
-
-    - `content` (optional): One or more lines of text as a message or prompt.
-                            If not provided, the CLI will read from standard input.
-
-    Options
-    -------
-
-    - `-h`, `--help`: Show the help manual and exit.
-
-    Examples
-    --------
-
-    ### Single-line input
-
-    To send a single-line message to the LLM, provide the content as an argument:
-
-    ```
-    devchat "What is the capital of France?"
-    ```
-
-    ### Multi-line input using here-doc
-
-    To send a multi-line message to the LLM, use the here-doc syntax:
-
-    ```bash
-    devchat << 'EOF'
-    What is the capital of France?
-    Can you tell me more about its history?
-    EOF
-    ```
-    Note the quotes around EOF in the first line, to prevent the shell from expanding variables.
-
-    Configuration
-    -------------
-
-    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
-    If the file is not found, it uses the following default configuration:
-
-    ```json
-    {
-        "llm": "OpenAI",
-        "OpenAI": {
-            "model": "gpt-3.5-turbo",
-            "temperature": 0.2
-        }
-    }
-    ```
-
-    To customize the configuration, create a `.chatconfig.json` file in the current directory and
-    modify the settings as needed. We recoommend the following settings:
-    {
-        "llm": "OpenAI",
-        "OpenAI": {
-            "model": "gpt-4",
-            "temperature": 0.2,
-            "stream": true
-        }
-    }
-
-    Note: To use OpenAI's APIs, you must have an API key to run the CLI.
-    Run the following command line with your API key:
-
-    ```bash
-    export OPENAI_API_KEY="sk-..."
-    ```
-    """
-    click.echo(help_text)
