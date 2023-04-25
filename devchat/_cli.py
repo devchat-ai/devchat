@@ -12,10 +12,15 @@ from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
 
 
-@click.command()
+@click.group()
+def main():
+    pass
+
+
+@main.command()
 @click.argument('content', required=False)
 @click.option('-h', '--help', is_flag=True, help='Show the help message and exit.')
-def main(content: Optional[str], help: bool):
+def prompt(content: Optional[str], help: bool):
     """
     Main function to run the chat application.
 
@@ -28,6 +33,9 @@ def main(content: Optional[str], help: bool):
 
     if content is None:
         content = click.get_text_stream('stdin').read()
+
+    if content == '':
+        return
 
     default_config_data = {
         'llm': 'OpenAI',
@@ -80,6 +88,17 @@ def main(content: Optional[str], help: bool):
         click.echo(f"Unknown LLM: {llm}")
 
 
+@main.command()
+@click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
+@click.option('--max-count', default=100, help='Limit the number of commits to output.')
+def log(skip, max_count):
+    """
+    Show the prompt history.
+    """
+    # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
+    pass
+
+
 def print_help():
     """
     Print the help message for the DevChat CLI.
@@ -100,13 +119,13 @@ def print_help():
     Arguments
     ---------
 
-    - `content` (optional): One or more lines of text for the Message object.
+    - `content` (optional): One or more lines of text as a message or prompt.
                             If not provided, the CLI will read from standard input.
 
     Options
     -------
 
-    - `-h`, `--help`: Show the help message and exit.
+    - `-h`, `--help`: Show the help manual and exit.
 
     Examples
     --------
@@ -124,11 +143,12 @@ def print_help():
     To send a multi-line message to the LLM, use the here-doc syntax:
 
     ```bash
-    devchat << EOF
+    devchat << 'EOF'
     What is the capital of France?
     Can you tell me more about its history?
     EOF
     ```
+    Note the quotes around EOF in the first line, to prevent the shell from expanding variables.
 
     Configuration
     -------------
@@ -157,8 +177,8 @@ def print_help():
         }
     }
 
-    Note: If you are using an OpenAI's model, you must have an API key to use the CLI.
-    Run the following command line before using the CLI:
+    Note: To use OpenAI's APIs, you must have an API key to run the CLI.
+    Run the following command line with your API key:
 
     ```bash
     export OPENAI_API_KEY="sk-..."
