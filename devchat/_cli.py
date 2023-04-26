@@ -4,6 +4,7 @@ This module contains the main function for the DevChat CLI.
 
 
 import os
+import time
 from typing import Optional
 import json
 import sys
@@ -165,4 +166,30 @@ def log(skip, max_count):
     Show the prompt history.
     """
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
-    pass
+    logs = []
+    for n in range(skip, skip + max_count):
+        m = Message("user", f"Prompt {n}")
+        name, email = get_git_user_info()
+        p = Prompt("gpt-3.5-turbo", name, email)
+        p.append_message(m)
+        r = {
+            "model": "gpt-3.5-turbo-0301",
+            "created": int(time.time()),
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": f"Response {n}",
+                    }
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
+        }
+        p.set_response(json.dumps(r))
+        logs = p.shortlog() + logs
+    click.echo(logs)

@@ -1,6 +1,6 @@
 import json
 import hashlib
-from typing import Dict
+from typing import Dict, List
 from devchat.message import Message
 from devchat.utils import unix_to_local_datetime
 
@@ -18,18 +18,27 @@ class Prompt:
         request_tokens (int): The number of tokens used in the request.
         response_tokens (int): The number of tokens used in the response.
         responses (Dict[int, Message]): The responses indexed by an integer.
-        prompt_hashes (Dict[int, str]): The hashes of the prompts indexed by an integer.
     """
 
     def __init__(self, model: str, user_name: str, user_email: str):
         self.model: str = model
         self.user_name: str = user_name
         self.user_email: str = user_email
+        self.messages: List[Message] = []
         self.response_meta: dict = None
         self.response_time: int = None
         self.request_tokens: int = None
         self.response_tokens: int = None
         self.responses: Dict[int, Message] = {}
+
+    def append_message(self, message: Message):
+        """
+        Append a message to the prompt.
+
+        Args:
+            message (Message): The message to append.
+        """
+        self.messages.append(message)
 
     def set_response(self, response_str: str):
         """
@@ -42,8 +51,8 @@ class Prompt:
         self._validate_model(response_data)
 
         self.response_meta = {
-            'id': response_data['id'],
-            'object': response_data['object']
+            'id': response_data.get('id'),
+            'object': response_data.get('object')
         }
         self.response_time = response_data['created']
         self.request_tokens = response_data['usage']['prompt_tokens']
@@ -139,6 +148,21 @@ class Prompt:
         message = self.responses[index]
         message_hash = hashlib.sha1(message.content.encode()).hexdigest()
         return message_hash
+
+    def shortlog(self) -> List[str]:
+        if not self.messages or not self.responses:
+            raise ValueError("Prompt is incomplete.")
+        logs = []
+        for index, response in self.responses.items():
+            shortlog_data = {
+                "user": f'{self.user_name} <{self.user_email}>',
+                "date": self.response_time,
+                "last_message": self.messages[-1].content,
+                "response": response.content,
+                "hash": self.hash(index)
+            }
+            logs.append(json.dumps(shortlog_data))
+        return logs
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):
