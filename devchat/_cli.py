@@ -145,13 +145,13 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
                     else:
                         click.echo(delta_str, nl=False)
                 for index in range(1, len(prompt.responses)):
-                    click.echo(prompt.formatted_prompt(index) + '\n')
+                    click.echo(prompt.formatted_response(index) + '\n')
 
             else:
                 response_str = str(chat.complete_response())
                 prompt.set_response(response_str)
                 for index in prompt.responses.keys():
-                    click.echo(prompt.formatted_prompt(index) + '\n')
+                    click.echo(prompt.formatted_response(index) + '\n')
     else:
         click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
         sys.exit(os.EX_DATAERR)

@@ -123,7 +123,7 @@ class Prompt:
 
         return formatted_str
 
-    def formatted_prompt(self, index: int) -> str:
+    def formatted_response(self, index: int) -> str:
         formatted_str = self.formatted_header()
 
         response = self.responses.get(index, None)
