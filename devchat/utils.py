@@ -1,8 +1,9 @@
+import os
 import re
 import getpass
 import socket
 import subprocess
-from typing import Tuple
+from typing import List, Tuple
 import datetime
 import pytz
 from dateutil import tz
@@ -43,3 +44,16 @@ def is_valid_hash(hash_str):
     # depending on the algorithm used to generate them
     pattern = re.compile(r'^[a-fA-F0-9]{40}$')  # Example pattern for SHA-1 hash
     return bool(pattern.match(hash_str))
+
+
+def parse_file_paths(file_paths_str) -> List[str]:
+    if not file_paths_str:
+        return []
+
+    file_paths = file_paths_str.split(',')
+
+    for file_path in file_paths:
+        if not os.path.isfile(file_path):
+            raise ValueError(f"File {file_path} does not exist.")
+
+    return file_paths

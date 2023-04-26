@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
-from devchat.utils import get_git_user_info
+from devchat.utils import get_git_user_info, parse_file_paths
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -104,12 +104,6 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     ```
 
     """
-    if content is None:
-        content = click.get_text_stream('stdin').read()
-
-    if content == '':
-        return
-
     default_config_data = {
         'llm': 'OpenAI',
         'OpenAI': {
@@ -124,12 +118,21 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     except FileNotFoundError:
         config_data = default_config_data
 
-    message = Message("user", content)
+    with handle_errors():
+        if content is None:
+            content = click.get_text_stream('stdin').read()
 
-    llm = config_data.get('llm')
+        if content == '':
+            return
 
-    if llm == 'OpenAI':
-        with handle_errors():
+        parse_file_paths(header)
+        parse_file_paths(context)
+
+        message = Message("user", content)
+
+        llm = config_data.get('llm')
+
+        if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
 
@@ -153,9 +156,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
                 prompt.set_response(response_str)
                 for index in prompt.responses.keys():
                     click.echo(prompt.formatted_response(index) + '\n')
-    else:
-        click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
-        sys.exit(os.EX_DATAERR)
+        else:
+            click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
+            sys.exit(os.EX_DATAERR)
 
 
 @main.command()
