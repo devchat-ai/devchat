@@ -3,31 +3,112 @@ This module contains the main function for the DevChat CLI.
 """
 
 
+import os
+import time
 from typing import Optional
 import json
-import click
-from pydantic import ValidationError
+import sys
+import rich_click as click
+from contextlib import contextmanager
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
+from devchat.utils import get_git_user_info
 
 
-@click.command()
+click.rich_click.USE_MARKDOWN = True
+
+
+@click.group()
+def main():
+    pass
+
+
+@contextmanager
+def handle_errors():
+    try:
+        yield
+    except Exception as error:
+        click.echo(f"Error: {error}", err=True)
+        sys.exit(os.EX_SOFTWARE)
+
+
+@main.command()
 @click.argument('content', required=False)
-@click.option('-h', '--help', is_flag=True, help='Show the help message and exit.')
-def main(content: Optional[str], help: bool):
+@click.option('-p', '--parent', help='Input the previous prompt hash to continue the conversation.')
+@click.option('-r', '--reference', help='Input one or more specific previous prompt hashes to '
+              'include in the current prompt.')
+@click.option('--header', help='Input one or more files for the prompt header.')
+@click.option('--context', help='Input one or more files for the prompt context.')
+def prompt(content: Optional[str], parent: Optional[str], reference: Optional[str],
+           header: Optional[str], context: Optional[str]):
     """
     Main function to run the chat application.
 
     This function initializes the chat system based on the specified large language model (LLM),
     and performs interactions with the user by sending prompts and retrieving responses.
-    """
-    if help:
-        print_help()
-        return
 
+    Examples
+    --------
+
+    To send a single-line message to the LLM, provide the content as an argument:
+
+    ```bash
+    devchat prompt "What is the capital of France?"
+    ```
+
+    To send a multi-line message to the LLM, use the here-doc syntax:
+
+    ```bash
+    devchat prompt << 'EOF'
+    What is the capital of France?
+    Can you tell me more about its history?
+    EOF
+    ```
+
+    Note the quotes around EOF in the first line, to prevent the shell from expanding variables.
+
+    Configuration
+    -------------
+
+    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
+    If the file is not found, it uses the following default configuration:
+    ```json
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.2
+        }
+    }
+    ```
+
+    To customize the configuration, create a `.chatconfig.json` file in the current directory and
+    modify the settings as needed. We recoommend the following settings:
+    ```json
+    {
+        "llm": "OpenAI",
+        "OpenAI": {
+            "model": "gpt-4",
+            "temperature": 0.2,
+            "stream": true
+        }
+    }
+    ```
+
+    Note: To use OpenAI's APIs, you must have an API key to run the CLI.
+    Run the following command line with your API key:
+
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    ```
+
+    """
     if content is None:
         content = click.get_text_stream('stdin').read()
+
+    if content == '':
+        return
 
     default_config_data = {
         'llm': 'OpenAI',
@@ -48,10 +129,12 @@ def main(content: Optional[str], help: bool):
     llm = config_data.get('llm')
 
     if llm == 'OpenAI':
-        try:
+        with handle_errors():
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            prompt = Prompt(chat.config.model)
+
+            user, email = get_git_user_info()
+            prompt = Prompt(chat.config.model, user, email)
             chat.prompt([message])
 
             if openai_config.stream:
@@ -59,109 +142,54 @@ def main(content: Optional[str], help: bool):
                 for response_chunk in response_iterator:
                     delta_str = prompt.append_response(str(response_chunk))
                     if delta_str is None:
-                        click.echo()
+                        click.echo(f'\n\nprompt {prompt.hash(0)}\n')
                     else:
                         click.echo(delta_str, nl=False)
-                for i in range(1, len(prompt.responses)):
-                    click.echo(f"[{i}]: {prompt.responses[i].content}")
+                for index in range(1, len(prompt.responses)):
+                    click.echo(prompt.formatted_response(index) + '\n')
 
             else:
                 response_str = str(chat.complete_response())
                 prompt.set_response(response_str)
-                if len(prompt.responses) == 1:
-                    click.echo(prompt.responses[0].content)
-                else:
-                    for index, response in prompt.responses.items():
-                        click.echo(f"[{index}]: {response.content}")
-
-        except ValidationError as error:
-            click.echo(f"Error: {error}")
+                for index in prompt.responses.keys():
+                    click.echo(prompt.formatted_response(index) + '\n')
     else:
-        click.echo(f"Unknown LLM: {llm}")
+        click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
+        sys.exit(os.EX_DATAERR)
 
 
-def print_help():
+@main.command()
+@click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
+@click.option('--max-count', default=100, help='Limit the number of commits to output.')
+def log(skip, max_count):
     """
-    Print the help message for the DevChat CLI.
+    Show the prompt history.
     """
-    help_text = """
-    This manual provides instructions on how to use the DevChat CLI,
-    a command-line interface for interacting with a large language model (LLM).
-
-    Usage
-    -----
-
-    To use the DevChat CLI, run the following command:
-
-    ```
-    devchat [OPTIONS] [CONTENT]
-    ```
-
-    Arguments
-    ---------
-
-    - `content` (optional): One or more lines of text for the Message object.
-                            If not provided, the CLI will read from standard input.
-
-    Options
-    -------
-
-    - `-h`, `--help`: Show the help message and exit.
-
-    Examples
-    --------
-
-    ### Single-line input
-
-    To send a single-line message to the LLM, provide the content as an argument:
-
-    ```
-    devchat "What is the capital of France?"
-    ```
-
-    ### Multi-line input using here-doc
-
-    To send a multi-line message to the LLM, use the here-doc syntax:
-
-    ```bash
-    devchat << EOF
-    What is the capital of France?
-    Can you tell me more about its history?
-    EOF
-    ```
-
-    Configuration
-    -------------
-
-    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
-    If the file is not found, it uses the following default configuration:
-
-    ```json
-    {
-        "llm": "OpenAI",
-        "OpenAI": {
-            "model": "gpt-3.5-turbo",
-            "temperature": 0.2
+    # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
+    logs = []
+    for n in range(skip, skip + max_count):
+        m = Message("user", f"Prompt {n}")
+        name, email = get_git_user_info()
+        p = Prompt("gpt-3.5-turbo", name, email)
+        p.append_message(m)
+        r = {
+            "model": "gpt-3.5-turbo-0301",
+            "created": int(time.time()),
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": f"Response {n}",
+                    }
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
         }
-    }
-    ```
-
-    To customize the configuration, create a `.chatconfig.json` file in the current directory and
-    modify the settings as needed. We recoommend the following settings:
-    {
-        "llm": "OpenAI",
-        "OpenAI": {
-            "model": "gpt-4",
-            "temperature": 0.2,
-            "stream": true
-        }
-    }
-
-    Note: If you are using an OpenAI's model, you must have an API key to use the CLI.
-    Run the following command line before using the CLI:
-
-    ```bash
-    export OPENAI_API_KEY="sk-..."
-    ```
-    """
-    click.echo(help_text)
+        p.set_response(json.dumps(r))
+        logs = p.shortlog() + logs
+    click.echo(logs)
