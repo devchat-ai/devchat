@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from devchat.message import Message
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
+from devchat.utils import get_git_user_info
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -130,7 +131,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         with handle_errors():
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            prompt = Prompt(chat.config.model)
+
+            user, email = get_git_user_info()
+            prompt = Prompt(chat.config.model, user, email)
             chat.prompt([message])
 
             if openai_config.stream:
@@ -147,11 +150,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
             else:
                 response_str = str(chat.complete_response())
                 prompt.set_response(response_str)
-                if len(prompt.responses) == 1:
-                    click.echo(prompt.responses[0].content)
-                else:
-                    for index, response in prompt.responses.items():
-                        click.echo(f"[{index}]: {response.content}")
+                for index in prompt.responses.keys():
+                    click.echo(prompt.formatted_prompt(index))
     else:
         click.echo(f"Unknown LLM: {llm}", err=True)
         sys.exit(os.EX_DATAERR)

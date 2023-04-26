@@ -1,5 +1,7 @@
 import json
+import hashlib
 from devchat.message import Message
+from typing import Dict, List
 
 
 class Prompt:
@@ -8,20 +10,26 @@ class Prompt:
 
     Attributes:
         model (str): The model used for the chat API request, e.g., "gpt-3.5-turbo".
+        user_name (str): The name of the user.
+        user_email (str): The email address of the user.
         response_meta (dict): A dictionary containing the 'id' and 'object' fields of the response.
         response_time (int): The timestamp when the response was created.
         request_tokens (int): The number of tokens used in the request.
         response_tokens (int): The number of tokens used in the response.
-        messages (List[Message]): A list of Message instances containing the conversation messages.
+        responses (Dict[int, Message]): The responses indexed by an integer.
+        prompt_hashes (Dict[int, str]): The hashes of the prompts indexed by an integer.
     """
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, user_name: str, user_email: str):
         self.model: str = model
+        self.user_name: str = user_name
+        self.user_email: str = user_email
         self.response_meta: dict = None
         self.response_time: int = None
         self.request_tokens: int = None
         self.response_tokens: int = None
-        self.responses: dict = {}
+        self.responses: Dict[int, Message] = {}
+        self.prompt_hashes: Dict[int, str] = {}
 
     def set_response(self, response_str: str):
         """
@@ -43,6 +51,11 @@ class Prompt:
 
         self.responses = {
             choice['index']: Message.from_dict(choice['message'])
+            for choice in response_data['choices']
+        }
+
+        self.prompt_hashes = {
+            choice['index']: hashlib.sha1(choice['message']['content'].encode()).hexdigest()
             for choice in response_data['choices']
         }
 
@@ -69,6 +82,10 @@ class Prompt:
 
             if not delta:
                 # An empty delta indicates the end of the message
+                message = self.responses[index]
+                message_hash = hashlib.sha1(message.content.encode()).hexdigest()
+                self.prompt_hashes[index] = message_hash
+
                 if index == 0:
                     delta_content = None
                 continue
@@ -94,6 +111,22 @@ class Prompt:
                 delta_content = content
 
         return delta_content
+
+    def formatted_prompt(self) -> List[str]:
+        strings = []
+        for index, response in self.responses.items():
+            if response.content is None:
+                raise ValueError(f"Response {index} is incomplete.")
+
+            prompt_hash = self.prompt_hashes[index]
+            formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
+            formatted_str += f"Date: {self.response_time}\n\n"
+            formatted_str += response.content.strip() + "\n\n"
+            formatted_str += f"prompt {prompt_hash}"
+
+            strings.append(formatted_str)
+
+        return strings
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):
