@@ -151,9 +151,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
                 response_str = str(chat.complete_response())
                 prompt.set_response(response_str)
                 for index in prompt.responses.keys():
-                    click.echo(prompt.formatted_prompt(index))
+                    click.echo(prompt.formatted_prompt(index) + '\n')
     else:
-        click.echo(f"Unknown LLM: {llm}", err=True)
+        click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
         sys.exit(os.EX_DATAERR)
 
 

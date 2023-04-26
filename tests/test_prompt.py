@@ -3,10 +3,12 @@ import os
 import pytest
 from devchat.message import Message
 from devchat.prompt import Prompt
+from devchat.utils import get_git_user_info
 
 
 def test_prompt_init_and_set_response():
-    prompt = Prompt(model="gpt-3.5-turbo")
+    name, email = get_git_user_info()
+    prompt = Prompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
     assert prompt.model == "gpt-3.5-turbo"
 
     response_str = '''
@@ -43,7 +45,8 @@ def test_prompt_init_and_set_response():
 
 
 def test_prompt_model_mismatch():
-    prompt = Prompt(model="gpt-3.5-turbo")
+    name, email = get_git_user_info()
+    prompt = Prompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
 
     response_str = '''
     {
@@ -90,7 +93,8 @@ def stream_responses():
 
 
 def test_append_response(stream_responses):
-    prompt = Prompt("gpt-3.5-turbo-0301")
+    name, email = get_git_user_info()
+    prompt = Prompt("gpt-3.5-turbo-0301", name, email)
 
     for response in stream_responses:
         prompt.append_response(json.dumps(response))

@@ -1,7 +1,8 @@
 import json
 import hashlib
+from typing import Dict
 from devchat.message import Message
-from typing import Dict, List
+from devchat.utils import unix_to_local_datetime
 
 
 class Prompt:
@@ -112,21 +113,21 @@ class Prompt:
 
         return delta_content
 
-    def formatted_prompt(self) -> List[str]:
-        strings = []
-        for index, response in self.responses.items():
-            if response.content is None:
-                raise ValueError(f"Response {index} is incomplete.")
+    def formatted_prompt(self, index: int) -> str:
+        response = self.responses.get(index, None)
+        if response is None or response.content is None:
+            raise ValueError(f"Response {index} is incomplete.")
 
-            prompt_hash = self.prompt_hashes[index]
-            formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
-            formatted_str += f"Date: {self.response_time}\n\n"
-            formatted_str += response.content.strip() + "\n\n"
-            formatted_str += f"prompt {prompt_hash}"
+        prompt_hash = self.prompt_hashes[index]
+        formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
 
-            strings.append(formatted_str)
+        dt = unix_to_local_datetime(self.response_time)
+        formatted_str += f"Date: {dt.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
 
-        return strings
+        formatted_str += response.content.strip() + "\n\n"
+        formatted_str += f"prompt {prompt_hash}"
+
+        return formatted_str
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):
