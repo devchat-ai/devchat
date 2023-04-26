@@ -149,7 +149,7 @@ class Prompt:
         message_hash = hashlib.sha1(message.content.encode()).hexdigest()
         return message_hash
 
-    def shortlog(self) -> List[str]:
+    def shortlog(self) -> List[dict]:
         if not self.messages or not self.responses:
             raise ValueError("Prompt is incomplete.")
         logs = []
@@ -161,7 +161,7 @@ class Prompt:
                 "response": response.content,
                 "hash": self.hash(index)
             }
-            logs.append(json.dumps(shortlog_data))
+            logs.append(shortlog_data)
         return logs
 
     def _validate_model(self, response_data: dict):

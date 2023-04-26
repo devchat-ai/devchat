@@ -195,4 +195,4 @@ def log(skip, max_count):
         }
         p.set_response(json.dumps(r))
         logs = p.shortlog() + logs
-    click.echo(logs)
+    click.echo(json.dumps(logs))
