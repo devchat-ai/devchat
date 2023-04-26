@@ -30,7 +30,6 @@ class Prompt:
         self.request_tokens: int = None
         self.response_tokens: int = None
         self.responses: Dict[int, Message] = {}
-        self.prompt_hashes: Dict[int, str] = {}
 
     def set_response(self, response_str: str):
         """
@@ -73,6 +72,12 @@ class Prompt:
         response_data = json.loads(delta_str)
         self._validate_model(response_data)
 
+        self.response_meta = {
+            'id': response_data['id'],
+            'object': response_data['object']
+        }
+        self.response_time = response_data['created']
+
         delta_content = ""
         for choice in response_data['choices']:
             delta = choice.get('delta')
@@ -82,11 +87,7 @@ class Prompt:
                 raise ValueError("The 'delta' field is missing in the response.")
 
             if not delta:
-                # An empty delta indicates the end of the message
-                message = self.responses[index]
-                message_hash = hashlib.sha1(message.content.encode()).hexdigest()
-                self.prompt_hashes[index] = message_hash
-
+                # An empty delta indicates the end of the message.
                 if index == 0:
                     delta_content = None
                 continue
@@ -97,6 +98,7 @@ class Prompt:
             if role is not None:
                 if index not in self.responses:
                     self.responses[index] = Message(role)
+                    delta_content = self.formatted_header()
 
             if content is not None:
                 if index in self.responses:
@@ -109,25 +111,34 @@ class Prompt:
                     raise ValueError(f"Role information for index {index} is missing.")
 
             if index == 0 and content is not None:
-                delta_content = content
+                delta_content += content
 
         return delta_content
 
-    def formatted_prompt(self, index: int) -> str:
-        response = self.responses.get(index, None)
-        if response is None or response.content is None:
-            raise ValueError(f"Response {index} is incomplete.")
-
-        prompt_hash = self.prompt_hashes[index]
+    def formatted_header(self) -> str:
         formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
 
         dt = unix_to_local_datetime(self.response_time)
         formatted_str += f"Date: {dt.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
 
+        return formatted_str
+
+    def formatted_prompt(self, index: int) -> str:
+        formatted_str = self.formatted_header()
+
+        response = self.responses.get(index, None)
+        if response is None or response.content is None:
+            raise ValueError(f"Response {index} is incomplete.")
+
         formatted_str += response.content.strip() + "\n\n"
-        formatted_str += f"prompt {prompt_hash}"
+        formatted_str += f"prompt {self.hash(index)}"
 
         return formatted_str
+
+    def hash(self, index: int) -> str:
+        message = self.responses[index]
+        message_hash = hashlib.sha1(message.content.encode()).hexdigest()
+        return message_hash
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):

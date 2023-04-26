@@ -141,11 +141,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
                 for response_chunk in response_iterator:
                     delta_str = prompt.append_response(str(response_chunk))
                     if delta_str is None:
-                        click.echo()
+                        click.echo(f'\n\nprompt {prompt.hash(0)}\n')
                     else:
                         click.echo(delta_str, nl=False)
-                for i in range(1, len(prompt.responses)):
-                    click.echo(f"[{i}]: {prompt.responses[i].content}")
+                for index in range(1, len(prompt.responses)):
+                    click.echo(prompt.formatted_prompt(index) + '\n')
 
             else:
                 response_str = str(chat.complete_response())
