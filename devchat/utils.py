@@ -1,5 +1,5 @@
 import re
-import os
+import getpass
 import socket
 import subprocess
 from typing import Tuple
@@ -26,7 +26,7 @@ def get_git_user_info() -> Tuple[str, str]:
         cmd = ['git', 'config', 'user.name']
         git_user_name = subprocess.check_output(cmd).decode('utf-8').strip()
     except subprocess.CalledProcessError:
-        git_user_name = os.getlogin()
+        git_user_name = getpass.getuser()
 
     try:
         cmd = ['git', 'config', 'user.email']
