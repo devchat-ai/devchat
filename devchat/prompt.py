@@ -1,7 +1,7 @@
 import json
 import hashlib
 from typing import Dict, List
-from devchat.message import OpenAIMessage
+from devchat.openai import OpenAIMessage
 from devchat.utils import unix_to_local_datetime
 
 

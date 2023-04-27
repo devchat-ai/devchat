@@ -1,5 +1,5 @@
 import pytest
-from devchat.message import OpenAIMessage
+from devchat.openai import OpenAIMessage
 
 
 def test_valid_message_creation():

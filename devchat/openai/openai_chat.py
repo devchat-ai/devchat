@@ -1,8 +1,8 @@
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
-from devchat.message import OpenAIMessage
 from devchat.chat import Chat
+from devchat.openai.openai_message import OpenAIMessage
 
 
 class OpenAIChatConfig(BaseModel):

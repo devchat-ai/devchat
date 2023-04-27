@@ -1,7 +1,7 @@
 import json
 import os
 import pytest
-from devchat.message import OpenAIMessage
+from devchat.openai import OpenAIMessage
 from devchat.prompt import Prompt
 from devchat.utils import get_git_user_info
 

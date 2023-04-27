@@ -10,8 +10,8 @@ import json
 import sys
 import rich_click as click
 from contextlib import contextmanager
-from devchat.message import OpenAIMessage
-from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
+from devchat.openai import OpenAIMessage
+from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
 from devchat.utils import get_git_user_info, parse_file_paths
 
