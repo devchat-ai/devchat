@@ -1,7 +1,7 @@
 import json
 import hashlib
 from typing import Dict, List
-from devchat.message import Message
+from devchat.message import OpenAIMessage
 from devchat.utils import unix_to_local_datetime
 
 
@@ -24,14 +24,14 @@ class Prompt:
         self.model: str = model
         self.user_name: str = user_name
         self.user_email: str = user_email
-        self.messages: List[Message] = []
+        self.messages: List[OpenAIMessage] = []
         self.response_meta: dict = None
         self.response_time: int = None
         self.request_tokens: int = None
         self.response_tokens: int = None
-        self.responses: Dict[int, Message] = {}
+        self.responses: Dict[int, OpenAIMessage] = {}
 
-    def append_message(self, message: Message):
+    def append_message(self, message: OpenAIMessage):
         """
         Append a message to the prompt.
 
@@ -59,7 +59,7 @@ class Prompt:
         self.response_tokens = response_data['usage']['completion_tokens']
 
         self.responses = {
-            choice['index']: Message.from_dict(choice['message'])
+            choice['index']: OpenAIMessage.from_dict(choice['message'])
             for choice in response_data['choices']
         }
 
@@ -106,7 +106,7 @@ class Prompt:
 
             if role is not None:
                 if index not in self.responses:
-                    self.responses[index] = Message(role)
+                    self.responses[index] = OpenAIMessage(role)
                     delta_content = self.formatted_header()
 
             if content is not None:

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Iterator
-from devchat.message import Message
+from devchat.message import OpenAIMessage
 
 
 class Chat(ABC):
@@ -13,7 +13,7 @@ class Chat(ABC):
     """
 
     @abstractmethod
-    def prompt(self, messages: List[Message]) -> None:
+    def prompt(self, messages: List[OpenAIMessage]) -> None:
         """Send a list of Message objects as a prompt to the chat system."""
 
     @abstractmethod

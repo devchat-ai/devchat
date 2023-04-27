@@ -1,7 +1,7 @@
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
-from devchat.message import Message
+from devchat.message import OpenAIMessage
 from devchat.chat import Chat
 
 
@@ -42,7 +42,7 @@ class OpenAIChat(Chat):
         self.config = config
         self._messages = []
 
-    def prompt(self, messages: List[Message]) -> None:
+    def prompt(self, messages: List[OpenAIMessage]) -> None:
         """
         Prompt the chat system with a list of Message objects.
 

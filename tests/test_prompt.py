@@ -1,7 +1,7 @@
 import json
 import os
 import pytest
-from devchat.message import Message
+from devchat.message import OpenAIMessage
 from devchat.prompt import Prompt
 from devchat.utils import get_git_user_info
 
@@ -100,8 +100,8 @@ def test_append_response(stream_responses):
         prompt.append_response(json.dumps(response))
 
     expected_messages = [
-        Message(role='assistant', content='Tomorrow.'),
-        Message(role='assistant', content='Tomorrow!')
+        OpenAIMessage(role='assistant', content='Tomorrow.'),
+        OpenAIMessage(role='assistant', content='Tomorrow!')
     ]
 
     assert len(prompt.responses) == len(expected_messages)

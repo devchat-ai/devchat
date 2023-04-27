@@ -10,7 +10,7 @@ import json
 import sys
 import rich_click as click
 from contextlib import contextmanager
-from devchat.message import Message
+from devchat.message import OpenAIMessage
 from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
 from devchat.prompt import Prompt
 from devchat.utils import get_git_user_info, parse_file_paths
@@ -128,7 +128,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         parse_file_paths(header)
         parse_file_paths(context)
 
-        message = Message("user", content)
+        message = OpenAIMessage("user", content)
 
         llm = config_data.get('llm')
 
@@ -171,7 +171,7 @@ def log(skip, max_count):
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
     logs = []
     for n in range(skip, skip + max_count):
-        m = Message("user", f"Prompt {n}")
+        m = OpenAIMessage("user", f"Prompt {n}")
         name, email = get_git_user_info()
         p = Prompt("gpt-3.5-turbo", name, email)
         p.append_message(m)
