@@ -11,20 +11,22 @@ class MessageType(Enum):
 
 class Message(ABC):
     def __init__(self, message_type: MessageType, content: Optional[str] = None):
-        self._content = content
+        if not isinstance(message_type, MessageType):
+            raise ValueError("Invalid message type")
         self._type = message_type
+        self._content = content
 
     @property
     def content(self) -> Optional[str]:
         return self._content
 
     @content.setter
-    def content(self, value: str) -> None:
+    def content(self, value: str):
         if value == "":
             raise ValueError("Content cannot be an empty string.")
         self._content = value
 
-    def append_content(self, value: str) -> None:
+    def append_content(self, value: str):
         if self._content is None:
             self._content = value
         else:
