@@ -82,23 +82,23 @@ def stream_responses():
     sorted_file_names = sorted(file_names, key=lambda x: int(x.split('.')[0][8:]))
 
     for file_name in sorted_file_names:
-        with open(os.path.join(folder_path, file_name), 'r') as file:
+        with open(os.path.join(folder_path, file_name), 'r', encoding='utf-8') as file:
             response = json.load(file)
             responses.append(response)
 
     return responses
 
 
-def test_append_response(stream_responses):
+def test_append_response(responses):
     name, email = get_git_user_info()
     prompt = OpenAIPrompt("gpt-3.5-turbo-0301", name, email)
 
-    for response in stream_responses:
+    for response in responses:
         prompt.append_response(json.dumps(response))
 
     expected_messages = [
-        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow.'),
-        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow!')
+        OpenAIMessage(message_type=MessageType.CONTEXT, role='assistant', content='Tomorrow.'),
+        OpenAIMessage(message_type=MessageType.CONTEXT, role='assistant', content='Tomorrow!')
     ]
 
     assert len(prompt.responses) == len(expected_messages)

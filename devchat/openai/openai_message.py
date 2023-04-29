@@ -6,16 +6,16 @@ class OpenAIMessage(Message):
     """A class to represent a message in a conversation with OpenAI.
 
     Attributes:
-        type (MessageType): the type of the message. One of 'instruction', 'example', or 'context'.
+        type (MessageType): the type of the message. One of 'instruction', 'context', or 'record'.
         role (str): The role of the author of the message. One of 'system', 'user', or 'assistant'.
         content (str, optional): The content of the message.
         name (str, optional): The name of the author of the message. May contain a-z, A-Z, 0-9, and
                               underscores, with a maximum length of 64 characters.
     """
 
-    def __init__(self, type: MessageType,
+    def __init__(self, message_type: MessageType,
                  role: str, content: str, name: Optional[str] = None):
-        super().__init__(type, content)
+        super().__init__(message_type, content)
         self._role = role
         self._name = name
 
@@ -35,7 +35,7 @@ class OpenAIMessage(Message):
         return self._name
 
     @classmethod
-    def from_dict(cls, type: MessageType, message_data: Dict) -> 'OpenAIMessage':
+    def from_dict(cls, message_type: MessageType, message_data: Dict) -> 'OpenAIMessage':
         """Construct a Message instance from a dictionary.
 
         Args:
@@ -47,7 +47,7 @@ class OpenAIMessage(Message):
             Message: A new Message instance with the attributes set from the dictionary.
         """
         return cls(
-            type=type,
+            message_type=message_type,
             role=message_data['role'],
             content=message_data.get('content', ''),
             name=message_data.get('name')

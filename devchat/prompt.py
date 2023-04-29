@@ -69,7 +69,6 @@ class Prompt(ABC):
         Args:
             message (Message): The message to append.
         """
-        pass
 
     @abstractmethod
     def set_response(self, response_str: str):
@@ -79,7 +78,6 @@ class Prompt(ABC):
         Args:
             response_str (str): The JSON-formatted response string from the chat API.
         """
-        pass
 
     @abstractmethod
     def append_response(self, delta_str: str) -> str:
@@ -92,17 +90,18 @@ class Prompt(ABC):
         Returns:
             str: The delta content with index 0. None when the response is over.
         """
-        pass
 
     def formatted_header(self) -> str:
+        """Formatted string header of the prompt."""
         formatted_str = f"User: {self._user_name} <{self._user_email}>\n"
 
-        dt = unix_to_local_datetime(self._timestamp)
-        formatted_str += f"Date: {dt.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
+        local_time = unix_to_local_datetime(self._timestamp)
+        formatted_str += f"Date: {local_time.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
 
         return formatted_str
 
     def formatted_response(self, index: int) -> str:
+        """Formatted response of the prompt."""
         formatted_str = self.formatted_header()
 
         response = self._responses.get(index, None)
@@ -115,11 +114,13 @@ class Prompt(ABC):
         return formatted_str
 
     def hash(self, index: int) -> str:
+        """Hash the prompt with the response at the given index."""
         message = self._responses[index]
         message_hash = hashlib.sha1(message.content.encode()).hexdigest()
         return message_hash
 
     def shortlog(self) -> List[dict]:
+        """Generate a shortlog of the prompt."""
         if not self._messages or not self._responses:
             raise ValueError("Prompt is incomplete.")
         logs = []

@@ -16,13 +16,14 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
-            pip install flake8 pytest
+            pip install flake8 pylint pytest
       - run:
-          name: Run flake8
+          name: Run pylint and flake8
           command: |
             . venv/bin/activate
             export PYTHONPATH=.
-            flake8 devchat
+            pylint devchat tests
+            flake8 devchat tests
       - run:
           name: Run pytest
           command: |

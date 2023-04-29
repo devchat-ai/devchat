@@ -39,7 +39,7 @@ def test_main_with_temp_config_file():
     temp_dir = tempfile.mkdtemp()
     temp_config_path = os.path.join(temp_dir, ".chatconfig.json")
 
-    with open(temp_config_path, "w") as temp_config_file:
+    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
         json.dump(config_data, temp_config_file)
 
     original_cwd = os.getcwd()

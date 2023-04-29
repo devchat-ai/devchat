@@ -5,9 +5,8 @@ from typing import Optional
 
 class MessageType(Enum):
     INSTRUCTION = "instruction"
-    EXAMPLE = "example"
-    CONTEXT = "context"
     RECORD = "record"
+    CONTEXT = "context"
 
 
 class Message(ABC):
@@ -27,22 +26,19 @@ class Message(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, type: MessageType, message_data: dict) -> "Message":
+    def from_dict(cls, message_type: MessageType, message_data: dict) -> "Message":
         """
         Construct a Message instance from a dictionary returned from a chat API.
         """
-        pass
 
     @abstractmethod
     def append_from_dict(self, message_data: dict) -> str:
         """
         Append to the message from a dictionary returned from a chat API.
         """
-        pass
 
     @abstractmethod
     def to_dict(self) -> dict:
         """
         Convert the Message object to a dictionary for calling a chat API.
         """
-        pass

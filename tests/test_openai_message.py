@@ -4,14 +4,14 @@ from devchat.openai import OpenAIMessage
 
 
 def test_valid_message_creation():
-    message = OpenAIMessage(type=MessageType.CONTEXT, role="user", content="Hello, World!")
+    message = OpenAIMessage(message_type=MessageType.CONTEXT, role="user", content="Hello, World!")
     assert message.role == "user"
     assert message.content == "Hello, World!"
     assert message.name is None
 
 
 def test_valid_message():
-    message = OpenAIMessage(MessageType.EXAMPLE, "user", "Hello, World!", "John_Doe")
+    message = OpenAIMessage(MessageType.RECORD, "user", "Hello, World!", "John_Doe")
     assert message.to_dict() == {"role": "user", "content": "Hello, World!", "name": "John_Doe"}
 
 
@@ -26,7 +26,7 @@ def test_invalid_type():
 
 
 def test_none_content():
-    message = OpenAIMessage(type=MessageType.INSTRUCTION, role="system", content=None)
+    message = OpenAIMessage(message_type=MessageType.INSTRUCTION, role="system", content=None)
     assert message.content is None
 
 
@@ -46,7 +46,7 @@ def test_blank_name():
 
 
 def test_none_name():
-    message = OpenAIMessage(MessageType.EXAMPLE, "user", "Hello, World!", None)
+    message = OpenAIMessage(MessageType.RECORD, "user", "Hello, World!", None)
     assert message.to_dict() == {"role": "user", "content": "Hello, World!"}
 
 
