@@ -25,6 +25,7 @@ class Chat(ABC):
             str: A JSON string representing the complete response from the chat system.
         """
 
+    @abstractmethod
     def stream_response(self) -> Iterator[str]:
         """
         Retrieve a streaming response as an iterator of JSON strings from the chat system.
@@ -33,4 +34,3 @@ class Chat(ABC):
             Iterator[str]: An iterator over JSON strings representing the streaming response
                            events from the chat system.
         """
-        raise NotImplementedError("stream_response() not supported.")

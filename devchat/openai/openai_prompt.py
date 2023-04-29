@@ -12,7 +12,16 @@ class OpenAIPrompt(Prompt):
 
     def __init__(self, model: str, user_name: str, user_email: str):
         super().__init__(user_name, user_email)
-        self.model: str = model
+        self._model: str = model
+        self._id: str = None
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     def append_message(self, message: OpenAIMessage):
         """
@@ -21,7 +30,7 @@ class OpenAIPrompt(Prompt):
         Args:
             message (Message): The message to append.
         """
-        self.messages.append(message)
+        self._messages.append(message)
 
     def set_response(self, response_str: str):
         """
@@ -32,17 +41,18 @@ class OpenAIPrompt(Prompt):
         """
         response_data = json.loads(response_str)
         self._validate_model(response_data)
+        self._timestamp_from_dict(response_data)
+        self._id_from_dict(response_data)
 
-        self.response_time = response_data['created']
-        self.request_tokens = response_data['usage']['prompt_tokens']
-        self.response_tokens = response_data['usage']['completion_tokens']
+        self._request_tokens = response_data['usage']['prompt_tokens']
+        self._response_tokens = response_data['usage']['completion_tokens']
 
-        self.responses = {
+        self._responses = {
             choice['index']: OpenAIMessage.from_dict(MessageType.RECORD, choice['message'])
             for choice in response_data['choices']
         }
 
-        self.prompt_hashes = {
+        self._hashes = {
             choice['index']: hashlib.sha1(choice['message']['content'].encode()).hexdigest()
             for choice in response_data['choices']
         }
@@ -59,47 +69,24 @@ class OpenAIPrompt(Prompt):
         """
         response_data = json.loads(delta_str)
         self._validate_model(response_data)
+        self._timestamp_from_dict(response_data)
+        self._id_from_dict(response_data)
 
-        self.response_meta = {
-            'id': response_data['id'],
-            'object': response_data['object']
-        }
-        self.response_time = response_data['created']
-
-        delta_content = ""
+        delta_content = ''
         for choice in response_data['choices']:
-            delta = choice.get('delta')
-            index = choice.get('index')
+            delta = choice['delta']
+            index = choice['index']
 
-            if delta is None:
-                raise ValueError("The 'delta' field is missing in the response.")
-
-            if not delta:
-                # An empty delta indicates the end of the message.
+            if index not in self.responses:
+                self.responses[index] = OpenAIMessage.from_dict(MessageType.RECORD, delta)
                 if index == 0:
-                    delta_content = None
-                continue
-
-            role = delta.get('role')
-            content = delta.get('content')
-
-            if role is not None:
-                if index not in self.responses:
-                    self.responses[index] = OpenAIMessage(MessageType.CONTEXT, role)
                     delta_content = self.formatted_header()
-
-            if content is not None:
-                if index in self.responses:
-                    message = self.responses[index]
-                    if message.content is None:
-                        message.content = content
-                    else:
-                        message.content += content
+                    delta_content += self.responses[0].content
+            else:
+                if index == 0:
+                    delta_content = self.responses[0].append_from_dict(delta)
                 else:
-                    raise ValueError(f"Role information for index {index} is missing.")
-
-            if index == 0 and content is not None:
-                delta_content += content
+                    self.responses[index].append_from_dict(delta)
 
         return delta_content
 
@@ -107,3 +94,17 @@ class OpenAIPrompt(Prompt):
         if not response_data['model'].startswith(self.model):
             raise ValueError(f"Model mismatch: expected '{self.model}', "
                              f"got '{response_data['model']}'")
+
+    def _timestamp_from_dict(self, response_data: dict):
+        if self._timestamp is None:
+            self._timestamp = response_data['created']
+        elif self._timestamp != response_data['created']:
+            raise ValueError(f"Time mismatch: expected {self._timestamp}, "
+                             f"got {response_data['created']}")
+
+    def _id_from_dict(self, response_data: dict):
+        if self._id is None:
+            self._id = response_data['id']
+        elif self._id != response_data['id']:
+            raise ValueError(f"ID mismatch: expected {self._id}, "
+                             f"got {response_data['id']}")

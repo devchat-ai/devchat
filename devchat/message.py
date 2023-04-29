@@ -5,43 +5,40 @@ from typing import Optional
 
 class MessageType(Enum):
     INSTRUCTION = "instruction"
-    EXAMPLE = "example"
-    CONTEXT = "context"
     RECORD = "record"
+    CONTEXT = "context"
 
 
 class Message(ABC):
-    def __init__(self, message_type: MessageType, content: Optional[str] = None):
+    def __init__(self, message_type: MessageType, content: Optional[str] = ""):
         if not isinstance(message_type, MessageType):
             raise ValueError("Invalid message type")
         self._type = message_type
         self._content = content
 
     @property
-    def content(self) -> Optional[str]:
-        return self._content
-
-    @content.setter
-    def content(self, value: str):
-        if value == "":
-            raise ValueError("Content cannot be an empty string.")
-        self._content = value
-
-    def append_content(self, value: str):
-        if self._content is None:
-            self._content = value
-        else:
-            self._content += value
-
-    @property
     def type(self) -> MessageType:
         return self._type
 
+    @property
+    def content(self) -> str:
+        return self._content
+
     @classmethod
     @abstractmethod
-    def from_dict(cls, type: MessageType, message_data: dict) -> "Message":
-        pass
+    def from_dict(cls, message_type: MessageType, message_data: dict) -> "Message":
+        """
+        Construct a Message instance from a dictionary returned from a chat API.
+        """
+
+    @abstractmethod
+    def append_from_dict(self, message_data: dict) -> str:
+        """
+        Append to the message from a dictionary returned from a chat API.
+        """
 
     @abstractmethod
     def to_dict(self) -> dict:
-        pass
+        """
+        Convert the Message object to a dictionary for calling a chat API.
+        """

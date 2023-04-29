@@ -33,7 +33,7 @@ def test_prompt_init_and_set_response():
     '''
     prompt.set_response(response_str)
 
-    assert prompt.response_time == 1677649420
+    assert prompt.timestamp == 1677649420
     assert prompt.request_tokens == 56
     assert prompt.response_tokens == 31
     assert len(prompt.responses) == 1
@@ -72,33 +72,33 @@ def test_prompt_model_mismatch():
         prompt.set_response(response_str)
 
 
-@pytest.fixture(scope="module")
-def stream_responses():
+@pytest.fixture(scope="module", name='responses')
+def fixture_responses():
     current_dir = os.path.dirname(__file__)
     folder_path = os.path.join(current_dir, "stream_responses")
-    responses = []
+    stream_responses = []
 
     file_names = os.listdir(folder_path)
     sorted_file_names = sorted(file_names, key=lambda x: int(x.split('.')[0][8:]))
 
     for file_name in sorted_file_names:
-        with open(os.path.join(folder_path, file_name), 'r') as file:
+        with open(os.path.join(folder_path, file_name), 'r', encoding='utf-8') as file:
             response = json.load(file)
-            responses.append(response)
+            stream_responses.append(response)
 
-    return responses
+    return stream_responses
 
 
-def test_append_response(stream_responses):
+def test_append_response(responses):
     name, email = get_git_user_info()
     prompt = OpenAIPrompt("gpt-3.5-turbo-0301", name, email)
 
-    for response in stream_responses:
+    for response in responses:
         prompt.append_response(json.dumps(response))
 
     expected_messages = [
-        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow.'),
-        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow!')
+        OpenAIMessage(message_type=MessageType.CONTEXT, role='assistant', content='Tomorrow.'),
+        OpenAIMessage(message_type=MessageType.CONTEXT, role='assistant', content='Tomorrow!')
     ]
 
     assert len(prompt.responses) == len(expected_messages)
