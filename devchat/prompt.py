@@ -20,13 +20,46 @@ class Prompt(ABC):
     """
 
     def __init__(self, user_name: str, user_email: str):
-        self.user_name: str = user_name
-        self.user_email: str = user_email
-        self.messages: List[Message] = []
-        self.responses: Dict[int, Message] = {}
-        self.time: int = None
-        self.request_tokens: int = None
-        self.response_tokens: int = None
+        self._user_name: str = user_name
+        self._user_email: str = user_email
+        self._timestamp: int = None
+        self._messages: List[Message] = []
+        self._responses: Dict[int, Message] = {}
+        self._request_tokens: int = None
+        self._response_tokens: int = None
+        self._hashes: Dict[int, str] = {}
+
+    @property
+    def user_name(self) -> str:
+        return self._user_name
+
+    @property
+    def user_email(self) -> str:
+        return self._user_email
+
+    @property
+    def timestamp(self) -> int:
+        return self._timestamp
+
+    @property
+    def messages(self) -> List[Message]:
+        return self._messages
+
+    @property
+    def responses(self) -> Dict[int, Message]:
+        return self._responses
+
+    @property
+    def request_tokens(self) -> int:
+        return self._request_tokens
+
+    @property
+    def response_tokens(self) -> int:
+        return self._response_tokens
+
+    @property
+    def hashes(self) -> Dict[int, str]:
+        return self._hashes
 
     @abstractmethod
     def append_message(self, message: Message):
@@ -62,9 +95,9 @@ class Prompt(ABC):
         pass
 
     def formatted_header(self) -> str:
-        formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
+        formatted_str = f"User: {self._user_name} <{self._user_email}>\n"
 
-        dt = unix_to_local_datetime(self.response_time)
+        dt = unix_to_local_datetime(self._timestamp)
         formatted_str += f"Date: {dt.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
 
         return formatted_str
@@ -72,7 +105,7 @@ class Prompt(ABC):
     def formatted_response(self, index: int) -> str:
         formatted_str = self.formatted_header()
 
-        response = self.responses.get(index, None)
+        response = self._responses.get(index, None)
         if response is None or response.content is None:
             raise ValueError(f"Response {index} is incomplete.")
 
@@ -82,19 +115,19 @@ class Prompt(ABC):
         return formatted_str
 
     def hash(self, index: int) -> str:
-        message = self.responses[index]
+        message = self._responses[index]
         message_hash = hashlib.sha1(message.content.encode()).hexdigest()
         return message_hash
 
     def shortlog(self) -> List[dict]:
-        if not self.messages or not self.responses:
+        if not self._messages or not self._responses:
             raise ValueError("Prompt is incomplete.")
         logs = []
-        for index, response in self.responses.items():
+        for index, response in self._responses.items():
             shortlog_data = {
-                "user": f'{self.user_name} <{self.user_email}>',
-                "date": self.time,
-                "last_message": self.messages[-1].content,
+                "user": f'{self._user_name} <{self._user_email}>',
+                "date": self._timestamp,
+                "last_message": self._messages[-1].content,
                 "response": response.content,
                 "hash": self.hash(index)
             }

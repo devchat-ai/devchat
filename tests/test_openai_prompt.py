@@ -33,7 +33,7 @@ def test_prompt_init_and_set_response():
     '''
     prompt.set_response(response_str)
 
-    assert prompt.response_time == 1677649420
+    assert prompt.timestamp == 1677649420
     assert prompt.request_tokens == 56
     assert prompt.response_tokens == 31
     assert len(prompt.responses) == 1

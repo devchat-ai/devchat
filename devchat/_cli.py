@@ -142,12 +142,10 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()
-                for response_chunk in response_iterator:
-                    delta_str = prompt.append_response(str(response_chunk))
-                    if delta_str is None:
-                        click.echo(f'\n\nprompt {prompt.hash(0)}\n')
-                    else:
-                        click.echo(delta_str, nl=False)
+                for chunk in response_iterator:
+                    delta_str = prompt.append_response(str(chunk))
+                    click.echo(delta_str, nl=False)
+                click.echo(f'\n\nprompt {prompt.hash(0)}\n')
                 for index in range(1, len(prompt.responses)):
                     click.echo(prompt.formatted_response(index) + '\n')
 
@@ -170,12 +168,12 @@ def log(skip, max_count):
     """
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
     logs = []
-    for n in range(skip, skip + max_count):
-        m = OpenAIMessage(MessageType.CONTEXT, "user", f"Prompt {n}")
+    for index in range(skip, skip + max_count):
+        message = OpenAIMessage(MessageType.CONTEXT, "user", f"Prompt {index}")
         name, email = get_git_user_info()
-        p = OpenAIPrompt("gpt-3.5-turbo", name, email)
-        p.append_message(m)
-        r = {
+        prompt = OpenAIPrompt("gpt-3.5-turbo", name, email)
+        prompt.append_message(message)
+        response = {
             "model": "gpt-3.5-turbo-0301",
             "created": int(time.time()),
             "choices": [
@@ -193,6 +191,6 @@ def log(skip, max_count):
                 "total_tokens": 0,
             }
         }
-        p.set_response(json.dumps(r))
-        logs = p.shortlog() + logs
+        prompt.set_response(json.dumps(response))
+        logs = prompt.shortlog() + logs
     click.echo(json.dumps(logs))

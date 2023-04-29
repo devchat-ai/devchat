@@ -13,11 +13,11 @@ class OpenAIMessage(Message):
                               underscores, with a maximum length of 64 characters.
     """
 
-    def __init__(self, type: MessageType, role: str,
-                 content: Optional[str] = None, name: Optional[str] = None):
+    def __init__(self, type: MessageType,
+                 role: str, content: str, name: Optional[str] = None):
         super().__init__(type, content)
-        self.role = role
-        self.name = name
+        self._role = role
+        self._name = name
 
         if not self._validate_role():
             raise ValueError("Invalid role. Must be one of 'system', 'user', or 'assistant'.")
@@ -26,6 +26,14 @@ class OpenAIMessage(Message):
             raise ValueError("Invalid name. Must contain a-z, A-Z, 0-9, and underscores, "
                              "with a maximum length of 64 characters.")
 
+    @property
+    def role(self) -> str:
+        return self._role
+
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
+
     @classmethod
     def from_dict(cls, type: MessageType, message_data: Dict) -> 'OpenAIMessage':
         """Construct a Message instance from a dictionary.
@@ -33,7 +41,7 @@ class OpenAIMessage(Message):
         Args:
             type (MessageType): The type of the message.
             message_data (Dict): A dictionary containing the message data with keys 'role',
-                                 'content', and an optional 'name'.
+                                 'content' (empty when it is a delta), and an optional 'name'.
 
         Returns:
             Message: A new Message instance with the attributes set from the dictionary.
@@ -41,9 +49,15 @@ class OpenAIMessage(Message):
         return cls(
             type=type,
             role=message_data['role'],
-            content=message_data['content'],
+            content=message_data.get('content', ''),
             name=message_data.get('name')
         )
+
+    def append_from_dict(self, message_data: dict) -> str:
+        """Append to the message from a dictionary returned from a chat API."""
+        delta = message_data.get('content', '')
+        self._content += delta
+        return delta
 
     def to_dict(self) -> dict:
         """Convert the Message object to a dictionary for calling OpenAI APIs.
@@ -53,7 +67,7 @@ class OpenAIMessage(Message):
         """
         message_dict = {
             "role": self.role,
-            "content": self.content,
+            "content": self._content,
         }
         if self.name is not None:
             message_dict["name"] = self.name
