@@ -134,10 +134,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            message = OpenAIMessage(MessageType.CONTEXT, "user", content)
+            message = OpenAIMessage(MessageType.RECORD, "user", content)
             user, email = get_git_user_info()
             prompt = OpenAIPrompt(chat.config.model, user, email)
-            chat.prompt([message])
+            prompt.append_message(message)
+            chat.request(prompt)
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()

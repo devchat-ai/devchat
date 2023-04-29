@@ -68,8 +68,8 @@ def test_from_dict_with_name():
         "role": "user",
         "name": "JohnDoe"
     }
-    message = OpenAIMessage.from_dict(MessageType.CONTEXT, message_data)
-    assert message.type == MessageType.CONTEXT
+    message = OpenAIMessage.from_dict(MessageType.RECORD, message_data)
+    assert message.type == MessageType.RECORD
     assert message.role == "user"
     assert message.content == "Hello, Assistant!"
     assert message.name == "JohnDoe"

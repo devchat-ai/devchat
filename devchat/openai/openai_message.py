@@ -45,6 +45,20 @@ class OpenAIMessage(Message):
             name=message_data.get('name')
         )
 
+    def to_dict(self) -> dict:
+        """Convert the Message object to a dictionary for calling OpenAI APIs.
+
+        Returns:
+            dict: A dictionary representation of the Message object.
+        """
+        message_dict = {
+            "role": self.role,
+            "content": self.content,
+        }
+        if self.name is not None:
+            message_dict["name"] = self.name
+        return message_dict
+
     def _validate_role(self) -> bool:
         """Validate the role attribute.
 
@@ -64,17 +78,3 @@ class OpenAIMessage(Message):
         if not self.name.strip():
             return False
         return len(self.name) <= 64 and self.name.replace("_", "").isalnum()
-
-    def to_dict(self) -> dict:
-        """Convert the Message object to a dictionary for calling OpenAI APIs.
-
-        Returns:
-            dict: A dictionary representation of the Message object.
-        """
-        message_dict = {
-            "role": self.role,
-            "content": self.content,
-        }
-        if self.name is not None:
-            message_dict["name"] = self.name
-        return message_dict

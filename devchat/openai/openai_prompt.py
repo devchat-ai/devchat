@@ -1,9 +1,8 @@
 import json
 import hashlib
-from typing import Dict, List
 from devchat.prompt import Prompt
-from devchat.openai import OpenAIMessage
-from devchat.message import Message, MessageType
+from devchat.message import MessageType
+from .openai_message import OpenAIMessage
 
 
 class OpenAIPrompt(Prompt):
@@ -12,23 +11,17 @@ class OpenAIPrompt(Prompt):
     """
 
     def __init__(self, model: str, user_name: str, user_email: str):
+        super().__init__(user_name, user_email)
         self.model: str = model
-        self.user_name: str = user_name
-        self.user_email: str = user_email
-        self.messages: List[Message] = []
-        self.responses: Dict[int, Message] = {}
-        self.time: int = None
-        self.request_tokens: int = None
-        self.response_tokens: int = None
 
-    def append_message(self, type: MessageType, content: str):
+    def append_message(self, message: OpenAIMessage):
         """
         Append a message to the prompt.
 
         Args:
             message (Message): The message to append.
         """
-        self.messages.append(OpenAIMessage(type, content))
+        self.messages.append(message)
 
     def set_response(self, response_str: str):
         """
@@ -45,7 +38,7 @@ class OpenAIPrompt(Prompt):
         self.response_tokens = response_data['usage']['completion_tokens']
 
         self.responses = {
-            choice['index']: OpenAIMessage.from_dict(MessageType.CONTEXT, choice['message'])
+            choice['index']: OpenAIMessage.from_dict(MessageType.RECORD, choice['message'])
             for choice in response_data['choices']
         }
 

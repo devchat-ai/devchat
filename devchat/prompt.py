@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import hashlib
 from typing import Dict, List
-from devchat.message import Message, MessageType
+from devchat.message import Message
 from devchat.utils import unix_to_local_datetime
 
 
@@ -10,7 +10,6 @@ class Prompt(ABC):
     A class to represent a prompt and its corresponding responses from the chat API.
 
     Attributes:
-        model (str): The model used for the chat API request, e.g., "gpt-3.5-turbo".
         user_name (str): The name of the user.
         user_email (str): The email address of the user.
         messages (List[Message]): The messages in the prompt.
@@ -20,8 +19,7 @@ class Prompt(ABC):
         response_tokens (int): The number of tokens used in the response.
     """
 
-    def __init__(self, model: str, user_name: str, user_email: str):
-        self.model: str = model
+    def __init__(self, user_name: str, user_email: str):
         self.user_name: str = user_name
         self.user_email: str = user_email
         self.messages: List[Message] = []
@@ -31,7 +29,7 @@ class Prompt(ABC):
         self.response_tokens: int = None
 
     @abstractmethod
-    def append_message(self, type: MessageType, content: str):
+    def append_message(self, message: Message):
         """
         Append a message to the prompt.
 

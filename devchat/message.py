@@ -7,6 +7,7 @@ class MessageType(Enum):
     INSTRUCTION = "instruction"
     EXAMPLE = "example"
     CONTEXT = "context"
+    RECORD = "record"
 
 
 class Message(ABC):
@@ -35,6 +36,11 @@ class Message(ABC):
     @property
     def type(self) -> MessageType:
         return self._type
+
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, type: MessageType, message_data: dict) -> "Message":
+        pass
 
     @abstractmethod
     def to_dict(self) -> dict:
