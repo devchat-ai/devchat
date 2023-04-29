@@ -72,11 +72,11 @@ def test_prompt_model_mismatch():
         prompt.set_response(response_str)
 
 
-@pytest.fixture(scope="module")
-def stream_responses():
+@pytest.fixture(scope="module", name='responses')
+def fixture_responses():
     current_dir = os.path.dirname(__file__)
     folder_path = os.path.join(current_dir, "stream_responses")
-    responses = []
+    stream_responses = []
 
     file_names = os.listdir(folder_path)
     sorted_file_names = sorted(file_names, key=lambda x: int(x.split('.')[0][8:]))
@@ -84,9 +84,9 @@ def stream_responses():
     for file_name in sorted_file_names:
         with open(os.path.join(folder_path, file_name), 'r', encoding='utf-8') as file:
             response = json.load(file)
-            responses.append(response)
+            stream_responses.append(response)
 
-    return responses
+    return stream_responses
 
 
 def test_append_response(responses):
