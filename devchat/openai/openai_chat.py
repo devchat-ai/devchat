@@ -1,8 +1,8 @@
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
-from devchat.message import Message
 from devchat.chat import Chat
+from .openai_prompt import OpenAIPrompt
 
 
 class OpenAIChatConfig(BaseModel):
@@ -42,14 +42,14 @@ class OpenAIChat(Chat):
         self.config = config
         self._messages = []
 
-    def prompt(self, messages: List[Message]) -> None:
+    def request(self, prompt: OpenAIPrompt) -> None:
         """
         Prompt the chat system with a list of Message objects.
 
         Args:
-            messages (List[Message]): A list of messages representing the conversation so far.
+            prompt (OpenAIPrompt): A prompt of messages representing the conversation so far.
         """
-        self._messages = [msg.to_dict() for msg in messages]
+        self._messages = [msg.to_dict() for msg in prompt.messages]
 
     def complete_response(self) -> str:
         """

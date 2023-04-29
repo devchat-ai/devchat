@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Iterator
-from devchat.message import Message
+from typing import Iterator
+from devchat.prompt import Prompt
 
 
 class Chat(ABC):
@@ -13,8 +13,8 @@ class Chat(ABC):
     """
 
     @abstractmethod
-    def prompt(self, messages: List[Message]) -> None:
-        """Send a list of Message objects as a prompt to the chat system."""
+    def request(self, prompt: Prompt) -> None:
+        """Send the messages of a prompt to the chat system."""
 
     @abstractmethod
     def complete_response(self) -> str:

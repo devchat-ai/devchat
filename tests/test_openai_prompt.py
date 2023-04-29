@@ -1,14 +1,15 @@
 import json
 import os
 import pytest
-from devchat.message import Message
-from devchat.prompt import Prompt
+from devchat.message import MessageType
+from devchat.openai import OpenAIMessage
+from devchat.openai import OpenAIPrompt
 from devchat.utils import get_git_user_info
 
 
 def test_prompt_init_and_set_response():
     name, email = get_git_user_info()
-    prompt = Prompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
+    prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
     assert prompt.model == "gpt-3.5-turbo"
 
     response_str = '''
@@ -32,10 +33,6 @@ def test_prompt_init_and_set_response():
     '''
     prompt.set_response(response_str)
 
-    assert prompt.response_meta == {
-        'id': 'chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve',
-        'object': 'chat.completion'
-    }
     assert prompt.response_time == 1677649420
     assert prompt.request_tokens == 56
     assert prompt.response_tokens == 31
@@ -46,7 +43,7 @@ def test_prompt_init_and_set_response():
 
 def test_prompt_model_mismatch():
     name, email = get_git_user_info()
-    prompt = Prompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
+    prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
 
     response_str = '''
     {
@@ -94,14 +91,14 @@ def stream_responses():
 
 def test_append_response(stream_responses):
     name, email = get_git_user_info()
-    prompt = Prompt("gpt-3.5-turbo-0301", name, email)
+    prompt = OpenAIPrompt("gpt-3.5-turbo-0301", name, email)
 
     for response in stream_responses:
         prompt.append_response(json.dumps(response))
 
     expected_messages = [
-        Message(role='assistant', content='Tomorrow.'),
-        Message(role='assistant', content='Tomorrow!')
+        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow.'),
+        OpenAIMessage(type=MessageType.CONTEXT, role='assistant', content='Tomorrow!')
     ]
 
     assert len(prompt.responses) == len(expected_messages)

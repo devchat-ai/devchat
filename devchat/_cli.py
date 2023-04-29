@@ -10,9 +10,10 @@ import json
 import sys
 import rich_click as click
 from contextlib import contextmanager
-from devchat.message import Message
-from devchat.chat.openai_chat import OpenAIChatConfig, OpenAIChat
-from devchat.prompt import Prompt
+from devchat.message import MessageType
+from devchat.openai import OpenAIMessage
+from devchat.openai import OpenAIPrompt
+from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.utils import get_git_user_info, parse_file_paths
 
 
@@ -128,17 +129,16 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         parse_file_paths(header)
         parse_file_paths(context)
 
-        message = Message("user", content)
-
         llm = config_data.get('llm')
 
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-
+            message = OpenAIMessage(MessageType.RECORD, "user", content)
             user, email = get_git_user_info()
-            prompt = Prompt(chat.config.model, user, email)
-            chat.prompt([message])
+            prompt = OpenAIPrompt(chat.config.model, user, email)
+            prompt.append_message(message)
+            chat.request(prompt)
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()
@@ -171,9 +171,9 @@ def log(skip, max_count):
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
     logs = []
     for n in range(skip, skip + max_count):
-        m = Message("user", f"Prompt {n}")
+        m = OpenAIMessage(MessageType.CONTEXT, "user", f"Prompt {n}")
         name, email = get_git_user_info()
-        p = Prompt("gpt-3.5-turbo", name, email)
+        p = OpenAIPrompt("gpt-3.5-turbo", name, email)
         p.append_message(m)
         r = {
             "model": "gpt-3.5-turbo-0301",
