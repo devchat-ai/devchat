@@ -156,16 +156,16 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
             if openai_config.stream:
                 response_iterator = chat.stream_response()
                 for chunk in response_iterator:
-                    delta_str = prompt.append_response(str(chunk))
+                    delta_str = openai_prompt.append_response(str(chunk))
                     click.echo(delta_str, nl=False)
-                click.echo(f'\n\nprompt {prompt.hash(0)}\n')
-                for index in range(1, len(prompt.responses)):
-                    click.echo(prompt.formatted_response(index) + '\n')
+                click.echo(f'\n\nprompt {openai_prompt.hash(0)}\n')
+                for index in range(1, len(openai_prompt.responses)):
+                    click.echo(openai_prompt.formatted_response(index) + '\n')
             else:
                 response_str = str(chat.complete_response())
-                prompt.set_response(response_str)
-                for index in prompt.responses.keys():
-                    click.echo(prompt.formatted_response(index) + '\n')
+                openai_prompt.set_response(response_str)
+                for index in openai_prompt.responses.keys():
+                    click.echo(openai_prompt.formatted_response(index) + '\n')
         else:
             click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
             sys.exit(os.EX_DATAERR)
