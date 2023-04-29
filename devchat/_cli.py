@@ -181,7 +181,7 @@ def log(skip, max_count):
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": f"Response {n}",
+                        "content": f"Response {index}",
                     }
                 }
             ],
