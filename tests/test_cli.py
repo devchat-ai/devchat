@@ -74,9 +74,9 @@ def fixture_temp_files(tmpdir):
     instruct1.write("The summary must be lowercased under 10 characters without any punctuation.\n")
     instruct2 = tmpdir.join('instruct2.txt')
     instruct2.write("The summary must be lowercased under 15 characters without any punctuation."
-                    "Leverage the context to generate the summary.\n")
+                    "Utilize the context to create the summary.\n")
     context = tmpdir.join("context.txt")
-    context.write("<context> This year is 2023.")
+    context.write("This year is 2023.")
     return str(instruct0), str(instruct1), str(instruct2), str(context)
 
 
