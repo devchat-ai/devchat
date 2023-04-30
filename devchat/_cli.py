@@ -97,8 +97,8 @@ def process_openai_prompt(chat, content, instruct_contents, context_contents) ->
 @click.option('-p', '--parent', help='Input the previous prompt hash to continue the conversation.')
 @click.option('-r', '--reference', help='Input one or more specific previous prompt hashes to '
               'include in the current prompt.')
-@click.option('--instruct', help='Add one or more files to the prompt as instructions.')
-@click.option('--context', help='Add one or more files to the prompt as a context.')
+@click.option('-i', '--instruct', help='Add one or more files to the prompt as instructions.')
+@click.option('-c', '--context', help='Add one or more files to the prompt as a context.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[str],
            instruct: Optional[str], context: Optional[str]):
     """
