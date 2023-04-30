@@ -74,18 +74,15 @@ def process_openai_prompt(chat, content, instruct_contents, context_contents) ->
     # Add instructions to the prompt
     if instruct_contents:
         combined_instruct = ''.join(instruct_contents)
-        if not combined_instruct:
-            raise ValueError('Empty instructions.')
         message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
         openai_prompt.append_message(message)
-    # Add user request
-    message = OpenAIMessage(MessageType.INSTRUCT, "user", content)
-    openai_prompt.append_message(message)
+    # Set user request
+    message = OpenAIMessage(MessageType.RECORD, "user", content)
+    openai_prompt.set_request(message)
     # Add context to the prompt
     if context_contents:
-        message = OpenAIMessage(MessageType.INSTRUCT, "user", "The context is as follows.")
         for context_content in context_contents:
-            message = OpenAIMessage(MessageType.CONTEXT, "user", context_content)
+            message = OpenAIMessage(MessageType.CONTEXT, "system", context_content)
             openai_prompt.append_message(message)
     chat.request(openai_prompt)
 

@@ -1,7 +1,9 @@
 import json
 import hashlib
+from typing import List
 from devchat.prompt import Prompt
-from devchat.message import MessageType
+from devchat.message import Message, MessageType
+from devchat.utils import update_dict
 from .openai_message import OpenAIMessage
 
 
@@ -14,6 +16,10 @@ class OpenAIPrompt(Prompt):
         super().__init__(user_name, user_email)
         self._model: str = model
         self._id: str = None
+        self._instruct_messages: List[Message] = []
+        self._context_messages: List[Message] = []
+        self._record_messages: List[Message] = []
+        self._request_message: Message = None
 
     @property
     def model(self) -> str:
@@ -23,6 +29,21 @@ class OpenAIPrompt(Prompt):
     def id(self) -> str:
         return self._id
 
+    @property
+    def messages(self) -> List[dict]:
+        combined_messages = []
+        if self._instruct_messages:
+            combined_messages += [msg.to_dict() for msg in self._instruct_messages]
+        if self._request_message:
+            combined_messages += [update_dict(self._request_message.to_dict(), 'content',
+                                              '<request>' + self._request_message.content)]
+        if self._context_messages:
+            combined_messages += [update_dict(msg.to_dict(), 'content', '<context>' + msg.content)
+                                  for msg in self._context_messages]
+        if self._record_messages:
+            combined_messages += [msg.to_dict() for msg in self._record_messages]
+        return combined_messages
+
     def append_message(self, message: OpenAIMessage):
         """
         Append a message to the prompt.
@@ -30,7 +51,20 @@ class OpenAIPrompt(Prompt):
         Args:
             message (Message): The message to append.
         """
-        self._messages.append(message)
+        if message.type == MessageType.INSTRUCT:
+            self._instruct_messages.append(message)
+        elif message.type == MessageType.CONTEXT:
+            self._context_messages.append(message)
+        elif message.type == MessageType.RECORD:
+            self._record_messages.append(message)
+        else:
+            raise ValueError("Message type must be one of INSTRUCT, CONTEXT, or RECORD.")
+
+    def set_request(self, message: OpenAIMessage):
+        if message.type == MessageType.RECORD and message.role == "user":
+            self._request_message = message
+        else:
+            raise ValueError("Request message must be of type RECORD and a user role.")
 
     def set_response(self, response_str: str):
         """

@@ -105,3 +105,81 @@ def test_append_response(responses):
     for index, message in prompt.responses.items():
         assert message.role == expected_messages[index].role
         assert message.content == expected_messages[index].content
+
+
+def test_messages_empty():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    assert prompt.messages == []
+
+
+def test_messages_instruct():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    instruct_message = OpenAIMessage(MessageType.INSTRUCT, 'system', 'Instructions')
+    prompt.append_message(instruct_message)
+    assert prompt.messages == [instruct_message.to_dict()]
+
+
+def test_messages_context():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    context_message = OpenAIMessage(MessageType.CONTEXT, 'system', 'Context')
+    prompt.append_message(context_message)
+    expected_message = context_message.to_dict()
+    expected_message["content"] = "<context>" + context_message.content
+    assert prompt.messages == [expected_message]
+
+
+def test_messages_record():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    record_message = OpenAIMessage(MessageType.RECORD, 'assistant', 'Record')
+    prompt.append_message(record_message)
+    assert prompt.messages == [record_message.to_dict()]
+
+
+def test_messages_request():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    request_message = OpenAIMessage(MessageType.RECORD, 'user', 'Request')
+    prompt.set_request(request_message)
+    expected_message = request_message.to_dict()
+    expected_message["content"] = "<request>" + expected_message["content"]
+    assert prompt.messages == [expected_message]
+
+
+def test_messages_combined():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    instruct_message = OpenAIMessage(MessageType.INSTRUCT, 'system', 'Instructions')
+    context_message = OpenAIMessage(MessageType.CONTEXT, 'system', 'Context')
+    record_message = OpenAIMessage(MessageType.RECORD, 'assistant', 'Record')
+    request_message = OpenAIMessage(MessageType.RECORD, 'user', 'Request')
+
+    prompt.append_message(instruct_message)
+    prompt.append_message(context_message)
+    prompt.append_message(record_message)
+    prompt.set_request(request_message)
+
+    expected_context_message = context_message.to_dict()
+    expected_context_message["content"] = "<context>" + context_message.content
+
+    expected_request_message = request_message.to_dict()
+    expected_request_message["content"] = "<request>" + request_message.content
+
+    assert prompt.messages == [
+        instruct_message.to_dict(),
+        expected_request_message,
+        expected_context_message,
+        record_message.to_dict()
+    ]
+
+
+def test_messages_invalid_append():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    invalid_message = OpenAIMessage(MessageType.INSTRUCT, 'system', 'Instructions')
+    invalid_message._type = 'invalid'  # pylint: disable=protected-access
+    with pytest.raises(ValueError):
+        prompt.append_message(invalid_message)
+
+
+def test_messages_invalid_request():
+    prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
+    invalid_message = OpenAIMessage(MessageType.INSTRUCT, 'user', 'Request')
+    with pytest.raises(ValueError):
+        prompt.set_request(invalid_message)
