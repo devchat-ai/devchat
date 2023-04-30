@@ -35,6 +35,63 @@ def handle_errors():
         sys.exit(os.EX_SOFTWARE)
 
 
+def load_config_data() -> dict:
+    default_config_data = {
+        'llm': 'OpenAI',
+        'OpenAI': {
+            'model': 'gpt-3.5-turbo',
+            'temperature': 0.2
+        }
+    }
+
+    try:
+        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
+            config_data = json.load(file)
+    except FileNotFoundError:
+        config_data = default_config_data
+
+    return config_data
+
+
+def validate_hashes(parent, reference):
+    if parent is not None:
+        for parent_hash in parent.split(','):
+            if not is_valid_hash(parent_hash):
+                click.echo(f"Error: Invalid prompt hash '{parent_hash}'.", err=True)
+                sys.exit(os.EX_DATAERR)
+
+    if reference is not None:
+        for reference_hash in reference.split(','):
+            if not is_valid_hash(reference_hash):
+                click.echo(f"Error: Invalid prompt hash '{reference_hash}'.", err=True)
+                sys.exit(os.EX_DATAERR)
+
+
+def process_openai_prompt(chat, content, instruct_contents, context_contents) -> OpenAIPrompt:
+    user, email = get_git_user_info()
+    openai_prompt = OpenAIPrompt(chat.config.model, user, email)
+
+    # Add instructions to the prompt
+    if instruct_contents:
+        combined_instruct = ''.join(instruct_contents)
+        if not combined_instruct:
+            raise ValueError('Empty instructions.')
+        message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
+        openai_prompt.append_message(message)
+    # Add user request
+    message = OpenAIMessage(MessageType.INSTRUCT, "user", content)
+    openai_prompt.append_message(message)
+    # Add context to the prompt
+    if context_contents:
+        message = OpenAIMessage(MessageType.INSTRUCT, "user", "The context is as follows.")
+        for context_content in context_contents:
+            message = OpenAIMessage(MessageType.CONTEXT, "user", context_content)
+            openai_prompt.append_message(message)
+    chat.request(openai_prompt)
+
+    return openai_prompt
+
+
 @main.command()
 @click.argument('content', required=False)
 @click.option('-p', '--parent', help='Input the previous prompt hash to continue the conversation.')
@@ -106,19 +163,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     ```
 
     """
-    default_config_data = {
-        'llm': 'OpenAI',
-        'OpenAI': {
-            'model': 'gpt-3.5-turbo',
-            'temperature': 0.2
-        }
-    }
-
-    try:
-        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
-            config_data = json.load(file)
-    except FileNotFoundError:
-        config_data = default_config_data
+    config_data = load_config_data()
 
     with handle_errors():
         if content is None:
@@ -132,41 +177,14 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
 
         llm = config_data.get('llm')
 
-        if parent is not None:
-            for parent_hash in parent.split(','):
-                if not is_valid_hash(parent_hash):
-                    click.echo(f"Error: Invalid prompt hash '{parent_hash}'.", err=True)
-                    sys.exit(os.EX_DATAERR)
-
-        if reference is not None:
-            for reference_hash in reference.split(','):
-                if not is_valid_hash(reference_hash):
-                    click.echo(f"Error: Invalid prompt hash '{reference_hash}'.", err=True)
-                    sys.exit(os.EX_DATAERR)
+        validate_hashes(parent, reference)
 
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            user, email = get_git_user_info()
-            openai_prompt = OpenAIPrompt(chat.config.model, user, email)
 
-            # Add instructions to the prompt
-            if instruct_contents:
-                combined_instruct = ''.join(instruct_contents)
-                if not combined_instruct:
-                    raise ValueError('Empty instructions.')
-                message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
-                openai_prompt.append_message(message)
-            # Add user request
-            message = OpenAIMessage(MessageType.INSTRUCT, "user", content)
-            openai_prompt.append_message(message)
-            # Add context to the prompt
-            if context_contents:
-                message = OpenAIMessage(MessageType.INSTRUCT, "user", "The context is as follows.")
-                for context_content in context_contents:
-                    message = OpenAIMessage(MessageType.CONTEXT, "user", context_content)
-                    openai_prompt.append_message(message)
-            chat.request(openai_prompt)
+            openai_prompt = process_openai_prompt(chat, content,
+                                                  instruct_contents, context_contents)
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()
