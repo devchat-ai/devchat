@@ -1,1 +1,0 @@
-When writing Python code, include type hints where appropriate and maintain compliance with PEP-8 guidelines, such as providing docstrings for modules, classes, and functions.

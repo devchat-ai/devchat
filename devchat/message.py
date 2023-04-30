@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class MessageType(Enum):
-    INSTRUCTION = "instruction"
+    INSTRUCT = "instruct"
     RECORD = "record"
     CONTEXT = "context"
 

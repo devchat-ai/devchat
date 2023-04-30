@@ -46,7 +46,7 @@ def is_valid_hash(hash_str):
     return bool(pattern.match(hash_str))
 
 
-def parse_file_paths(file_paths_str) -> List[str]:
+def parse_files(file_paths_str) -> List[str]:
     if not file_paths_str:
         return []
 
@@ -56,4 +56,11 @@ def parse_file_paths(file_paths_str) -> List[str]:
         if not os.path.isfile(file_path):
             raise ValueError(f"File {file_path} does not exist.")
 
-    return file_paths
+    contents = []
+    for file_path in file_paths:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+            if not content:
+                raise ValueError(f"File {file_path} is empty.")
+            contents.append(content)
+    return contents

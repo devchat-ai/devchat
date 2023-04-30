@@ -14,7 +14,7 @@ from devchat.message import MessageType
 from devchat.openai import OpenAIMessage
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
-from devchat.utils import get_git_user_info, parse_file_paths, is_valid_hash
+from devchat.utils import get_git_user_info, parse_files, is_valid_hash
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -35,15 +35,72 @@ def handle_errors():
         sys.exit(os.EX_SOFTWARE)
 
 
+def load_config_data() -> dict:
+    default_config_data = {
+        'llm': 'OpenAI',
+        'OpenAI': {
+            'model': 'gpt-3.5-turbo',
+            'temperature': 0.2
+        }
+    }
+
+    try:
+        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
+            config_data = json.load(file)
+    except FileNotFoundError:
+        config_data = default_config_data
+
+    return config_data
+
+
+def validate_hashes(parent, reference):
+    if parent is not None:
+        for parent_hash in parent.split(','):
+            if not is_valid_hash(parent_hash):
+                click.echo(f"Error: Invalid prompt hash '{parent_hash}'.", err=True)
+                sys.exit(os.EX_DATAERR)
+
+    if reference is not None:
+        for reference_hash in reference.split(','):
+            if not is_valid_hash(reference_hash):
+                click.echo(f"Error: Invalid prompt hash '{reference_hash}'.", err=True)
+                sys.exit(os.EX_DATAERR)
+
+
+def process_openai_prompt(chat, content, instruct_contents, context_contents) -> OpenAIPrompt:
+    user, email = get_git_user_info()
+    openai_prompt = OpenAIPrompt(chat.config.model, user, email)
+
+    # Add instructions to the prompt
+    if instruct_contents:
+        combined_instruct = ''.join(instruct_contents)
+        if not combined_instruct:
+            raise ValueError('Empty instructions.')
+        message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
+        openai_prompt.append_message(message)
+    # Add user request
+    message = OpenAIMessage(MessageType.INSTRUCT, "user", content)
+    openai_prompt.append_message(message)
+    # Add context to the prompt
+    if context_contents:
+        message = OpenAIMessage(MessageType.INSTRUCT, "user", "The context is as follows.")
+        for context_content in context_contents:
+            message = OpenAIMessage(MessageType.CONTEXT, "user", context_content)
+            openai_prompt.append_message(message)
+    chat.request(openai_prompt)
+
+    return openai_prompt
+
+
 @main.command()
 @click.argument('content', required=False)
 @click.option('-p', '--parent', help='Input the previous prompt hash to continue the conversation.')
 @click.option('-r', '--reference', help='Input one or more specific previous prompt hashes to '
               'include in the current prompt.')
-@click.option('--header', help='Input one or more files for the prompt header.')
-@click.option('--context', help='Input one or more files for the prompt context.')
+@click.option('-i', '--instruct', help='Add one or more files to the prompt as instructions.')
+@click.option('-c', '--context', help='Add one or more files to the prompt as a context.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[str],
-           header: Optional[str], context: Optional[str]):
+           instruct: Optional[str], context: Optional[str]):
     """
     Main function to run the chat application.
 
@@ -106,19 +163,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     ```
 
     """
-    default_config_data = {
-        'llm': 'OpenAI',
-        'OpenAI': {
-            'model': 'gpt-3.5-turbo',
-            'temperature': 0.2
-        }
-    }
-
-    try:
-        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
-            config_data = json.load(file)
-    except FileNotFoundError:
-        config_data = default_config_data
+    config_data = load_config_data()
 
     with handle_errors():
         if content is None:
@@ -127,31 +172,19 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         if content == '':
             return
 
-        parse_file_paths(header)
-        parse_file_paths(context)
+        instruct_contents = parse_files(instruct)
+        context_contents = parse_files(context)
 
         llm = config_data.get('llm')
 
-        if parent is not None:
-            for parent_hash in parent.split(','):
-                if not is_valid_hash(parent_hash):
-                    click.echo(f"Error: Invalid prompt hash '{parent_hash}'.", err=True)
-                    sys.exit(os.EX_DATAERR)
-
-        if reference is not None:
-            for reference_hash in reference.split(','):
-                if not is_valid_hash(reference_hash):
-                    click.echo(f"Error: Invalid prompt hash '{reference_hash}'.", err=True)
-                    sys.exit(os.EX_DATAERR)
+        validate_hashes(parent, reference)
 
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
-            message = OpenAIMessage(MessageType.RECORD, "user", content)
-            user, email = get_git_user_info()
-            openai_prompt = OpenAIPrompt(chat.config.model, user, email)
-            openai_prompt.append_message(message)
-            chat.request(openai_prompt)
+
+            openai_prompt = process_openai_prompt(chat, content,
+                                                  instruct_contents, context_contents)
 
             if openai_config.stream:
                 response_iterator = chat.stream_response()

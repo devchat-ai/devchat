@@ -17,7 +17,7 @@ def test_valid_message():
 
 def test_invalid_role():
     with pytest.raises(ValueError):
-        OpenAIMessage(MessageType.INSTRUCTION, "invalid_role", "Hello, World!")
+        OpenAIMessage(MessageType.INSTRUCT, "invalid_role", "Hello, World!")
 
 
 def test_invalid_type():
@@ -26,7 +26,7 @@ def test_invalid_type():
 
 
 def test_none_content():
-    message = OpenAIMessage(message_type=MessageType.INSTRUCTION, role="system", content=None)
+    message = OpenAIMessage(message_type=MessageType.INSTRUCT, role="system", content=None)
     assert message.content is None
 
 
@@ -55,8 +55,8 @@ def test_from_dict():
         "content": "Welcome to the chat.",
         "role": "system"
     }
-    message = OpenAIMessage.from_dict(MessageType.INSTRUCTION, message_data)
-    assert message.type == MessageType.INSTRUCTION
+    message = OpenAIMessage.from_dict(MessageType.INSTRUCT, message_data)
+    assert message.type == MessageType.INSTRUCT
     assert message.role == "system"
     assert message.content == "Welcome to the chat."
     assert message.name is None

@@ -3,6 +3,7 @@ import re
 import json
 import shutil
 import tempfile
+import pytest
 from click.testing import CliRunner
 from devchat._cli import main
 
@@ -17,6 +18,16 @@ def test_main_no_args():
 def _check_output_format(output) -> bool:
     pattern = r"(User: .+ <.+@.+>\nDate: .+\n\n(?:.*\n)*\n(?:prompt [a-f0-9]{40}\n\n?)+)"
     return bool(re.fullmatch(pattern, output))
+
+
+def _get_core_content(output) -> str:
+    header_pattern = r"User: .+ <.+@.+>\nDate: .+\n\n"
+    footer_pattern = r"\n(?:prompt [a-f0-9]{40}\n\n?)+"
+
+    core_content = re.sub(header_pattern, "", output)
+    core_content = re.sub(footer_pattern, "", core_content)
+
+    return core_content
 
 
 def test_main_with_content():
@@ -53,3 +64,34 @@ def test_main_with_temp_config_file():
 
     os.chdir(original_cwd)
     shutil.rmtree(temp_dir)
+
+
+@pytest.fixture(name="temp_files")
+def fixture_temp_files(tmpdir):
+    instruct0 = tmpdir.join('instruct0.txt')
+    instruct0.write("Summarize the following user message.\n")
+    instruct1 = tmpdir.join('instruct1.txt')
+    instruct1.write("The summary must be lowercased under 10 characters without any punctuation.\n")
+    instruct2 = tmpdir.join('instruct2.txt')
+    instruct2.write("The summary must be lowercased under 15 characters without any punctuation."
+                    "Leverage the context to generate the summary.\n")
+    context = tmpdir.join("context.txt")
+    context.write("<context> This year is 2023.")
+    return str(instruct0), str(instruct1), str(instruct2), str(context)
+
+
+def test_main_with_instruct(temp_files):
+    files = f'{temp_files[0]},{temp_files[1]}'
+    result = runner.invoke(main, ['prompt', '--instruct', files,
+                                  "This summer is really scorching."])
+    assert result.exit_code == 0
+    assert _get_core_content(result.output) == "hot summer\n"
+
+
+def test_main_with_instruct_and_context(temp_files):
+    instruct_files = f"{temp_files[0]},{temp_files[2]}"
+    result = runner.invoke(main, ['prompt', '--instruct', instruct_files,
+                                  '--context', temp_files[3],
+                                  "This summer is really scorching."])
+    assert result.exit_code == 0
+    assert _get_core_content(result.output) == "hot summer 2023\n"
