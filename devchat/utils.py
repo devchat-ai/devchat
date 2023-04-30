@@ -64,3 +64,11 @@ def parse_files(file_paths_str) -> List[str]:
                 raise ValueError(f"File {file_path} is empty.")
             contents.append(content)
     return contents
+
+
+def update_dict(dict_to_update, key, value) -> dict:
+    """
+    Update a dictionary with a key-value pair and return the dictionary.
+    """
+    dict_to_update.update({key: value})
+    return dict_to_update

@@ -42,8 +42,9 @@ class Prompt(ABC):
         return self._timestamp
 
     @property
-    def messages(self) -> List[Message]:
-        return self._messages
+    @abstractmethod
+    def messages(self) -> List[dict]:
+        pass
 
     @property
     def responses(self) -> Dict[int, Message]:
@@ -68,6 +69,15 @@ class Prompt(ABC):
 
         Args:
             message (Message): The message to append.
+        """
+
+    @abstractmethod
+    def set_request(self, message: Message):
+        """
+        Set the request message for the prompt.
+
+        Args:
+            message (Message): The request message to set.
         """
 
     @abstractmethod

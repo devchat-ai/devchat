@@ -49,7 +49,7 @@ class OpenAIChat(Chat):
         Args:
             prompt (OpenAIPrompt): A prompt of messages representing the conversation so far.
         """
-        self._messages = [msg.to_dict() for msg in prompt.messages]
+        self._messages = prompt.messages
 
     def complete_response(self) -> str:
         """
