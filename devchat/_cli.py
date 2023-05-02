@@ -14,7 +14,8 @@ from devchat.message import MessageType
 from devchat.openai import OpenAIMessage
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
-from devchat.utils import get_git_user_info, parse_files, is_valid_hash
+from devchat.openai import OpenAIAssistant
+from devchat.utils import get_git_user_info, parse_files
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -51,42 +52,6 @@ def load_config_data() -> dict:
         config_data = default_config_data
 
     return config_data
-
-
-def validate_hashes(parent, reference):
-    if parent is not None:
-        for parent_hash in parent.split(','):
-            if not is_valid_hash(parent_hash):
-                click.echo(f"Error: Invalid prompt hash '{parent_hash}'.", err=True)
-                sys.exit(os.EX_DATAERR)
-
-    if reference is not None:
-        for reference_hash in reference.split(','):
-            if not is_valid_hash(reference_hash):
-                click.echo(f"Error: Invalid prompt hash '{reference_hash}'.", err=True)
-                sys.exit(os.EX_DATAERR)
-
-
-def process_openai_prompt(chat, content, instruct_contents, context_contents) -> OpenAIPrompt:
-    user, email = get_git_user_info()
-    openai_prompt = OpenAIPrompt(chat.config.model, user, email)
-
-    # Add instructions to the prompt
-    if instruct_contents:
-        combined_instruct = ''.join(instruct_contents)
-        message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
-        openai_prompt.append_message(message)
-    # Set user request
-    message = OpenAIMessage(MessageType.RECORD, "user", content)
-    openai_prompt.set_request(message)
-    # Add context to the prompt
-    if context_contents:
-        for context_content in context_contents:
-            message = OpenAIMessage(MessageType.CONTEXT, "system", context_content)
-            openai_prompt.append_message(message)
-    chat.request(openai_prompt)
-
-    return openai_prompt
 
 
 @main.command()
@@ -174,28 +139,16 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
 
         llm = config_data.get('llm')
 
-        validate_hashes(parent, reference)
-
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
 
-            openai_prompt = process_openai_prompt(chat, content,
-                                                  instruct_contents, context_contents)
+            openai_asisstant = OpenAIAssistant(chat)
+            openai_asisstant.make_prompt(content, instruct_contents, context_contents,
+                                         parent, reference)
 
-            if openai_config.stream:
-                response_iterator = chat.stream_response()
-                for chunk in response_iterator:
-                    delta_str = openai_prompt.append_response(str(chunk))
-                    click.echo(delta_str, nl=False)
-                click.echo(f'\n\nprompt {openai_prompt.hash(0)}\n')
-                for index in range(1, len(openai_prompt.responses)):
-                    click.echo(openai_prompt.formatted_response(index) + '\n')
-            else:
-                response_str = str(chat.complete_response())
-                openai_prompt.set_response(response_str)
-                for index in openai_prompt.responses.keys():
-                    click.echo(openai_prompt.formatted_response(index) + '\n')
+            for response in openai_asisstant.iterate_responses():
+                click.echo(response, nl=False)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
             sys.exit(os.EX_DATAERR)
