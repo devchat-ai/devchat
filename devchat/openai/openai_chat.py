@@ -61,12 +61,9 @@ class OpenAIChat(Chat):
         # Filter the config parameters with non-None values
         config_params = {
             key: value
-            for key, value in self.config.dict().items()
-            if value is not None
+            for key, value in self.config.dict().items() if value is not None
         }
 
-        # Update the 'stream' parameter to False for complete_response
-        config_params = config_params.copy()
         config_params['stream'] = False
 
         response = openai.ChatCompletion.create(
@@ -85,12 +82,9 @@ class OpenAIChat(Chat):
         # Filter the config parameters with non-None values
         config_params = {
             key: value
-            for key, value in self.config.dict().items()
-            if value is not None
+            for key, value in self.config.dict().items() if value is not None
         }
 
-        # Update the 'stream' parameter to True for stream_response
-        config_params = config_params.copy()
         config_params['stream'] = True
 
         response = openai.ChatCompletion.create(

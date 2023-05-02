@@ -2,7 +2,7 @@ import json
 import hashlib
 from typing import List
 from devchat.prompt import Prompt
-from devchat.message import Message, MessageType
+from devchat.message import MessageType
 from devchat.utils import update_dict
 from .openai_message import OpenAIMessage
 
@@ -16,10 +16,9 @@ class OpenAIPrompt(Prompt):
         super().__init__(user_name, user_email)
         self._model: str = model
         self._id: str = None
-        self._instruct_messages: List[Message] = []
-        self._context_messages: List[Message] = []
-        self._record_messages: List[Message] = []
-        self._request_message: Message = None
+        self._instruct_messages: List[OpenAIMessage] = []
+        self._context_messages: List[OpenAIMessage] = []
+        self._record_messages: List[OpenAIMessage] = []
 
     @property
     def model(self) -> str:

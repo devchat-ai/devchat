@@ -70,5 +70,5 @@ def update_dict(dict_to_update, key, value) -> dict:
     """
     Update a dictionary with a key-value pair and return the dictionary.
     """
-    dict_to_update.update({key: value})
+    dict_to_update[key] = value
     return dict_to_update

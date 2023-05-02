@@ -18,4 +18,5 @@ print("Hello, World!")
 If no file paths or folder structure are provided and you are unsure about the file path of the code, you may omit the file path.
 5. Use separate code blocks for different files.
 6. Utilize the previous messages, if provided in the end of this prompt, to create your response. Note that not all previous messages are necessarily relevant.
-7. If you need more information, ask for it.
+7. When providing a suggestion or instruction, begin by explaining the reason behind it.
+8. If you need more information, ask for it.
