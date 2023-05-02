@@ -1,11 +1,11 @@
 import os
 import sys
 from typing import Optional, List, Iterator
-from devchat.message import MessageType
-from devchat.openai import OpenAIMessage
-from devchat.openai import OpenAIPrompt
-from devchat.openai import OpenAIChat
 from devchat.utils import get_git_user_info, is_valid_hash
+from devchat.message import MessageType
+from .openai_message import OpenAIMessage
+from .openai_prompt import OpenAIPrompt
+from .openai_chat import OpenAIChat
 
 
 class OpenAIAssistant:
