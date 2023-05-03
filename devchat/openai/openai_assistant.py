@@ -3,7 +3,6 @@ import sys
 from typing import Optional, List, Iterator
 from devchat.utils import get_git_user_info, is_valid_hash
 from devchat.message import MessageType
-from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 from .openai_chat import OpenAIChat
 
@@ -39,16 +38,13 @@ class OpenAIAssistant:
         # Add instructions to the prompt
         if instruct_contents:
             combined_instruct = ''.join(instruct_contents)
-            message = OpenAIMessage(MessageType.INSTRUCT, "system", combined_instruct)
-            self._openai_prompt.append_message(message)
+            self._openai_prompt.append_message(MessageType.INSTRUCT, combined_instruct)
         # Set user request
-        message = OpenAIMessage(MessageType.RECORD, "user", content)
-        self._openai_prompt.set_request(message)
+        self._openai_prompt.set_request(content)
         # Add context to the prompt
         if context_contents:
             for context_content in context_contents:
-                message = OpenAIMessage(MessageType.CONTEXT, "system", context_content)
-                self._openai_prompt.append_message(message)
+                self._openai_prompt.append_message(MessageType.CONTEXT, context_content)
         self._chat.request(self._openai_prompt)
 
     def iterate_responses(self) -> Iterator[str]:

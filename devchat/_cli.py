@@ -10,8 +10,6 @@ import json
 import sys
 from contextlib import contextmanager
 import rich_click as click
-from devchat.message import MessageType
-from devchat.openai import OpenAIMessage
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.openai import OpenAIAssistant
@@ -164,10 +162,9 @@ def log(skip, max_count):
     # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
     logs = []
     for index in range(skip, skip + max_count):
-        message = OpenAIMessage(MessageType.CONTEXT, "user", f"Prompt {index}")
         name, email = get_git_user_info()
         openai_prompt = OpenAIPrompt("gpt-3.5-turbo", name, email)
-        openai_prompt.append_message(message)
+        openai_prompt.set_request(f"Prompt {index}")
         response = {
             "model": "gpt-3.5-turbo-0301",
             "created": int(time.time()),
