@@ -53,12 +53,14 @@ def parse_files(file_paths_str) -> List[str]:
     file_paths = file_paths_str.split(',')
 
     for file_path in file_paths:
-        if not os.path.isfile(file_path):
+        expanded_file_path = os.path.expanduser(file_path)
+        if not os.path.isfile(expanded_file_path):
             raise ValueError(f"File {file_path} does not exist.")
 
     contents = []
     for file_path in file_paths:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        expanded_file_path = os.path.expanduser(file_path)
+        with open(expanded_file_path, 'r', encoding='utf-8') as file:
             content = file.read()
             if not content:
                 raise ValueError(f"File {file_path} is empty.")
