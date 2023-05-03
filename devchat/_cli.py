@@ -12,7 +12,7 @@ from contextlib import contextmanager
 import rich_click as click
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
-from devchat.openai import OpenAIAssistant
+from devchat.assistant import Assistant
 from devchat.utils import get_git_user_info, parse_files
 
 
@@ -141,7 +141,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
 
-            openai_asisstant = OpenAIAssistant(chat)
+            openai_asisstant = Assistant(chat)
             openai_asisstant.make_prompt(content, instruct_contents, context_contents,
                                          parent, reference)
 

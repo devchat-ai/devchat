@@ -6,13 +6,13 @@ from devchat.message import MessageType
 from devchat.chat import Chat
 
 
-class OpenAIAssistant:
+class Assistant:
     def __init__(self, chat: Chat):
         """
-        Initializes an OpenAIAssistant object.
+        Initializes an Assistant object.
 
         Args:
-            chat (OpenAIChat): An OpenAIChat object used to communicate with OpenAI APIs.
+            chat (Chat): A Chat object used to communicate with chat APIs.
         """
         self._chat = chat
         self._prompt = None
