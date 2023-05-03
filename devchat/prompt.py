@@ -137,14 +137,14 @@ class Prompt(ABC):
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""
-        if not self._request_message or not self._responses:
+        if not self._request or not self._responses:
             raise ValueError("Prompt is incomplete.")
         logs = []
         for index, response in self._responses.items():
             shortlog_data = {
                 "user": f'{self._user_name} <{self._user_email}>',
                 "date": self._timestamp,
-                "last_message": self._request_message.content,
+                "last_message": self._request.content,
                 "response": response.content,
                 "hash": self.hash(index)
             }
