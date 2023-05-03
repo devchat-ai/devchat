@@ -14,11 +14,11 @@ class OpenAIPrompt(Prompt):
 
     def __init__(self, model: str, user_name: str, user_email: str):
         super().__init__(user_name, user_email)
+        self._messages.update({MessageType.INSTRUCT: [],
+                               MessageType.CONTEXT: [],
+                               MessageType.RECORD: []})
         self._model: str = model
         self._id: str = None
-        self._instruct_messages: List[OpenAIMessage] = []
-        self._context_messages: List[OpenAIMessage] = []
-        self._record_messages: List[OpenAIMessage] = []
 
     @property
     def model(self) -> str:
@@ -31,39 +31,34 @@ class OpenAIPrompt(Prompt):
     @property
     def messages(self) -> List[dict]:
         combined_messages = []
-        if self._instruct_messages:
-            combined_messages += [msg.to_dict() for msg in self._instruct_messages]
-        if self._request_message:
-            combined_messages += [update_dict(self._request_message.to_dict(), 'content',
-                                              '<request>' + self._request_message.content)]
-        if self._context_messages:
+        if self._messages[MessageType.INSTRUCT]:
+            combined_messages += [msg.to_dict() for msg in self._messages[MessageType.INSTRUCT]]
+        if self._request:
+            combined_messages += [update_dict(self._request.to_dict(), 'content',
+                                              '<request>' + self._request.content)]
+        if self._messages[MessageType.CONTEXT]:
             combined_messages += [update_dict(msg.to_dict(), 'content', '<context>' + msg.content)
-                                  for msg in self._context_messages]
-        if self._record_messages:
-            combined_messages += [msg.to_dict() for msg in self._record_messages]
+                                  for msg in self._messages[MessageType.CONTEXT]]
+        if self._messages[MessageType.RECORD]:
+            combined_messages += [msg.to_dict() for msg in self._messages[MessageType.RECORD]]
         return combined_messages
 
-    def append_message(self, message: OpenAIMessage):
+    def append_message(self, message_type: MessageType, content: str):
         """
         Append a message to the prompt.
 
         Args:
-            message (Message): The message to append.
+            message_type (MessageType): The type of the message. It cannot be RECORD.
+            content (str): The content of the message.
         """
-        if message.type == MessageType.INSTRUCT:
-            self._instruct_messages.append(message)
-        elif message.type == MessageType.CONTEXT:
-            self._context_messages.append(message)
-        elif message.type == MessageType.RECORD:
-            self._record_messages.append(message)
-        else:
-            raise ValueError("Message type must be one of INSTRUCT, CONTEXT, or RECORD.")
+        if message_type == MessageType.RECORD:
+            raise ValueError("Use set_request() to set a message of type RECORD.")
+        self._messages[message_type].append(OpenAIMessage(message_type, 'system', content))
 
-    def set_request(self, message: OpenAIMessage):
-        if message.type == MessageType.RECORD and message.role == "user":
-            self._request_message = message
-        else:
-            raise ValueError("Request message must be of type RECORD and a user role.")
+    def set_request(self, content: str):
+        if not content.strip():
+            raise ValueError("The request cannot be empty.")
+        self._request = OpenAIMessage(MessageType.RECORD, 'user', content)
 
     def set_response(self, response_str: str):
         """

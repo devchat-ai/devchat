@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import hashlib
 from typing import Dict, List
-from devchat.message import Message
+from devchat.message import MessageType, Message
 from devchat.utils import unix_to_local_datetime
 
 
@@ -10,21 +10,26 @@ class Prompt(ABC):
     A class to represent a prompt and its corresponding responses from the chat API.
 
     Attributes:
-        user_name (str): The name of the user.
-        user_email (str): The email address of the user.
-        messages (List[Message]): The messages in the prompt.
-        responses (Dict[int, Message]): The responses indexed by an integer.
-        time (int): The timestamp when the response was created.
-        request_tokens (int): The number of tokens used in the request.
-        response_tokens (int): The number of tokens used in the response.
+        _user_name (str): The name of the user.
+        _user_email (str): The email address of the user.
+        _request (Message): The request message.
+        _messages (Dict[MessageType, Message]): The messages indexed by the message type.
+        _responses (Dict[int, Message]): The responses indexed by an integer.
+        _timestamp (int): The timestamp when the response was created.
+        _request_tokens (int): The number of tokens used in the request.
+        _response_tokens (int): The number of tokens used in the response.
+        _hashes (Dict[int, str]): The hashes of the prompt indexed by the response index.
     """
 
     def __init__(self, user_name: str, user_email: str):
         self._user_name: str = user_name
         self._user_email: str = user_email
         self._timestamp: int = None
-        self._request_message: Message = None
+
+        self._request: Message = None
+        self._messages: Dict[MessageType, Message] = {}
         self._responses: Dict[int, Message] = {}
+
         self._request_tokens: int = None
         self._response_tokens: int = None
         self._hashes: Dict[int, str] = {}
@@ -63,21 +68,22 @@ class Prompt(ABC):
         return self._hashes
 
     @abstractmethod
-    def append_message(self, message: Message):
+    def append_message(self, message_type: MessageType, content: str):
         """
         Append a message to the prompt.
 
         Args:
-            message (Message): The message to append.
+            message_type (MessageType): The type of the message. It cannot be RECORD.
+            content (str): The content of the message.
         """
 
     @abstractmethod
-    def set_request(self, message: Message):
+    def set_request(self, content: str):
         """
         Set the request message for the prompt.
 
         Args:
-            message (Message): The request message to set.
+            content (str): The request content to set.
         """
 
     @abstractmethod
@@ -131,14 +137,14 @@ class Prompt(ABC):
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""
-        if not self._request_message or not self._responses:
+        if not self._request or not self._responses:
             raise ValueError("Prompt is incomplete.")
         logs = []
         for index, response in self._responses.items():
             shortlog_data = {
                 "user": f'{self._user_name} <{self._user_email}>',
                 "date": self._timestamp,
-                "last_message": self._request_message.content,
+                "last_message": self._request.content,
                 "response": response.content,
                 "hash": self.hash(index)
             }
