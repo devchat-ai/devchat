@@ -2,7 +2,7 @@ from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
-from devchat.prompt import Prompt
+from devchat.utils import get_git_user_info
 from .openai_prompt import OpenAIPrompt
 
 
@@ -42,7 +42,7 @@ class OpenAIChat(Chat):
         """
         self.config = config
 
-    def init_prompt(self, request: str) -> Prompt:
+    def init_prompt(self, request: str) -> OpenAIPrompt:
         """
         Initialize a prompt for the chat system.
 
@@ -50,9 +50,12 @@ class OpenAIChat(Chat):
             request (str): The basic request of the prompt.
                            The returned prompt can be combined with more instructions and context.
         """
-        return OpenAIPrompt(self.config.model, self.config.user, request)
+        user, email = get_git_user_info()
+        prompt = OpenAIPrompt(self.config.model, user, email)
+        prompt.set_request(request)
+        return prompt
 
-    def complete_response(self, prompt: Prompt) -> str:
+    def complete_response(self, prompt: OpenAIPrompt) -> str:
         """
         Retrieve a complete response JSON string from the chat system.
 
@@ -74,7 +77,7 @@ class OpenAIChat(Chat):
         )
         return response
 
-    def stream_response(self, prompt: Prompt) -> Iterator[str]:
+    def stream_response(self, prompt: OpenAIPrompt) -> Iterator[str]:
         """
         Retrieve a streaming response as an iterator of JSON strings from the chat system.
 
