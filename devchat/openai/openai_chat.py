@@ -2,6 +2,7 @@ from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
+from devchat.prompt import Prompt
 from .openai_prompt import OpenAIPrompt
 
 
@@ -40,61 +41,57 @@ class OpenAIChat(Chat):
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
         self.config = config
-        self._messages = []
 
-    def request(self, prompt: OpenAIPrompt) -> None:
+    def init_prompt(self, request: str) -> Prompt:
         """
-        Prompt the chat system with a list of Message objects.
+        Initialize a prompt for the chat system.
 
         Args:
-            prompt (OpenAIPrompt): A prompt of messages representing the conversation so far.
+            request (str): The basic request of the prompt.
+                           The returned prompt can be combined with more instructions and context.
         """
-        self._messages = prompt.messages
+        return OpenAIPrompt(self.config.model, self.config.user, request)
 
-    def complete_response(self) -> str:
+    def complete_response(self, prompt: Prompt) -> str:
         """
         Retrieve a complete response JSON string from the chat system.
 
+        Args:
+            prompt (Prompt): A prompt of messages representing the conversation.
         Returns:
             str: A JSON string representing the complete response.
         """
         # Filter the config parameters with non-None values
         config_params = {
             key: value
-            for key, value in self.config.dict().items()
-            if value is not None
+            for key, value in self.config.dict().items() if value is not None
         }
-
-        # Update the 'stream' parameter to False for complete_response
-        config_params = config_params.copy()
         config_params['stream'] = False
 
         response = openai.ChatCompletion.create(
-            messages=self._messages,
+            messages=prompt.messages,
             **config_params
         )
         return response
 
-    def stream_response(self) -> Iterator[str]:
+    def stream_response(self, prompt: Prompt) -> Iterator[str]:
         """
-        Retrieve a streaming response from the chat system.
+        Retrieve a streaming response as an iterator of JSON strings from the chat system.
 
+        Args:
+            prompt (Prompt): A prompt of messages representing the conversation.
         Returns:
-            str: An iterator of JSON strings representing the streaming response.
+            Iterator[str]: An iterator over JSON strings representing the streaming response events.
         """
         # Filter the config parameters with non-None values
         config_params = {
             key: value
-            for key, value in self.config.dict().items()
-            if value is not None
+            for key, value in self.config.dict().items() if value is not None
         }
-
-        # Update the 'stream' parameter to True for stream_response
-        config_params = config_params.copy()
         config_params['stream'] = True
 
         response = openai.ChatCompletion.create(
-            messages=self._messages,
+            messages=prompt.messages,
             **config_params
         )
         return response

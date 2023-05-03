@@ -13,24 +13,33 @@ class Chat(ABC):
     """
 
     @abstractmethod
-    def request(self, prompt: Prompt) -> None:
-        """Send the messages of a prompt to the chat system."""
+    def init_prompt(self, request: str) -> Prompt:
+        """
+        Initialize a prompt for the chat system.
+
+        Args:
+            request (str): The basic request of the prompt.
+                           The returned prompt can be combined with more instructions and context.
+        """
 
     @abstractmethod
-    def complete_response(self) -> str:
+    def complete_response(self, prompt: Prompt) -> str:
         """
         Retrieve a complete response JSON string from the chat system.
 
+        Args:
+            prompt (Prompt): A prompt of messages representing the conversation.
         Returns:
-            str: A JSON string representing the complete response from the chat system.
+            str: A JSON string representing the complete response.
         """
 
     @abstractmethod
-    def stream_response(self) -> Iterator[str]:
+    def stream_response(self, prompt: Prompt) -> Iterator[str]:
         """
         Retrieve a streaming response as an iterator of JSON strings from the chat system.
 
+        Args:
+            prompt (Prompt): A prompt of messages representing the conversation.
         Returns:
-            Iterator[str]: An iterator over JSON strings representing the streaming response
-                           events from the chat system.
+            Iterator[str]: An iterator over JSON strings representing the streaming response events.
         """
