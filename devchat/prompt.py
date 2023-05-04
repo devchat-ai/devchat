@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 import hashlib
 from typing import Dict, List
 from devchat.message import MessageType, Message
 from devchat.utils import unix_to_local_datetime
 
-
+@dataclass
 class Prompt(ABC):
     """
     A class to represent a prompt and its corresponding responses from the chat API.
 
     Attributes:
-        _model (str): The name of the language model.
+        model (str): The name of the language model.
         user_name (str): The name of the user.
         user_email (str): The email address of the user.
         _request (Message): The request message.
@@ -23,26 +24,21 @@ class Prompt(ABC):
         parents (List[str]): The hashes of the parent prompts.
         references (List[str]): The hashes of the referenced prompts.
     """
-
-    def __init__(self, model: str, user_name: str, user_email: str):
-        self._model: str = model
-        self._user_name: str = user_name
-        self._user_email: str = user_email
-        self._timestamp: int = None
-
-        self._request: Message = None
-        self._messages: Dict[MessageType, Message] = {
-            MessageType.INSTRUCT: [],
-            MessageType.CONTEXT: [],
-            MessageType.RECORD: []}
-        self._responses: Dict[int, Message] = {}
-
-        self._request_tokens: int = None
-        self._response_tokens: int = None
-
-        self._hash: str = None
-        self.parents: List[str] = []
-        self.references: List[str] = []
+    model: str
+    user_name: str
+    user_email: str
+    _timestamp: int = field(init=False, default=None)
+    _request: Message = field(init=False, default=None)
+    _messages: Dict[MessageType, Message] = field(init=False, default_factory=lambda: {
+        MessageType.INSTRUCT: [],
+        MessageType.CONTEXT: [],
+        MessageType.RECORD: []})
+    _responses: Dict[int, Message] = field(init=False, default_factory=dict)
+    _request_tokens: int = field(init=False, default=None)
+    _response_tokens: int = field(init=False, default=None)
+    _hash: str = field(init=False, default=None)
+    parents: List[str] = field(default_factory=list)
+    references: List[str] = field(default_factory=list)
 
     @property
     def timestamp(self) -> int:
@@ -123,7 +119,7 @@ class Prompt(ABC):
 
     def formatted_header(self) -> str:
         """Formatted string header of the prompt."""
-        formatted_str = f"User: {self._user_name} <{self._user_email}>\n"
+        formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
 
         local_time = unix_to_local_datetime(self._timestamp)
         formatted_str += f"Date: {local_time.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
@@ -150,7 +146,7 @@ class Prompt(ABC):
         logs = []
         for response in self._responses.values():
             shortlog_data = {
-                "user": f'{self._user_name} <{self._user_email}>',
+                "user": f'{self.user_name} <{self._user_email}>',
                 "date": self._timestamp,
                 "last_message": self._request.content,
                 "response": response.content,
