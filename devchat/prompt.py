@@ -49,7 +49,9 @@ class Prompt(ABC):
     @property
     @abstractmethod
     def messages(self) -> List[dict]:
-        pass
+        """
+        List of messages in the prompt to be sent to the chat API.
+        """
 
     @property
     def responses(self) -> Dict[int, Message]:
