@@ -10,6 +10,7 @@ import json
 import sys
 from contextlib import contextmanager
 import rich_click as click
+from devchat.store import Store
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
@@ -135,20 +136,30 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        llm = config_data.get('llm')
+        if 'store' not in config_data:
+            raise ValueError("Invalid configuration: 'store' is not defined")
+        store_type = config_data['store'].get('file', 'file')
 
+        if store_type == 'file':
+            store_path = config_data['store'].get('path', 'devchat.db')
+            store = Store(store_path)
+        else:
+            click.echo(f"Error: Invalid store in configuration '{store_type}'", err=True)
+            sys.exit(os.EX_DATAERR)
+
+        llm = config_data.get('llm')
         if llm == 'OpenAI':
             openai_config = OpenAIChatConfig(**config_data['OpenAI'])
             chat = OpenAIChat(openai_config)
 
-            openai_asisstant = Assistant(chat)
+            openai_asisstant = Assistant(chat, store)
             openai_asisstant.make_prompt(content, instruct_contents, context_contents,
                                          parent, reference)
 
             for response in openai_asisstant.iterate_responses():
                 click.echo(response, nl=False)
         else:
-            click.echo(f"Error: Invalid LLM in configuration '{llm}'. Expected 'OpenAI'.", err=True)
+            click.echo(f"Error: Invalid LLM in configuration '{llm}'", err=True)
             sys.exit(os.EX_DATAERR)
 
 

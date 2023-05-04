@@ -106,6 +106,16 @@ class Prompt(ABC):
             str: The delta content with index 0. None when the response is over.
         """
 
+    def set_hash(self):
+        """Set the hash of the prompt."""
+        if not self._request or not self._responses:
+            raise ValueError("Prompt is incomplete for hash.")
+        hash_str = self._request.content
+        for response in self._responses.values():
+            hash_str += response.content
+        self._hash = hashlib.sha1(hash_str.encode()).hexdigest()
+        return self._hash
+
     def formatted_header(self) -> str:
         """Formatted string header of the prompt."""
         formatted_str = f"User: {self._user_name} <{self._user_email}>\n"
@@ -143,13 +153,3 @@ class Prompt(ABC):
             }
             logs.append(shortlog_data)
         return logs
-
-    def set_hash(self):
-        """Set the hash of the prompt."""
-        if not self._request or not self._responses:
-            raise ValueError("Prompt is incomplete for hash.")
-        hash_str = self._request.content
-        for response in self._responses.values():
-            hash_str += response.content
-        self._hash = hashlib.sha1(hash_str.encode()).hexdigest()
-        return self._hash
