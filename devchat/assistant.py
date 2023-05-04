@@ -55,7 +55,8 @@ class Assistant:
             response_iterator = self._chat.stream_response(self._prompt)
             for chunk in response_iterator:
                 yield self._prompt.append_response(str(chunk))
-            yield f'\n\nprompt {self._prompt.hash(0)}\n'
+            self._prompt.set_hash()
+            yield f'\n\nprompt {self._prompt.hash}\n'
             for index in range(1, len(self._prompt.responses)):
                 yield self._prompt.formatted_response(index) + '\n'
         else:

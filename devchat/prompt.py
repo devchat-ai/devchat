@@ -32,7 +32,7 @@ class Prompt(ABC):
 
         self._request_tokens: int = None
         self._response_tokens: int = None
-        self._hashes: Dict[int, str] = {}
+        self._hash: str = None
 
     @property
     def user_name(self) -> str:
@@ -66,8 +66,8 @@ class Prompt(ABC):
         return self._response_tokens
 
     @property
-    def hashes(self) -> Dict[int, str]:
-        return self._hashes
+    def hash(self) -> str:
+        return self._hash
 
     @abstractmethod
     def append_message(self, message_type: MessageType, content: str):
@@ -127,28 +127,32 @@ class Prompt(ABC):
             raise ValueError(f"Response {index} is incomplete.")
 
         formatted_str += response.content.strip() + "\n\n"
-        formatted_str += f"prompt {self.hash(index)}"
+        formatted_str += f"prompt {self.hash}"
 
         return formatted_str
-
-    def hash(self, index: int) -> str:
-        """Hash the prompt with the response at the given index."""
-        message = self._responses[index]
-        message_hash = hashlib.sha1(message.content.encode()).hexdigest()
-        return message_hash
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""
         if not self._request or not self._responses:
-            raise ValueError("Prompt is incomplete.")
+            raise ValueError("Prompt is incomplete for shortlog.")
         logs = []
-        for index, response in self._responses.items():
+        for response in self._responses.values():
             shortlog_data = {
                 "user": f'{self._user_name} <{self._user_email}>',
                 "date": self._timestamp,
                 "last_message": self._request.content,
                 "response": response.content,
-                "hash": self.hash(index)
+                "hash": self.hash
             }
             logs.append(shortlog_data)
         return logs
+
+    def set_hash(self):
+        """Set the hash of the prompt."""
+        if not self._request or not self._responses:
+            raise ValueError("Prompt is incomplete for hash.")
+        hash_str = self._request.content
+        for response in self._responses.values():
+            hash_str += response.content
+        self._hash = hashlib.sha1(hash_str.encode()).hexdigest()
+        return self._hash

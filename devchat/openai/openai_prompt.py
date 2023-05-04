@@ -1,5 +1,4 @@
 import json
-import hashlib
 from typing import List
 from devchat.prompt import Prompt
 from devchat.message import MessageType
@@ -79,11 +78,7 @@ class OpenAIPrompt(Prompt):
             choice['index']: OpenAIMessage.from_dict(MessageType.RECORD, choice['message'])
             for choice in response_data['choices']
         }
-
-        self._hashes = {
-            choice['index']: hashlib.sha1(choice['message']['content'].encode()).hexdigest()
-            for choice in response_data['choices']
-        }
+        self.set_hash()
 
     def append_response(self, delta_str: str) -> str:
         """
