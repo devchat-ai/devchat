@@ -9,7 +9,8 @@ disable=
     too-many-instance-attributes,
     too-many-arguments,
     too-many-locals,
-    too-many-branches
+    too-many-branches,
+    R0801
 
 [MASTER]
 extension-pkg-whitelist=pydantic
