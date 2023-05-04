@@ -14,7 +14,7 @@ from devchat.store import Store
 from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import get_git_user_info, parse_files
+from devchat.utils import find_git_root, git_ignore, get_git_user_info, parse_files
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -35,7 +35,7 @@ def handle_errors():
         sys.exit(os.EX_SOFTWARE)
 
 
-def load_config_data() -> dict:
+def load_config_data(chat_dir: str) -> dict:
     default_config_data = {
         'llm': 'OpenAI',
         'OpenAI': {
@@ -45,7 +45,7 @@ def load_config_data() -> dict:
     }
 
     try:
-        with open('.chatconfig.json', 'r', encoding='utf-8') as file:
+        with open(os.path.join(chat_dir, 'config.json'), 'r', encoding='utf-8') as file:
             config_data = json.load(file)
     except FileNotFoundError:
         config_data = default_config_data
@@ -124,7 +124,12 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     ```
 
     """
-    config_data = load_config_data()
+    git_root = find_git_root()
+    chat_dir = os.path.join(git_root, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+
+    config_data = load_config_data(chat_dir)
 
     with handle_errors():
         if content is None:
@@ -136,16 +141,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        if 'store' not in config_data:
-            raise ValueError("Invalid configuration: 'store' is not defined")
-        store_type = config_data['store'].get('file', 'file')
-
-        if store_type == 'file':
-            store_path = config_data['store'].get('path', 'devchat.db')
-            store = Store(store_path)
-        else:
-            click.echo(f"Error: Invalid store in configuration '{store_type}'", err=True)
-            sys.exit(os.EX_DATAERR)
+        store_path = os.path.join(chat_dir, 'store.graphml')
+        store = Store(store_path)
+        git_ignore(git_root, '.chat/store.graphml')
 
         llm = config_data.get('llm')
         if llm == 'OpenAI':

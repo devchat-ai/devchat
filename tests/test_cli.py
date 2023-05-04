@@ -4,13 +4,37 @@ import json
 import shutil
 import tempfile
 import pytest
+from git import Repo
 from click.testing import CliRunner
 from devchat._cli import main
 
 runner = CliRunner()
 
 
-def test_main_no_args():
+@pytest.fixture(name="git_repo")
+def fixture_git_repo(request):
+    # Create a temporary directory
+    repo_dir = tempfile.mkdtemp()
+
+    # Initialize a new Git repository in the temporary directory
+    Repo.init(repo_dir)
+
+    # Change the current working directory to the temporary directory
+    prev_cwd = os.getcwd()
+    os.chdir(repo_dir)
+
+    # Add a cleanup function to remove the temporary directory after the test
+    def cleanup():
+        os.chdir(prev_cwd)
+        shutil.rmtree(repo_dir)
+
+    request.addfinalizer(cleanup)
+
+    return repo_dir
+
+
+def test_main_no_args(git_repo):
+    assert os.path.isdir(git_repo)
     result = runner.invoke(main, ['prompt'])
     assert result.exit_code == 0
 
@@ -30,7 +54,9 @@ def _get_core_content(output) -> str:
     return core_content
 
 
-def test_main_with_content():
+def test_main_with_content(git_repo):
+    assert os.path.isdir(git_repo)
+
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
@@ -38,35 +64,28 @@ def test_main_with_content():
     assert "Paris" in result.output
 
 
-def test_main_with_temp_config_file():
+def test_main_with_temp_config_file(git_repo):
     config_data = {
         'llm': 'OpenAI',
         'OpenAI': {
-            'model': 'gpt-3.5-turbo',
-            'temperature': 0.2
-        },
-        'store': {
-            'type': 'file',
+            'model': 'gpt-3.5-turbo-0301',
+            'temperature': 0
         }
     }
 
-    temp_dir = tempfile.mkdtemp()
-    temp_config_path = os.path.join(temp_dir, ".chatconfig.json")
+    chat_dir = os.path.join(git_repo, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+    temp_config_path = os.path.join(chat_dir, "config.json")
 
     with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
         json.dump(config_data, temp_config_file)
-
-    original_cwd = os.getcwd()
-    os.chdir(temp_dir)
 
     content = "What is the capital of Spain?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
     assert _check_output_format(result.output)
     assert "Madrid" in result.output
-
-    os.chdir(original_cwd)
-    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture(name="temp_files")
@@ -76,25 +95,29 @@ def fixture_temp_files(tmpdir):
     instruct1 = tmpdir.join('instruct1.txt')
     instruct1.write("The summary must be lowercased under 10 characters without any punctuation.\n")
     instruct2 = tmpdir.join('instruct2.txt')
-    instruct2.write("The summary must be lowercased under 15 characters without any punctuation."
-                    "Utilize the context to create the summary.\n")
+    instruct2.write("The summary must be lowercased under 12 characters without any punctuation."
+                    "Include the information in <context> to create the summary.\n")
     context = tmpdir.join("context.txt")
     context.write("This year is 2023.")
     return str(instruct0), str(instruct1), str(instruct2), str(context)
 
 
-def test_main_with_instruct(temp_files):
+def test_main_with_instruct(git_repo, temp_files):
+    assert os.path.isdir(git_repo)
+
     files = f'{temp_files[0]},{temp_files[1]}'
     result = runner.invoke(main, ['prompt', '--instruct', files,
                                   "This summer is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hot summer\n"
+    assert _get_core_content(result.output) == "hotsummer\n"
 
 
-def test_main_with_instruct_and_context(temp_files):
+def test_main_with_instruct_and_context(git_repo, temp_files):
+    assert os.path.isdir(git_repo)
+
     instruct_files = f"{temp_files[0]},{temp_files[2]}"
     result = runner.invoke(main, ['prompt', '--instruct', instruct_files,
                                   '--context', temp_files[3],
                                   "This summer is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hot summer 2023\n"
+    assert _get_core_content(result.output) == "hotsummer23\n"

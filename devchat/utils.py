@@ -9,6 +9,29 @@ import pytz
 from dateutil import tz
 
 
+def find_git_root():
+    try:
+        root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
+        return root.decode("utf-8").strip()
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError("Not inside a Git repository") from error
+
+
+def git_ignore(git_root_dir, ignore_entry):
+    gitignore_path = os.path.join(git_root_dir, '.gitignore')
+
+    if os.path.exists(gitignore_path):
+        with open(gitignore_path, 'r', encoding='utf-8') as gitignore_file:
+            gitignore_content = gitignore_file.read()
+
+        if ignore_entry not in gitignore_content:
+            with open(gitignore_path, 'a', encoding='utf-8') as gitignore_file:
+                gitignore_file.write(f'\n# DevChat\n{ignore_entry}\n')
+    else:
+        with open(gitignore_path, 'w', encoding='utf-8') as gitignore_file:
+            gitignore_file.write(f'# DevChat\n{ignore_entry}\n')
+
+
 def unix_to_local_datetime(unix_time) -> datetime.datetime:
     # Get the local time zone
     local_tz = tz.tzlocal()
