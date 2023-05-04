@@ -6,6 +6,7 @@ from devchat.message import MessageType
 from devchat.utils import update_dict
 from .openai_message import OpenAIMessage
 
+
 @dataclass
 class OpenAIPrompt(Prompt):
     """
