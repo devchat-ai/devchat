@@ -12,11 +12,7 @@ class OpenAIPrompt(Prompt):
     """
 
     def __init__(self, model: str, user_name: str, user_email: str):
-        super().__init__(user_name, user_email)
-        self._messages.update({MessageType.INSTRUCT: [],
-                               MessageType.CONTEXT: [],
-                               MessageType.RECORD: []})
-        self._model: str = model
+        super().__init__(model, user_name, user_email)
         self._id: str = None
 
     @property

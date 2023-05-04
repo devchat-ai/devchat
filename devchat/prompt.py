@@ -10,6 +10,7 @@ class Prompt(ABC):
     A class to represent a prompt and its corresponding responses from the chat API.
 
     Attributes:
+        _model (str): The name of the language model.
         user_name (str): The name of the user.
         user_email (str): The email address of the user.
         _request (Message): The request message.
@@ -23,13 +24,17 @@ class Prompt(ABC):
         references (List[str]): The hashes of the referenced prompts.
     """
 
-    def __init__(self, user_name: str, user_email: str):
+    def __init__(self, model: str, user_name: str, user_email: str):
+        self._model: str = model
         self._user_name: str = user_name
         self._user_email: str = user_email
         self._timestamp: int = None
 
         self._request: Message = None
-        self._messages: Dict[MessageType, Message] = {}
+        self._messages: Dict[MessageType, Message] = {
+            MessageType.INSTRUCT: [],
+            MessageType.CONTEXT: [],
+            MessageType.RECORD: []}
         self._responses: Dict[int, Message] = {}
 
         self._request_tokens: int = None
