@@ -38,14 +38,6 @@ def get_git_user_info() -> Tuple[str, str]:
     return git_user_name, git_user_email
 
 
-def is_valid_hash(hash_str):
-    """Check if a string is a valid hash value."""
-    # Hash values are usually alphanumeric with a fixed length
-    # depending on the algorithm used to generate them
-    pattern = re.compile(r'^[a-fA-F0-9]{40}$')  # Example pattern for SHA-1 hash
-    return bool(pattern.match(hash_str))
-
-
 def parse_files(file_paths_str) -> List[str]:
     if not file_paths_str:
         return []
@@ -66,6 +58,25 @@ def parse_files(file_paths_str) -> List[str]:
                 raise ValueError(f"File {file_path} is empty.")
             contents.append(content)
     return contents
+
+
+def is_valid_hash(hash_str):
+    """Check if a string is a valid hash value."""
+    # Hash values are usually alphanumeric with a fixed length
+    # depending on the algorithm used to generate them
+    pattern = re.compile(r'^[a-fA-F0-9]{40}$')  # Example pattern for SHA-1 hash
+    return bool(pattern.match(hash_str))
+
+
+def parse_hashes(hashes) -> List[str]:
+    if not hashes:
+        return []
+    values = []
+    for value in hashes.split(','):
+        if not is_valid_hash(value):
+            raise ValueError(f"Invalid hash value {value}.")
+        values.append(value)
+    return values
 
 
 def update_dict(dict_to_update, key, value) -> dict:

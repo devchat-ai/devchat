@@ -1,7 +1,5 @@
-import os
-import sys
 from typing import Optional, List, Iterator
-from devchat.utils import is_valid_hash
+from devchat.utils import parse_hashes
 from devchat.message import MessageType
 from devchat.chat import Chat
 
@@ -30,9 +28,9 @@ class Assistant:
             parent (Optional[str]): The ID of the parent prompt.
             references (Optional[List[str]]): A list of IDs of reference prompts.
         """
-        # Validate hashes
-        self._validate_hashes(parent, reference)
         self._prompt = self._chat.init_prompt(request)
+        self._prompt.parents = parse_hashes(parent)
+        self._prompt.references = parse_hashes(reference)
 
         # Add instructions to the prompt
         if instruct_contents:
@@ -64,15 +62,3 @@ class Assistant:
             self._prompt.set_response(response_str)
             for index in self._prompt.responses.keys():
                 yield self._prompt.formatted_response(index) + '\n'
-
-    @classmethod
-    def _validate_hashes(cls, parent, reference):
-        if parent is not None:
-            for parent_hash in parent.split(','):
-                if not is_valid_hash(parent_hash):
-                    sys.exit(os.EX_DATAERR)
-
-        if reference is not None:
-            for reference_hash in reference.split(','):
-                if not is_valid_hash(reference_hash):
-                    sys.exit(os.EX_DATAERR)
