@@ -30,7 +30,7 @@ def test_get_prompt(tmp_path):
     prompt.set_response(response_str)
     store.store_prompt(prompt)
 
-    assert store.get_prompt(prompt.hash)['timestamp'] == prompt.timestamp
+    assert store.get_prompt(prompt.hash).timestamp == prompt.timestamp
 
 
 def test_select_recent(tmp_path):

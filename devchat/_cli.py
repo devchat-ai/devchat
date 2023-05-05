@@ -141,9 +141,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        store_path = os.path.join(chat_dir, 'store.graphml')
-        store = Store(store_path)
-        git_ignore(git_root, '.chat/store.graphml')
+        store = Store(chat_dir)
+        git_ignore(git_root, store.graph_path)
+        git_ignore(git_root, store.db_path)
 
         llm = config_data.get('llm')
         if llm == 'OpenAI':

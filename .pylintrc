@@ -1,5 +1,5 @@
 [BASIC]
-good-names=id
+good-names=id,db
 
 [MESSAGES CONTROL]
 disable=

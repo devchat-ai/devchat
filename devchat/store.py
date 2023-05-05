@@ -1,4 +1,5 @@
 import os
+import shelve
 from typing import List
 from xml.etree.ElementTree import ParseError
 import networkx as nx
@@ -6,28 +7,42 @@ from devchat.prompt import Prompt
 
 
 class Store:
-    def __init__(self, path: str):
+    def __init__(self, folder: str):
         """
         Initializes a Store instance.
 
         Args:
-            path (str): The path to the file containing the store.
+            path (str): The folder to store the files containing the store.
         """
-        self._path = os.path.expanduser(path)
-        if os.path.isfile(self._path):
+        folder = os.path.expanduser(folder)
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        self._graph_path = os.path.join(folder, 'prompts.graphml')
+        self._db_path = os.path.join(folder, 'prompts.db')
+
+        if os.path.isfile(self._graph_path):
             try:
-                self._graph = nx.read_graphml(self._path)
+                self._graph = nx.read_graphml(self._graph_path)
             except ParseError as error:
-                raise ValueError(f"Invalid file format for store: {self._path}") from error
+                raise ValueError(f"Invalid file format for graph: {self._graph_path}") from error
         else:
             self._graph = nx.DiGraph()
 
+        self._db = shelve.open(self._db_path)
+
     @property
-    def path(self) -> str:
+    def graph_path(self) -> str:
         """
-        The path to the file containing the store.
+        The path to the graph store file.
         """
-        return self._path
+        return self._graph_path
+
+    @property
+    def db_path(self) -> str:
+        """
+        The path to the object store file.
+        """
+        return self._db_path
 
     def store_prompt(self, prompt: Prompt):
         """
@@ -51,9 +66,13 @@ class Store:
             if reference_hash not in self._graph:
                 raise ValueError(f'Reference {reference_hash} not found in the store.')
             self._graph.add_edge(prompt.hash, reference_hash)
-        nx.write_graphml(self._graph, self._path)
+        nx.write_graphml(self._graph, self._graph_path)
 
-    def get_prompt(self, prompt_hash: str) -> dict:
+        # Store the prompt object in the shelve database
+        self._db[prompt.hash] = prompt
+        self._db.sync()
+
+    def get_prompt(self, prompt_hash: str) -> Prompt:
         """
         Retrieve a prompt from the store.
 
@@ -64,7 +83,9 @@ class Store:
         """
         if prompt_hash not in self._graph:
             raise ValueError(f'Prompt {prompt_hash} not found in the store.')
-        return self._graph.nodes[prompt_hash]
+
+        # Retrieve the prompt object from the shelve database
+        return self._db[prompt_hash]
 
     def select_recent(self, start: int, end: int) -> List[str]:
         """
