@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 import json
 from typing import List
 from devchat.prompt import Prompt
@@ -6,12 +5,19 @@ from devchat.message import MessageType
 from devchat.utils import update_dict
 from .openai_message import OpenAIMessage
 
-@dataclass
+
 class OpenAIPrompt(Prompt):
     """
     A class to represent a prompt and its corresponding responses from OpenAI APIs.
     """
-    _id: str = field(init=False, default=None)
+
+    def __init__(self, model: str, user_name: str, user_email: str):
+        super().__init__(model, user_name, user_email)
+        self._id: str = None
+
+    @property
+    def model(self) -> str:
+        return self._model
 
     @property
     def id(self) -> str:
