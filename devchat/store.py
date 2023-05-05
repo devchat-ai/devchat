@@ -87,7 +87,7 @@ class Store:
         # Retrieve the prompt object from the shelve database
         return self._db[prompt_hash]
 
-    def select_recent(self, start: int, end: int) -> List[str]:
+    def select_recent(self, start: int, end: int) -> List[Prompt]:
         """
         Select recent prompts.
 
@@ -104,4 +104,4 @@ class Store:
                               reverse=True)
         if end > len(sorted_nodes):
             end = len(sorted_nodes)
-        return [note[0] for note in sorted_nodes[start:end]]
+        return [self.get_prompt(note[0]) for note in sorted_nodes[start:end]]

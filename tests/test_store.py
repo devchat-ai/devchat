@@ -68,5 +68,5 @@ def test_select_recent(tmp_path):
     # Test selecting recent prompts
     recent_prompts = store.select_recent(0, 3)
     assert len(recent_prompts) == 3
-    for index, prompt_hash in enumerate(recent_prompts):
-        assert prompt_hash == hashes[4 - index]
+    for index, prompt in enumerate(recent_prompts):
+        assert prompt.hash == hashes[4 - index]

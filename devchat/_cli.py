@@ -1,20 +1,16 @@
 """
 This module contains the main function for the DevChat CLI.
 """
-
-
 import os
-import time
 from typing import Optional
 import json
 import sys
 from contextlib import contextmanager
 import rich_click as click
 from devchat.store import Store
-from devchat.openai import OpenAIPrompt
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import find_git_root, git_ignore, get_git_user_info, parse_files
+from devchat.utils import find_git_root, git_ignore, parse_files
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -168,30 +164,13 @@ def log(skip, max_count):
     """
     Show the prompt history.
     """
-    # Implement the logic to display the prompt history based on the `skip` and `max_count` options.
-    logs = []
-    for index in range(skip, skip + max_count):
-        name, email = get_git_user_info()
-        openai_prompt = OpenAIPrompt("gpt-3.5-turbo", name, email)
-        openai_prompt.set_request(f"Prompt {index}")
-        response = {
-            "model": "gpt-3.5-turbo-0301",
-            "created": int(time.time()),
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": f"Response {index}",
-                    }
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 0,
-                "completion_tokens": 0,
-                "total_tokens": 0,
-            }
-        }
-        openai_prompt.set_response(json.dumps(response))
-        logs = openai_prompt.shortlog() + logs
-    click.echo(json.dumps(logs))
+    git_root = find_git_root()
+    chat_dir = os.path.join(git_root, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+
+    store = Store(chat_dir)
+    recent_prompts = store.select_recent(skip, skip + max_count)
+
+    for record in recent_prompts:
+        click.echo(record.shortlog())
