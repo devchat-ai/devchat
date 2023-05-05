@@ -5,7 +5,6 @@ from typing import Dict, List
 from devchat.message import MessageType, Message
 from devchat.utils import unix_to_local_datetime
 
-
 @dataclass
 class Prompt(ABC):
     """
@@ -147,7 +146,7 @@ class Prompt(ABC):
         logs = []
         for response in self._responses.values():
             shortlog_data = {
-                "user": f'{self.user_name} <{self.user_email}>',
+                "user": f'{self.user_name} <{self._user_email}>',
                 "date": self._timestamp,
                 "last_message": self._request.content,
                 "response": response.content,
