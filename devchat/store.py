@@ -7,18 +7,18 @@ from devchat.prompt import Prompt
 
 
 class Store:
-    def __init__(self, folder: str):
+    def __init__(self, store_dir: str):
         """
         Initializes a Store instance.
 
         Args:
             path (str): The folder to store the files containing the store.
         """
-        folder = os.path.expanduser(folder)
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-        self._graph_path = os.path.join(folder, 'prompts.graphml')
-        self._db_path = os.path.join(folder, 'prompts.db')
+        store_dir = os.path.expanduser(store_dir)
+        if not os.path.isdir(store_dir):
+            os.makedirs(store_dir)
+        self._graph_path = os.path.join(store_dir, 'prompts.graphml')
+        self._db_path = os.path.join(store_dir, 'prompts.db')
 
         if os.path.isfile(self._graph_path):
             try:

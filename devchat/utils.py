@@ -17,19 +17,30 @@ def find_git_root():
         raise RuntimeError("Not inside a Git repository") from error
 
 
-def git_ignore(git_root_dir, ignore_entry):
+def git_ignore(git_root_dir, *ignore_entries):
     gitignore_path = os.path.join(git_root_dir, '.gitignore')
 
     if os.path.exists(gitignore_path):
         with open(gitignore_path, 'r', encoding='utf-8') as gitignore_file:
             gitignore_content = gitignore_file.read()
 
-        if ignore_entry not in gitignore_content:
+        new_entries = []
+        for entry in ignore_entries:
+            relative_entry = os.path.relpath(entry, git_root_dir)
+            if relative_entry not in gitignore_content:
+                new_entries.append(relative_entry)
+
+        if new_entries:
             with open(gitignore_path, 'a', encoding='utf-8') as gitignore_file:
-                gitignore_file.write(f'\n# DevChat\n{ignore_entry}\n')
+                gitignore_file.write('\n# DevChat\n')
+                for entry in new_entries:
+                    gitignore_file.write(f'{entry}\n')
     else:
         with open(gitignore_path, 'w', encoding='utf-8') as gitignore_file:
-            gitignore_file.write(f'# DevChat\n{ignore_entry}\n')
+            gitignore_file.write('# DevChat\n')
+            for entry in ignore_entries:
+                relative_entry = os.path.relpath(entry, git_root_dir)
+                gitignore_file.write(f'{relative_entry}\n')
 
 
 def unix_to_local_datetime(unix_time) -> datetime.datetime:

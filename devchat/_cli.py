@@ -1,11 +1,11 @@
 """
 This module contains the main function for the DevChat CLI.
 """
-import os
-from typing import Optional
-import json
-import sys
 from contextlib import contextmanager
+import json
+import os
+import sys
+from typing import Optional, Tuple
 import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
@@ -31,7 +31,12 @@ def handle_errors():
         sys.exit(os.EX_SOFTWARE)
 
 
-def load_config_data(chat_dir: str) -> dict:
+def init_dir() -> Tuple[dict, Store]:
+    git_root = find_git_root()
+    chat_dir = os.path.join(git_root, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+
     default_config_data = {
         'llm': 'OpenAI',
         'OpenAI': {
@@ -46,7 +51,9 @@ def load_config_data(chat_dir: str) -> dict:
     except FileNotFoundError:
         config_data = default_config_data
 
-    return config_data
+    store = Store(chat_dir)
+    git_ignore(git_root, store.graph_path, store.db_path)
+    return config_data, store
 
 
 @main.command()
@@ -120,12 +127,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     ```
 
     """
-    git_root = find_git_root()
-    chat_dir = os.path.join(git_root, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
-
-    config_data = load_config_data(chat_dir)
+    config, store = init_dir()
 
     with handle_errors():
         if content is None:
@@ -137,13 +139,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        store = Store(chat_dir)
-        git_ignore(git_root, store.graph_path)
-        git_ignore(git_root, store.db_path)
-
-        llm = config_data.get('llm')
+        llm = config.get('llm')
         if llm == 'OpenAI':
-            openai_config = OpenAIChatConfig(**config_data['OpenAI'])
+            openai_config = OpenAIChatConfig(**config['OpenAI'])
             chat = OpenAIChat(openai_config)
 
             openai_asisstant = Assistant(chat, store)
@@ -164,12 +162,8 @@ def log(skip, max_count):
     """
     Show the prompt history.
     """
-    git_root = find_git_root()
-    chat_dir = os.path.join(git_root, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
+    _, store = init_dir()
 
-    store = Store(chat_dir)
     recent_prompts = store.select_recent(skip, skip + max_count)
 
     for record in recent_prompts:
