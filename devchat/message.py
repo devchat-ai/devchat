@@ -11,8 +11,6 @@ class MessageType(Enum):
 
 class Message(ABC):
     def __init__(self, message_type: MessageType, content: Optional[str] = ""):
-        if not isinstance(message_type, MessageType):
-            raise ValueError("Invalid message type")
         self._type = message_type
         self._content = content
 

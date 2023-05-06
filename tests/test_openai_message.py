@@ -20,11 +20,6 @@ def test_invalid_role():
         OpenAIMessage(MessageType.INSTRUCT, "invalid_role", "Hello, World!")
 
 
-def test_invalid_type():
-    with pytest.raises(ValueError):
-        OpenAIMessage("invalid_type", "user", "Hello, World!")
-
-
 def test_none_content():
     message = OpenAIMessage(message_type=MessageType.INSTRUCT, role="system", content=None)
     assert message.content is None

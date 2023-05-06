@@ -16,6 +16,11 @@ class Assistant:
         self._chat = chat
         self._store = store
         self._prompt = None
+        self.message_limit = 10
+        self._message_count = 0
+
+    def _check_limit(self) -> bool:
+        return self._message_count < self.message_limit
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
@@ -70,3 +75,23 @@ class Assistant:
             self._store.store_prompt(self._prompt)
             for index in self._prompt.responses.keys():
                 yield self._prompt.formatted_response(index) + '\n'
+
+        def _append_prompt(self, prompt_hash: str):
+            prompt = self._store.get_prompt(prompt_hash)
+
+            # Append the first response and the request of the appended prompt
+            if self._check_limit(self._message_count):
+                self._prompt.append_message(MessageType.RECORD, prompt.responses[0])
+                self._message_count += 1
+
+            if self._check_limit(self._message_count):
+                self._prompt.append_message(MessageType.RECORD, prompt.request)
+                self._message_count += 1
+
+            # Append the context messages of the appended prompt
+            for context_message in prompt.context_messages:
+                if self._check_limit(self._message_count):
+                    self._prompt.append_message(MessageType.CONTEXT, context_message)
+                    self._message_count += 1
+                else:
+                    break
