@@ -1,48 +1,48 @@
+from dataclasses import asdict
 import pytest
-from devchat.message import MessageType
 from devchat.openai import OpenAIMessage
 
 
 def test_valid_message_creation():
-    message = OpenAIMessage(message_type=MessageType.CONTEXT, role="user", content="Hello, World!")
+    message = OpenAIMessage(role="user", content="Hello, World!")
     assert message.role == "user"
     assert message.content == "Hello, World!"
     assert message.name is None
 
 
 def test_valid_message():
-    message = OpenAIMessage(MessageType.RECORD, "user", "Hello, World!", "John_Doe")
-    assert message.to_dict() == {"role": "user", "content": "Hello, World!", "name": "John_Doe"}
+    message = OpenAIMessage("Hello, World!", "user", "John_Doe")
+    assert asdict(message) == {"role": "user", "content": "Hello, World!", "name": "John_Doe"}
 
 
 def test_invalid_role():
     with pytest.raises(ValueError):
-        OpenAIMessage(MessageType.INSTRUCT, "invalid_role", "Hello, World!")
+        OpenAIMessage("Hello, World!", "invalid_role")
 
 
 def test_none_content():
-    message = OpenAIMessage(message_type=MessageType.INSTRUCT, role="system", content=None)
+    message = OpenAIMessage(role="system", content=None)
     assert message.content is None
 
 
 def test_invalid_name():
     with pytest.raises(ValueError):
-        OpenAIMessage(MessageType.CONTEXT, "user", "Hello, World!", "Invalid@Name")
+        OpenAIMessage("Hello, World!", "user", "Invalid@Name")
 
 
 def test_empty_name():
     with pytest.raises(ValueError):
-        OpenAIMessage(MessageType.CONTEXT, "user", "Hello, World!", "")
+        OpenAIMessage("Hello, World!", "user", "")
 
 
 def test_blank_name():
     with pytest.raises(ValueError):
-        OpenAIMessage(MessageType.CONTEXT, "user", "Hello, World!", "  ")
+        OpenAIMessage("Hello, World!", "user", "  ")
 
 
 def test_none_name():
-    message = OpenAIMessage(MessageType.RECORD, "user", "Hello, World!", None)
-    assert message.to_dict() == {"role": "user", "content": "Hello, World!"}
+    message = OpenAIMessage("Hello, World!", "user", None)
+    assert asdict(message) == {"role": "user", "content": "Hello, World!", "name": None}
 
 
 def test_from_dict():
@@ -50,8 +50,7 @@ def test_from_dict():
         "content": "Welcome to the chat.",
         "role": "system"
     }
-    message = OpenAIMessage.from_dict(MessageType.INSTRUCT, message_data)
-    assert message.type == MessageType.INSTRUCT
+    message = OpenAIMessage(**message_data)
     assert message.role == "system"
     assert message.content == "Welcome to the chat."
     assert message.name is None
@@ -63,8 +62,7 @@ def test_from_dict_with_name():
         "role": "user",
         "name": "JohnDoe"
     }
-    message = OpenAIMessage.from_dict(MessageType.RECORD, message_data)
-    assert message.type == MessageType.RECORD
+    message = OpenAIMessage(**message_data)
     assert message.role == "user"
     assert message.content == "Hello, Assistant!"
     assert message.name == "JohnDoe"
