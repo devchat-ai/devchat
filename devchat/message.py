@@ -17,6 +17,12 @@ class Message(ABC):
     content: str = ""
 
     @abstractmethod
+    def to_dict(self) -> dict:
+        """
+        Convert the message to a dictionary.
+        """
+
+    @abstractmethod
     def stream_from_dict(self, message_data: dict) -> str:
         """
         Append to the message from a dictionary returned from a streaming chat API.

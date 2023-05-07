@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional
 from devchat.message import Message
 
@@ -15,6 +15,12 @@ class OpenAIMessage(Message):
         if not self._validate_name():
             raise ValueError("Invalid name. Must contain a-z, A-Z, 0-9, and underscores, "
                              "with a maximum length of 64 characters.")
+
+    def to_dict(self) -> dict:
+        state = asdict(self)
+        if state['name'] is None:
+            del state['name']
+        return state
 
     def stream_from_dict(self, message_data: dict) -> str:
         """Append to the message from a dictionary returned from a streaming chat API."""

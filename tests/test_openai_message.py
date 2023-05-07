@@ -1,4 +1,3 @@
-from dataclasses import asdict
 import pytest
 from devchat.openai import OpenAIMessage
 
@@ -12,7 +11,7 @@ def test_valid_message_creation():
 
 def test_valid_message():
     message = OpenAIMessage("Hello, World!", "user", "John_Doe")
-    assert asdict(message) == {"role": "user", "content": "Hello, World!", "name": "John_Doe"}
+    assert message.to_dict() == {"role": "user", "content": "Hello, World!", "name": "John_Doe"}
 
 
 def test_invalid_role():
@@ -42,7 +41,7 @@ def test_blank_name():
 
 def test_none_name():
     message = OpenAIMessage("Hello, World!", "user", None)
-    assert asdict(message) == {"role": "user", "content": "Hello, World!", "name": None}
+    assert message.to_dict() == {"role": "user", "content": "Hello, World!"}
 
 
 def test_from_dict():
