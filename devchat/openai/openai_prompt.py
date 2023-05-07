@@ -39,8 +39,8 @@ class OpenAIPrompt(Prompt):
             combined += [update_dict(msg.to_dict(), 'content',
                                      f"<context>\n{msg.content}\n</context>")
                          for msg in self._new_messages[MessageType.CONTEXT]]
-        if self._history_messages[MessageType.RECORD]:
-            combined += [msg.to_dict() for msg in self._history_messages[MessageType.RECORD]]
+        if self._history_messages[MessageType.CHAT]:
+            combined += [msg.to_dict() for msg in self._history_messages[MessageType.CHAT]]
         return combined
 
     def append_new(self, message_type: MessageType, content: str):

@@ -38,7 +38,7 @@ class Prompt(ABC):
         }
         self._history_messages: Dict[str, Message] = {
             MessageType.CONTEXT: [],
-            MessageType.RECORD: []
+            MessageType.CHAT: []
         }
 
         self._request_tokens: int = None

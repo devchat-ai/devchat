@@ -132,7 +132,7 @@ def test_messages_context():
 def test_messages_record():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     with pytest.raises(ValueError):
-        prompt.append_new(MessageType.RECORD, 'Record')
+        prompt.append_new(MessageType.CHAT, 'Record')
 
 
 def test_messages_request():

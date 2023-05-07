@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class MessageType(Enum):
     INSTRUCT = "instruct"
     CONTEXT = "context"
-    RECORD = "record"
+    CHAT = "chat"
 
 
 @dataclass

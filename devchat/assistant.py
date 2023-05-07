@@ -81,11 +81,11 @@ class Assistant:
 
         # Append the first response and the request of the appended prompt
         if self._check_limit():
-            self._prompt.append_history(MessageType.RECORD, prompt.response[0])
+            self._prompt.append_history(MessageType.CHAT, prompt.response[0])
             self._message_count += 1
 
         if self._check_limit():
-            self._prompt.append_history(MessageType.RECORD, prompt.request)
+            self._prompt.append_history(MessageType.CHAT, prompt.request)
             self._message_count += 1
 
         # Append the context messages of the appended prompt
