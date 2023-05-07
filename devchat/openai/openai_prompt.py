@@ -30,9 +30,10 @@ class OpenAIPrompt(Prompt):
             combined_messages += [msg.to_dict() for msg in self._messages[MessageType.INSTRUCT]]
         if self._request:
             combined_messages += [update_dict(self._request.to_dict(), 'content',
-                                              '<request>' + self._request.content)]
+                                              f"<request>\n{self._request.content}\n</request>")]
         if self._messages[MessageType.CONTEXT]:
-            combined_messages += [update_dict(msg.to_dict(), 'content', '<context>' + msg.content)
+            combined_messages += [update_dict(msg.to_dict(), 'content',
+                                              f"<context>\n{msg.content}\n</context>")
                                   for msg in self._messages[MessageType.CONTEXT]]
         if self._messages[MessageType.RECORD]:
             combined_messages += [msg.to_dict() for msg in self._messages[MessageType.RECORD]]

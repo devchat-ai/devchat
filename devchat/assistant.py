@@ -76,22 +76,22 @@ class Assistant:
             for index in self._prompt.responses.keys():
                 yield self._prompt.formatted_response(index) + '\n'
 
-        def _append_prompt(self, prompt_hash: str):
-            prompt = self._store.get_prompt(prompt_hash)
+    def _append_prompt(self, prompt_hash: str):
+        prompt = self._store.get_prompt(prompt_hash)
 
-            # Append the first response and the request of the appended prompt
-            if self._check_limit(self._message_count):
-                self._prompt.append_message(MessageType.RECORD, prompt.responses[0])
+        # Append the first response and the request of the appended prompt
+        if self._check_limit():
+            self._prompt.append_message(MessageType.RECORD, prompt.responses[0])
+            self._message_count += 1
+
+        if self._check_limit():
+            self._prompt.append_message(MessageType.RECORD, prompt.request)
+            self._message_count += 1
+
+        # Append the context messages of the appended prompt
+        for context_message in prompt.context_messages:
+            if self._check_limit():
+                self._prompt.append_message(MessageType.CONTEXT, context_message)
                 self._message_count += 1
-
-            if self._check_limit(self._message_count):
-                self._prompt.append_message(MessageType.RECORD, prompt.request)
-                self._message_count += 1
-
-            # Append the context messages of the appended prompt
-            for context_message in prompt.context_messages:
-                if self._check_limit(self._message_count):
-                    self._prompt.append_message(MessageType.CONTEXT, context_message)
-                    self._message_count += 1
-                else:
-                    break
+            else:
+                break

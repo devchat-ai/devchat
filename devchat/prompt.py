@@ -19,7 +19,7 @@ class Prompt(ABC):
         _timestamp (int): The timestamp when the response was created.
         _request_tokens (int): The number of tokens used in the request.
         _response_tokens (int): The number of tokens used in the response.
-        _hashes (Dict[int, str]): The hashes of the prompt indexed by the response index.
+        _hash (str): The hash of the prompt.
         parents (List[str]): The hashes of the parent prompts.
         references (List[str]): The hashes of the referenced prompts.
     """
