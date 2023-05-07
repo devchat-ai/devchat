@@ -88,7 +88,7 @@ class Assistant:
             self._message_count += 1
 
         # Append the context messages of the appended prompt
-        for context_message in prompt.new_messages[MessageType.CONTEXT]:
+        for context_message in prompt.new_context:
             if self._check_limit():
                 self._prompt.append_history(MessageType.CONTEXT, context_message)
                 self._message_count += 1

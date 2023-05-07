@@ -63,6 +63,10 @@ class Prompt(ABC):
         return self._new_messages
 
     @property
+    def new_context(self) -> List[Message]:
+        return self._new_messages[MessageType.CONTEXT]
+
+    @property
     def request(self) -> Message:
         return self._new_messages['request']
 
@@ -172,7 +176,8 @@ class Prompt(ABC):
             shortlog_data = {
                 "user": f"{self._user_name} <{self._user_email}>",
                 "date": self._timestamp,
-                "last_message": self.request.content,
+                "context": [msg.to_dict() for msg in self.new_context],
+                "request": self.request.content,
                 "response": message.content,
                 "hash": self.hash
             }
