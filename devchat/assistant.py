@@ -1,5 +1,5 @@
 from typing import Optional, List, Iterator
-from devchat.utils import parse_hashes
+from devchat.utils import validate_hashes
 from devchat.message import MessageType
 from devchat.chat import Chat
 from devchat.store import Store
@@ -37,8 +37,8 @@ class Assistant:
         """
         self._prompt = self._chat.init_prompt(request)
 
-        self._prompt.parents = parse_hashes(parent)
-        self._prompt.references = parse_hashes(reference)
+        self._prompt.parents = validate_hashes(parent)
+        self._prompt.references = validate_hashes(reference)
         for parent_hash in self._prompt.parents:
             self._store.get_prompt(parent_hash)
         for reference_hash in self._prompt.references:

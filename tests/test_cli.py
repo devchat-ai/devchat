@@ -100,17 +100,17 @@ def fixture_temp_files(tmpdir):
 
 
 def test_main_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
-    files = f'{temp_files[0]},{temp_files[1]}'
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo-0301', '--instruct', files,
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo-0301',
+                                  '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0
     assert _get_core_content(result.output) == "hot\n"
 
 
 def test_main_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
-    instruct_files = f"{temp_files[0]},{temp_files[2]}"
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
-                                  '--instruct', instruct_files, '--context', temp_files[3],
+                                  '-i', temp_files[0], '-i', temp_files[2],
+                                  '--context', temp_files[3],
                                   "It is really scorching."])
     assert result.exit_code == 0
     assert _get_core_content(result.output) == "hot summer\n"

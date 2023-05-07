@@ -72,21 +72,18 @@ def get_git_user_info() -> Tuple[str, str]:
     return git_user_name, git_user_email
 
 
-def parse_files(file_paths_str) -> List[str]:
-    if not file_paths_str:
+def parse_files(file_paths: List[str]) -> List[str]:
+    if not file_paths:
         return []
 
-    file_paths = file_paths_str.split(',')
-
     for file_path in file_paths:
-        expanded_file_path = os.path.expanduser(file_path)
-        if not os.path.isfile(expanded_file_path):
+        file_path = os.path.expanduser(file_path.strip())
+        if not os.path.isfile(file_path):
             raise ValueError(f"File {file_path} does not exist.")
 
     contents = []
     for file_path in file_paths:
-        expanded_file_path = os.path.expanduser(file_path)
-        with open(expanded_file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
             if not content:
                 raise ValueError(f"File {file_path} is empty.")
@@ -102,15 +99,12 @@ def is_valid_hash(hash_str):
     return bool(pattern.match(hash_str))
 
 
-def parse_hashes(hashes) -> List[str]:
-    if not hashes:
-        return []
-    values = []
-    for value in hashes.split(','):
-        if not is_valid_hash(value):
-            raise ValueError(f"Invalid hash value {value}.")
-        values.append(value)
-    return values
+def validate_hashes(hashes: List[str]) -> List[str]:
+    if hashes:
+        for value in hashes:
+            if not is_valid_hash(value):
+                raise ValueError(f"Invalid hash value {value}.")
+    return hashes
 
 
 def update_dict(dict_to_update, key, value) -> dict:
