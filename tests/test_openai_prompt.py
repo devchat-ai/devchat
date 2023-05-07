@@ -140,7 +140,6 @@ def test_messages_request():
     request_message = OpenAIMessage('Request', 'user')
     prompt.set_request('Request')
     expected_message = request_message.to_dict()
-    expected_message["content"] = "<request>\n" + expected_message["content"] + "\n</request>"
     assert prompt.messages == [expected_message]
 
 
@@ -158,12 +157,12 @@ def test_messages_combined():
     expected_context_message["content"] = "<context>\n" + context_message.content + "\n</context>"
 
     expected_request_message = request_message.to_dict()
-    expected_request_message["content"] = "<request>\n" + request_message.content + "\n</request>"
+    expected_request_message["content"] = request_message.content
 
     assert prompt.messages == [
         instruct_message.to_dict(),
-        expected_request_message,
-        expected_context_message
+        expected_context_message,
+        expected_request_message
     ]
 
 

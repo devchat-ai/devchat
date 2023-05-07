@@ -100,7 +100,7 @@ def fixture_temp_files(tmpdir):
 
 
 def test_main_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo-0301',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0

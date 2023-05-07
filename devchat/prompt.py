@@ -11,9 +11,8 @@ class Prompt(ABC):
 
     Attributes:
         _model (str): The name of the language model.
-        user_name (str): The name of the user.
-        user_email (str): The email address of the user.
-        _request (Message): The request message.
+        _user_name (str): The name of the user.
+        _user_email (str): The email address of the user.
         _new_messages (dict): The messages for the current round of conversation.
         _history_messages (dict): The messages for the history of conversation.
         _timestamp (int): The timestamp when the response was created.
@@ -58,6 +57,10 @@ class Prompt(ABC):
         """
         List of messages in the prompt to be sent to the chat API.
         """
+
+    @property
+    def new_messages(self) -> dict:
+        return self._new_messages
 
     @property
     def request(self) -> Message:

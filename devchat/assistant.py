@@ -2,6 +2,7 @@ from typing import Optional, List, Iterator
 from devchat.utils import validate_hashes
 from devchat.message import MessageType
 from devchat.chat import Chat
+from devchat.prompt import Prompt
 from devchat.store import Store
 
 
@@ -16,15 +17,15 @@ class Assistant:
         self._chat = chat
         self._store = store
         self._prompt = None
-        self.message_limit = 10
+        self.token_limit = 10
         self._message_count = 0
 
     def _check_limit(self) -> bool:
-        return self._message_count < self.message_limit
+        return self._message_count < self.token_limit
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
-                    parent: Optional[List[str]] = None, reference: Optional[List[str]] = None):
+                    parents: Optional[List[str]] = None, references: Optional[List[str]] = None):
         """
         Make a prompt for the chat API.
 
@@ -32,17 +33,17 @@ class Assistant:
             request (str): The user request.
             instruct_contents (Optional[List[str]]): A list of instructions to the prompt.
             context_contents (Optional[List[str]]): A list of context messages to the prompt.
-            parent (Optional[List[str]]): A list of IDs of the parent prompts.
-            reference (Optional[List[str]]): A list of IDs of reference prompts.
+            parents (Optional[List[str]]): The parent prompt hashes.
+            references (Optional[List[str]]): The reference prompt hashes.
         """
         self._prompt = self._chat.init_prompt(request)
 
-        self._prompt.parents = validate_hashes(parent)
-        self._prompt.references = validate_hashes(reference)
+        self._prompt.parents = validate_hashes(parents)
+        self._prompt.references = validate_hashes(references)
         for parent_hash in self._prompt.parents:
-            self._store.get_prompt(parent_hash)
+            self._append_prompt(self._store.get_prompt(parent_hash))
         for reference_hash in self._prompt.references:
-            self._store.get_prompt(reference_hash)
+            self._append_prompt(self._store.get_prompt(reference_hash))
 
         # Add instructions to the prompt
         if instruct_contents:
@@ -76,9 +77,7 @@ class Assistant:
             for index in self._prompt.response.keys():
                 yield self._prompt.formatted_response(index) + '\n'
 
-    def _append_prompt(self, prompt_hash: str):
-        prompt = self._store.get_prompt(prompt_hash)
-
+    def _append_prompt(self, prompt: Prompt):
         # Append the first response and the request of the appended prompt
         if self._check_limit():
             self._prompt.append_history(MessageType.CHAT, prompt.response[0])
@@ -89,7 +88,7 @@ class Assistant:
             self._message_count += 1
 
         # Append the context messages of the appended prompt
-        for context_message in prompt.context_messages:
+        for context_message in prompt.new_messages[MessageType.CONTEXT]:
             if self._check_limit():
                 self._prompt.append_history(MessageType.CONTEXT, context_message)
                 self._message_count += 1
