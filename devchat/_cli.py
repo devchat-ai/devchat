@@ -38,9 +38,9 @@ def init_dir() -> Tuple[dict, Store]:
         os.makedirs(chat_dir)
 
     default_config_data = {
-        'llm': 'OpenAI',
+        'model': 'gpt-3.5-turbo',
+        'provider': 'OpenAI',
         'OpenAI': {
-            'model': 'gpt-3.5-turbo',
             'temperature': 0.2
         }
     }
@@ -63,8 +63,9 @@ def init_dir() -> Tuple[dict, Store]:
               'include in the current prompt.')
 @click.option('-i', '--instruct', help='Add one or more files to the prompt as instructions.')
 @click.option('-c', '--context', help='Add one or more files to the prompt as a context.')
+@click.option('-m', '--model', help='Specify the model to use for the prompt.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[str],
-           instruct: Optional[str], context: Optional[str]):
+           instruct: Optional[str], context: Optional[str], model: Optional[str]):
     """
     Main function to run the chat application.
 
@@ -98,9 +99,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     If the file is not found, it uses the following default configuration:
     ```json
     {
-        "llm": "OpenAI",
+        "model": "gpt-3.5-turbo",
+        "provider": "OpenAI",
         "OpenAI": {
-            "model": "gpt-3.5-turbo",
             "temperature": 0.2
         }
     }
@@ -110,9 +111,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
     modify the settings as needed. We recoommend the following settings:
     ```json
     {
-        "llm": "OpenAI",
+        "model": "gpt-4",
+        "provider": "OpenAI",
         "OpenAI": {
-            "model": "gpt-4",
             "temperature": 0.2,
             "stream": true
         }
@@ -139,9 +140,12 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        llm = config.get('llm')
-        if llm == 'OpenAI':
-            openai_config = OpenAIChatConfig(**config['OpenAI'])
+        provider = config.get('provider')
+        if provider == 'OpenAI':
+            if model is None:
+                model = config['model']
+            openai_config = OpenAIChatConfig(model=model, **config['OpenAI'])
+
             chat = OpenAIChat(openai_config)
 
             openai_asisstant = Assistant(chat, store)
@@ -151,7 +155,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
             for response in openai_asisstant.iterate_response():
                 click.echo(response, nl=False)
         else:
-            click.echo(f"Error: Invalid LLM in configuration '{llm}'", err=True)
+            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
             sys.exit(os.EX_DATAERR)
 
 
