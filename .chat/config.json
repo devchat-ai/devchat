@@ -3,6 +3,7 @@
     "provider": "OpenAI",
     "OpenAI": {
         "temperature": 0,
-        "stream": true
+        "stream": true,
+        "tokens-per-prompt": 6000
     }
 }
