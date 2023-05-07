@@ -1,4 +1,3 @@
-from dataclasses import asdict
 import json
 import os
 import pytest
@@ -118,14 +117,14 @@ def test_messages_instruct():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     instruct_message = OpenAIMessage('Instructions', 'system')
     prompt.append_new(MessageType.INSTRUCT, 'Instructions')
-    assert prompt.messages == [asdict(instruct_message)]
+    assert prompt.messages == [instruct_message.to_dict()]
 
 
 def test_messages_context():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     context_message = OpenAIMessage('Context', 'system')
     prompt.append_new(MessageType.CONTEXT, 'Context')
-    expected_message = asdict(context_message)
+    expected_message = context_message.to_dict()
     expected_message["content"] = "<context>\n" + context_message.content + "\n</context>"
     assert prompt.messages == [expected_message]
 
@@ -140,7 +139,7 @@ def test_messages_request():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     request_message = OpenAIMessage('Request', 'user')
     prompt.set_request('Request')
-    expected_message = asdict(request_message)
+    expected_message = request_message.to_dict()
     expected_message["content"] = "<request>\n" + expected_message["content"] + "\n</request>"
     assert prompt.messages == [expected_message]
 
@@ -155,14 +154,14 @@ def test_messages_combined():
     prompt.append_new(MessageType.CONTEXT, 'Context')
     prompt.set_request('Request')
 
-    expected_context_message = asdict(context_message)
+    expected_context_message = context_message.to_dict()
     expected_context_message["content"] = "<context>\n" + context_message.content + "\n</context>"
 
-    expected_request_message = asdict(request_message)
+    expected_request_message = request_message.to_dict()
     expected_request_message["content"] = "<request>\n" + request_message.content + "\n</request>"
 
     assert prompt.messages == [
-        asdict(instruct_message),
+        instruct_message.to_dict(),
         expected_request_message,
         expected_context_message
     ]

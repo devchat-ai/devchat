@@ -148,7 +148,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[st
             openai_asisstant.make_prompt(content, instruct_contents, context_contents,
                                          parent, reference)
 
-            for response in openai_asisstant.iterate_responses():
+            for response in openai_asisstant.iterate_response():
                 click.echo(response, nl=False)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{llm}'", err=True)

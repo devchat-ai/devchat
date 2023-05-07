@@ -1,4 +1,3 @@
-from dataclasses import asdict
 import json
 from typing import List
 from devchat.prompt import Prompt
@@ -28,16 +27,16 @@ class OpenAIPrompt(Prompt):
     def messages(self) -> List[dict]:
         combined = []
         if self._new_messages[MessageType.INSTRUCT]:
-            combined += [asdict(msg) for msg in self._new_messages[MessageType.INSTRUCT]]
+            combined += [msg.to_dict() for msg in self._new_messages[MessageType.INSTRUCT]]
         if self.request:
-            combined += [update_dict(asdict(self.request), 'content',
+            combined += [update_dict(self.request.to_dict(), 'content',
                                      f"<request>\n{self.request.content}\n</request>")]
         if self._new_messages[MessageType.CONTEXT]:
-            combined += [update_dict(asdict(msg), 'content',
+            combined += [update_dict(msg.to_dict(), 'content',
                                      f"<context>\n{msg.content}\n</context>")
                          for msg in self._new_messages[MessageType.CONTEXT]]
         if self._history_messages[MessageType.CONTEXT]:
-            combined += [update_dict(asdict(msg), 'content',
+            combined += [update_dict(msg.to_dict(), 'content',
                                      f"<context>\n{msg.content}\n</context>")
                          for msg in self._new_messages[MessageType.CONTEXT]]
         if self._history_messages[MessageType.RECORD]:
