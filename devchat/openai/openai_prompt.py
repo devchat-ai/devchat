@@ -1,7 +1,7 @@
 import json
 from typing import List
 from devchat.prompt import Prompt
-from devchat.message import MessageType
+from devchat.message import MessageType, Message
 from devchat.utils import update_dict
 from .openai_message import OpenAIMessage
 
@@ -25,35 +25,43 @@ class OpenAIPrompt(Prompt):
 
     @property
     def messages(self) -> List[dict]:
-        combined_messages = []
-        if self._messages[MessageType.INSTRUCT]:
-            combined_messages += [msg.to_dict() for msg in self._messages[MessageType.INSTRUCT]]
-        if self._request:
-            combined_messages += [update_dict(self._request.to_dict(), 'content',
-                                              '<request>' + self._request.content)]
-        if self._messages[MessageType.CONTEXT]:
-            combined_messages += [update_dict(msg.to_dict(), 'content', '<context>' + msg.content)
-                                  for msg in self._messages[MessageType.CONTEXT]]
-        if self._messages[MessageType.RECORD]:
-            combined_messages += [msg.to_dict() for msg in self._messages[MessageType.RECORD]]
-        return combined_messages
+        combined = []
+        # Instruction
+        if self._new_messages[MessageType.INSTRUCT]:
+            combined += [msg.to_dict() for msg in self._new_messages[MessageType.INSTRUCT]]
+        # New context
+        if self.new_context:
+            combined += [update_dict(msg.to_dict(), 'content',
+                                     f"<context>\n{msg.content}\n</context>")
+                         for msg in self.new_context]
+        # History context
+        if self._history_messages[MessageType.CONTEXT]:
+            combined += [update_dict(msg.to_dict(), 'content',
+                                     f"<context>\n{msg.content}\n</context>")
+                         for msg in self.new_context]
+        # History chat
+        if self._history_messages[MessageType.CHAT]:
+            combined += [msg.to_dict() for msg
+                         in reversed(self._history_messages[MessageType.CHAT])]
+        # Request
+        if self.request:
+            combined += [self.request.to_dict()]
+        return combined
 
-    def append_message(self, message_type: MessageType, content: str):
-        """
-        Append a message to the prompt.
+    def append_new(self, message_type: MessageType, content: str):
+        if message_type not in (MessageType.INSTRUCT, MessageType.CONTEXT):
+            raise ValueError(f"Current messages cannot be of type {message_type}.")
+        self._new_messages[message_type].append(OpenAIMessage(content, 'system'))
 
-        Args:
-            message_type (MessageType): The type of the message. It cannot be RECORD.
-            content (str): The content of the message.
-        """
-        if message_type == MessageType.RECORD:
-            raise ValueError("Use set_request() to set a message of type RECORD.")
-        self._messages[message_type].append(OpenAIMessage(message_type, 'system', content))
+    def append_history(self, message_type: MessageType, message: Message):
+        if message_type == MessageType.INSTRUCT:
+            raise ValueError("History messages cannot be of type INSTRUCT.")
+        self._history_messages[message_type].append(message)
 
     def set_request(self, content: str):
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        self._request = OpenAIMessage(MessageType.RECORD, 'user', content)
+        self._new_messages['request'] = OpenAIMessage(content, 'user')
 
     def set_response(self, response_str: str):
         """
@@ -70,8 +78,8 @@ class OpenAIPrompt(Prompt):
         self._request_tokens = response_data['usage']['prompt_tokens']
         self._response_tokens = response_data['usage']['completion_tokens']
 
-        self._responses = {
-            choice['index']: OpenAIMessage.from_dict(MessageType.RECORD, choice['message'])
+        self._new_messages['response'] = {
+            choice['index']: OpenAIMessage(**choice['message'])
             for choice in response_data['choices']
         }
         self.set_hash()
@@ -96,16 +104,16 @@ class OpenAIPrompt(Prompt):
             delta = choice['delta']
             index = choice['index']
 
-            if index not in self.responses:
-                self.responses[index] = OpenAIMessage.from_dict(MessageType.RECORD, delta)
+            if index not in self.response:
+                self.response[index] = OpenAIMessage(**delta)
                 if index == 0:
                     delta_content = self.formatted_header()
-                    delta_content += self.responses[0].content
+                    delta_content += self.response[0].content
             else:
                 if index == 0:
-                    delta_content = self.responses[0].append_from_dict(delta)
+                    delta_content = self.response[0].stream_from_dict(delta)
                 else:
-                    self.responses[index].append_from_dict(delta)
+                    self.response[index].stream_from_dict(delta)
 
         return delta_content
 

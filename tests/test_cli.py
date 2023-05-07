@@ -33,8 +33,7 @@ def fixture_git_repo(request):
     return repo_dir
 
 
-def test_main_no_args(git_repo):
-    assert os.path.isdir(git_repo)
+def test_main_no_args(git_repo):  # pylint: disable=W0613
     result = runner.invoke(main, ['prompt'])
     assert result.exit_code == 0
 
@@ -54,9 +53,7 @@ def _get_core_content(output) -> str:
     return core_content
 
 
-def test_main_with_content(git_repo):
-    assert os.path.isdir(git_repo)
-
+def test_main_with_content(git_repo):  # pylint: disable=W0613
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
@@ -66,9 +63,9 @@ def test_main_with_content(git_repo):
 
 def test_main_with_temp_config_file(git_repo):
     config_data = {
-        'llm': 'OpenAI',
+        'model': 'gpt-3.5-turbo-0301',
+        'provider': 'OpenAI',
         'OpenAI': {
-            'model': 'gpt-3.5-turbo-0301',
             'temperature': 0
         }
     }
@@ -93,31 +90,27 @@ def fixture_temp_files(tmpdir):
     instruct0 = tmpdir.join('instruct0.txt')
     instruct0.write("Summarize the following user message.\n")
     instruct1 = tmpdir.join('instruct1.txt')
-    instruct1.write("The summary must be lowercased under 10 characters without any punctuation.\n")
+    instruct1.write("The summary must be lowercased under 5 characters without any punctuation.\n")
     instruct2 = tmpdir.join('instruct2.txt')
-    instruct2.write("The summary must be lowercased under 12 characters without any punctuation."
+    instruct2.write("The summary must be lowercased under 10 characters without any punctuation."
                     "Include the information in <context> to create the summary.\n")
     context = tmpdir.join("context.txt")
-    context.write("This year is 2023.")
+    context.write("It is summer.")
     return str(instruct0), str(instruct1), str(instruct2), str(context)
 
 
-def test_main_with_instruct(git_repo, temp_files):
-    assert os.path.isdir(git_repo)
-
-    files = f'{temp_files[0]},{temp_files[1]}'
-    result = runner.invoke(main, ['prompt', '--instruct', files,
-                                  "This summer is really scorching."])
+def test_main_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+                                  '-i', temp_files[0], '-i', temp_files[1],
+                                  "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hotsummer\n"
+    assert _get_core_content(result.output) == "hot\n"
 
 
-def test_main_with_instruct_and_context(git_repo, temp_files):
-    assert os.path.isdir(git_repo)
-
-    instruct_files = f"{temp_files[0]},{temp_files[2]}"
-    result = runner.invoke(main, ['prompt', '--instruct', instruct_files,
+def test_main_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+                                  '-i', temp_files[0], '-i', temp_files[2],
                                   '--context', temp_files[3],
-                                  "This summer is really scorching."])
+                                  "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hotsummer23\n"
+    assert _get_core_content(result.output) == "hot summer\n"

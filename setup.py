@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open("devchat/requirements.txt") as f:
+with open("devchat/requirements.txt", encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 setup(

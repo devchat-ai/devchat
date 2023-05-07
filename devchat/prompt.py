@@ -11,15 +11,14 @@ class Prompt(ABC):
 
     Attributes:
         _model (str): The name of the language model.
-        user_name (str): The name of the user.
-        user_email (str): The email address of the user.
-        _request (Message): The request message.
-        _messages (Dict[MessageType, Message]): The messages indexed by the message type.
-        _responses (Dict[int, Message]): The responses indexed by an integer.
+        _user_name (str): The name of the user.
+        _user_email (str): The email address of the user.
+        _new_messages (dict): The messages for the current round of conversation.
+        _history_messages (dict): The messages for the history of conversation.
         _timestamp (int): The timestamp when the response was created.
         _request_tokens (int): The number of tokens used in the request.
         _response_tokens (int): The number of tokens used in the response.
-        _hashes (Dict[int, str]): The hashes of the prompt indexed by the response index.
+        _hash (str): The hash of the prompt.
         parents (List[str]): The hashes of the parent prompts.
         references (List[str]): The hashes of the referenced prompts.
     """
@@ -30,12 +29,16 @@ class Prompt(ABC):
         self._user_email: str = user_email
         self._timestamp: int = None
 
-        self._request: Message = None
-        self._messages: Dict[MessageType, Message] = {
+        self._new_messages = {
             MessageType.INSTRUCT: [],
+            'request': None,
             MessageType.CONTEXT: [],
-            MessageType.RECORD: []}
-        self._responses: Dict[int, Message] = {}
+            'response': {}
+        }
+        self._history_messages: Dict[str, Message] = {
+            MessageType.CONTEXT: [],
+            MessageType.CHAT: []
+        }
 
         self._request_tokens: int = None
         self._response_tokens: int = None
@@ -56,8 +59,20 @@ class Prompt(ABC):
         """
 
     @property
-    def responses(self) -> Dict[int, Message]:
-        return self._responses
+    def new_messages(self) -> dict:
+        return self._new_messages
+
+    @property
+    def new_context(self) -> List[Message]:
+        return self._new_messages[MessageType.CONTEXT]
+
+    @property
+    def request(self) -> Message:
+        return self._new_messages['request']
+
+    @property
+    def response(self) -> Dict[int, Message]:
+        return self._new_messages['response']
 
     @property
     def request_tokens(self) -> int:
@@ -72,13 +87,22 @@ class Prompt(ABC):
         return self._hash
 
     @abstractmethod
-    def append_message(self, message_type: MessageType, content: str):
+    def append_new(self, message_type: MessageType, content: str):
         """
-        Append a message to the prompt.
+        Add to the current messages of the prompt.
 
         Args:
-            message_type (MessageType): The type of the message. It cannot be RECORD.
+            message_type (MessageType): The type of the message.
             content (str): The content of the message.
+        """
+
+    @abstractmethod
+    def append_history(self, message_type: MessageType, message: Message):
+        """
+        Add to the history messages of the prompt.
+
+        Args:
+            message (Message): The message to add.
         """
 
     @abstractmethod
@@ -113,10 +137,10 @@ class Prompt(ABC):
 
     def set_hash(self):
         """Set the hash of the prompt."""
-        if not self._request or not self._responses:
+        if not self.request or not self.response:
             raise ValueError("Prompt is incomplete for hash.")
-        hash_str = self._request.content
-        for response in self._responses.values():
+        hash_str = self.request.content
+        for response in self.response.values():
             hash_str += response.content
         self._hash = hashlib.sha1(hash_str.encode()).hexdigest()
         return self._hash
@@ -134,7 +158,7 @@ class Prompt(ABC):
         """Formatted response of the prompt."""
         formatted_str = self.formatted_header()
 
-        response = self._responses.get(index, None)
+        response = self.response.get(index, None)
         if response is None or response.content is None:
             raise ValueError(f"Response {index} is incomplete.")
 
@@ -145,15 +169,16 @@ class Prompt(ABC):
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""
-        if not self._request or not self._responses:
+        if not self.request or not self.response:
             raise ValueError("Prompt is incomplete for shortlog.")
         logs = []
-        for response in self._responses.values():
+        for message in self.response.values():
             shortlog_data = {
-                "user": f'{self._user_name} <{self._user_email}>',
+                "user": f"{self._user_name} <{self._user_email}>",
                 "date": self._timestamp,
-                "last_message": self._request.content,
-                "response": response.content,
+                "context": [msg.to_dict() for msg in self.new_context],
+                "request": self.request.content,
+                "response": message.content,
                 "hash": self.hash
             }
             logs.append(shortlog_data)
