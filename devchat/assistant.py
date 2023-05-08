@@ -17,7 +17,8 @@ class Assistant:
         self._chat = chat
         self._store = store
         self._prompt = None
-        self.token_limit = 10
+        # TODO: Change to token limit and make the following configurable.
+        self.token_limit = 20
         self._message_count = 0
 
     def _check_limit(self) -> bool:
@@ -37,15 +38,6 @@ class Assistant:
             references (Optional[List[str]]): The reference prompt hashes.
         """
         self._prompt = self._chat.init_prompt(request)
-
-        if parent:
-            self._prompt.parent = validate_hashes([parent])[0]
-            self._append_prompt(self._store.get_prompt(self._prompt.parent))
-
-        self._prompt.references = validate_hashes(references)
-        for reference_hash in self._prompt.references:
-            self._append_prompt(self._store.get_prompt(reference_hash))
-
         # Add instructions to the prompt
         if instruct_contents:
             combined_instruct = ''.join(instruct_contents)
@@ -56,6 +48,19 @@ class Assistant:
         if context_contents:
             for context_content in context_contents:
                 self._prompt.append_new(MessageType.CONTEXT, context_content)
+        # Add history to the prompt
+        self._prompt.references = validate_hashes(references)
+        for reference_hash in self._prompt.references:
+            if not self._append_prompt(self._store.get_prompt(reference_hash)):
+                return
+        if parent:
+            self._prompt.parent = validate_hashes([parent])[0]
+            parent_hash = parent
+            while parent_hash:
+                parent_prompt = self._store.get_prompt(parent_hash)
+                if not self._append_prompt(parent_prompt):
+                    return
+                parent_hash = parent_prompt.parent
 
     def iterate_response(self) -> Iterator[str]:
         """Get an iterator of response strings from the chat API.
@@ -78,20 +83,22 @@ class Assistant:
             for index in self._prompt.response.keys():
                 yield self._prompt.formatted_response(index) + '\n'
 
-    def _append_prompt(self, prompt: Prompt):
+    def _append_prompt(self, prompt: Prompt) -> bool:
         # Append the first response and the request of the appended prompt
-        if self._check_limit():
-            self._prompt.append_history(MessageType.CHAT, prompt.response[0])
-            self._message_count += 1
+        if not self._check_limit():
+            return False
+        self._prompt.append_history(MessageType.CHAT, prompt.response[0])
+        self._message_count += 1
 
-        if self._check_limit():
-            self._prompt.append_history(MessageType.CHAT, prompt.request)
-            self._message_count += 1
+        if not self._check_limit():
+            return False
+        self._prompt.append_history(MessageType.CHAT, prompt.request)
+        self._message_count += 1
 
         # Append the context messages of the appended prompt
         for context_message in prompt.new_context:
-            if self._check_limit():
-                self._prompt.append_history(MessageType.CONTEXT, context_message)
-                self._message_count += 1
-            else:
-                break
+            if not self._check_limit():
+                return False
+            self._prompt.append_history(MessageType.CONTEXT, context_message)
+            self._message_count += 1
+        return True

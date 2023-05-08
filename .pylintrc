@@ -10,6 +10,7 @@ disable=
     too-many-arguments,
     too-many-locals,
     too-many-branches,
+    fixme,
     R0801
 
 [MASTER]
