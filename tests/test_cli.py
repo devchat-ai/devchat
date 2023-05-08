@@ -65,6 +65,7 @@ def test_main_with_temp_config_file(git_repo):
     config_data = {
         'model': 'gpt-3.5-turbo-0301',
         'provider': 'OpenAI',
+        'tokens-per-prompt': 6000,
         'OpenAI': {
             'temperature': 0
         }
