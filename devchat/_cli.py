@@ -172,5 +172,7 @@ def log(skip, max_count):
 
     recent_prompts = store.select_recent(skip, skip + max_count)
 
+    logs = []
     for record in recent_prompts:
-        click.echo(json.dumps(record.shortlog(), indent=2))
+        logs.append(record.shortlog())
+    click.echo(json.dumps(logs, indent=2))
