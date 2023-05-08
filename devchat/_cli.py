@@ -58,8 +58,7 @@ def init_dir() -> Tuple[dict, Store]:
 
 @main.command()
 @click.argument('content', required=False)
-@click.option('-p', '--parent', multiple=True,
-              help='Input the parent prompt hashes to continue the conversation.')
+@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
 @click.option('-r', '--reference', multiple=True,
               help='Input one or more specific previous prompts to include in the current prompt.')
 @click.option('-i', '--instruct', multiple=True,
@@ -67,8 +66,8 @@ def init_dir() -> Tuple[dict, Store]:
 @click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
 @click.option('-m', '--model', help='Specify the model to use for the prompt.')
-def prompt(content: Optional[str], parent: Optional[List[str]], reference: Optional[List[str]],
-           instruct: Optional[str], context: Optional[str], model: Optional[str]):
+def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
+           instruct: Optional[List[str]], context: Optional[List[str]], model: Optional[str]):
     """
     Main function to run the chat application.
 

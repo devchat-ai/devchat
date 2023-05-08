@@ -25,7 +25,7 @@ class Assistant:
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
-                    parents: Optional[List[str]] = None, references: Optional[List[str]] = None):
+                    parent: Optional[str] = None, references: Optional[List[str]] = None):
         """
         Make a prompt for the chat API.
 
@@ -33,15 +33,16 @@ class Assistant:
             request (str): The user request.
             instruct_contents (Optional[List[str]]): A list of instructions to the prompt.
             context_contents (Optional[List[str]]): A list of context messages to the prompt.
-            parents (Optional[List[str]]): The parent prompt hashes.
+            parent (Optional[str]): The parent prompt hash. None means a new topic.
             references (Optional[List[str]]): The reference prompt hashes.
         """
         self._prompt = self._chat.init_prompt(request)
 
-        self._prompt.parents = validate_hashes(parents)
+        if parent:
+            self._prompt.parent = validate_hashes([parent])[0]
+            self._append_prompt(self._store.get_prompt(self._prompt.parent))
+
         self._prompt.references = validate_hashes(references)
-        for parent_hash in self._prompt.parents:
-            self._append_prompt(self._store.get_prompt(parent_hash))
         for reference_hash in self._prompt.references:
             self._append_prompt(self._store.get_prompt(reference_hash))
 

@@ -58,10 +58,10 @@ class Store:
         self._graph.add_node(prompt.hash, timestamp=prompt.timestamp)
 
         # Add edges for parents and references
-        for parent_hash in prompt.parents:
-            if parent_hash not in self._graph:
-                raise ValueError(f'Parent {parent_hash} not found in the store.')
-            self._graph.add_edge(prompt.hash, parent_hash)
+        if prompt.parent:
+            if prompt.parent not in self._graph:
+                raise ValueError(f'Parent {prompt.parent} not found in the store.')
+            self._graph.add_edge(prompt.hash, prompt.parent)
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
                 raise ValueError(f'Reference {reference_hash} not found in the store.')

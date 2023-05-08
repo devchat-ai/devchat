@@ -15,20 +15,18 @@ class Prompt(ABC):
         _user_email (str): The email address of the user.
         _new_messages (dict): The messages for the current round of conversation.
         _history_messages (dict): The messages for the history of conversation.
+        parent (str): The parent prompt hash.
+        references (List[str]): The hashes of the referenced prompts.
         _timestamp (int): The timestamp when the response was created.
         _request_tokens (int): The number of tokens used in the request.
         _response_tokens (int): The number of tokens used in the response.
         _hash (str): The hash of the prompt.
-        parents (List[str]): The hashes of the parent prompts.
-        references (List[str]): The hashes of the referenced prompts.
     """
 
     def __init__(self, model: str, user_name: str, user_email: str):
         self._model: str = model
         self._user_name: str = user_name
         self._user_email: str = user_email
-        self._timestamp: int = None
-
         self._new_messages = {
             MessageType.INSTRUCT: [],
             'request': None,
@@ -39,13 +37,12 @@ class Prompt(ABC):
             MessageType.CONTEXT: [],
             MessageType.CHAT: []
         }
-
+        self.parent: str = None
+        self.references: List[str] = []
+        self._timestamp: int = None
         self._request_tokens: int = None
         self._response_tokens: int = None
-
         self._hash: str = None
-        self.parents: List[str] = []
-        self.references: List[str] = []
 
     @property
     def timestamp(self) -> int:
