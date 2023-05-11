@@ -1,8 +1,9 @@
 import json
+import math
 from typing import List
 from devchat.prompt import Prompt
 from devchat.message import MessageType, Message
-from devchat.utils import update_dict
+from devchat.utils import update_dict, message_tokens
 from .openai_message import OpenAIMessage
 
 
@@ -48,20 +49,35 @@ class OpenAIPrompt(Prompt):
             combined += [self.request.to_dict()]
         return combined
 
-    def append_new(self, message_type: MessageType, content: str):
+    def append_new(self, message_type: MessageType, content: str,
+                   available_tokens: int = math.inf) -> bool:
         if message_type not in (MessageType.INSTRUCT, MessageType.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
-        self._new_messages[message_type].append(OpenAIMessage(content, 'system'))
+        message = OpenAIMessage(content, 'system')
+        num_tokens = message_tokens(message.to_dict(), self.model)
+        if num_tokens > available_tokens:
+            return False
+        self._new_messages[message_type].append(message)
+        self._request_tokens += num_tokens
+        return True
 
-    def append_history(self, message_type: MessageType, message: Message):
+    def append_history(self, message_type: MessageType, message: Message,
+                       available_tokens: int = math.inf) -> bool:
         if message_type == MessageType.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
+        num_tokens = message_tokens(message.to_dict(), self.model)
+        if num_tokens > available_tokens:
+            return False
         self._history_messages[message_type].append(message)
+        self._request_tokens += num_tokens
+        return True
 
-    def set_request(self, content: str):
+    def set_request(self, content: str) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        self._new_messages['request'] = OpenAIMessage(content, 'user')
+        message = OpenAIMessage(content, 'user')
+        self._new_messages['request'] = message
+        self._request_tokens = message_tokens(message.to_dict(), self.model)
 
     def set_response(self, response_str: str):
         """

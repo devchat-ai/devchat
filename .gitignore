@@ -134,5 +134,4 @@ dmypy.json
 .pyre/
 
 # DevChat
-.chat/prompts.graphml
-.chat/prompts.db
+.chat

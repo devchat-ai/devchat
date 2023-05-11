@@ -52,7 +52,7 @@ def init_dir() -> Tuple[dict, Store]:
         config_data = default_config_data
 
     store = Store(chat_dir)
-    git_ignore(git_root, store.graph_path, store.db_path)
+    git_ignore(git_root, chat_dir)
     return config_data, store
 
 
@@ -65,14 +65,15 @@ def init_dir() -> Tuple[dict, Store]:
               help='Add one or more files to the prompt as instructions.')
 @click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@click.option('-m', '--model', help='Specify the model to use for the prompt.')
+@click.option('-m', '--model', help='Specify the model to temporarily use for the prompt '
+              '(prefer to modify .chat/config.json).')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]], model: Optional[str]):
     """
     Main function to run the chat application.
 
     This function initializes the chat system based on the specified large language model (LLM),
-    and performs interactions with the user by sending prompts and retrieving responses.
+    and performs interactions with the LLM by sending prompts and retrieving responses.
 
     Examples
     --------
@@ -97,11 +98,12 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     Configuration
     -------------
 
-    The DevChat CLI reads its configuration from a file `.chatconfig.json` in the current directory.
+    DevChat CLI reads its configuration from `.chat/config.json` in your current Git root directory.
     If the file is not found, it uses the following default configuration:
     ```json
     {
         "model": "gpt-3.5-turbo",
+        "token_limit": 3000,
         "provider": "OpenAI",
         "OpenAI": {
             "temperature": 0.2
@@ -109,11 +111,12 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     }
     ```
 
-    To customize the configuration, create a `.chatconfig.json` file in the current directory and
-    modify the settings as needed. We recoommend the following settings:
+    To customize the configuration, create `.chat/config.json` in your current Git root directory
+    and modify the settings as needed. We recoommend the following settings:
     ```json
     {
         "model": "gpt-4",
+        "token_limit": 6000,
         "provider": "OpenAI",
         "OpenAI": {
             "temperature": 0.2,
@@ -150,11 +153,14 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
             chat = OpenAIChat(openai_config)
 
-            openai_asisstant = Assistant(chat, store)
-            openai_asisstant.make_prompt(content, instruct_contents, context_contents,
-                                         parent, reference)
+            assistant = Assistant(chat, store)
+            if 'token_limit' in config:
+                assistant.token_limit = config['token_limit']
 
-            for response in openai_asisstant.iterate_response():
+            assistant.make_prompt(content, instruct_contents, context_contents,
+                                  parent, reference)
+
+            for response in assistant.iterate_response():
                 click.echo(response, nl=False)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)

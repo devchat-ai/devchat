@@ -17,12 +17,16 @@ class Assistant:
         self._chat = chat
         self._store = store
         self._prompt = None
-        # TODO: Change to token limit and make the following configurable.
-        self.token_limit = 20
-        self._message_count = 0
+        self.token_limit = 3000
 
-    def _check_limit(self) -> bool:
-        return self._message_count < self.token_limit
+    @property
+    def available_tokens(self) -> int:
+        return self.token_limit - self._prompt.request_tokens
+
+    def _check_limit(self):
+        if self._prompt.request_tokens > self.token_limit:
+            raise ValueError(f"Request tokens {self._prompt.request_tokens} "
+                             f"beyond limit {self.token_limit}.")
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
@@ -38,16 +42,19 @@ class Assistant:
             references (Optional[List[str]]): The reference prompt hashes.
         """
         self._prompt = self._chat.init_prompt(request)
+        self._check_limit()
         # Add instructions to the prompt
         if instruct_contents:
             combined_instruct = ''.join(instruct_contents)
             self._prompt.append_new(MessageType.INSTRUCT, combined_instruct)
-        # Set user request
-        self._prompt.set_request(request)
+            self._check_limit()
+
         # Add context to the prompt
         if context_contents:
             for context_content in context_contents:
-                self._prompt.append_new(MessageType.CONTEXT, context_content)
+                if not self._prompt.append_new(MessageType.CONTEXT, context_content,
+                                               self.available_tokens):
+                    return
         # Add history to the prompt
         self._prompt.references = validate_hashes(references)
         for reference_hash in self._prompt.references:
@@ -85,20 +92,16 @@ class Assistant:
 
     def _append_prompt(self, prompt: Prompt) -> bool:
         # Append the first response and the request of the appended prompt
-        if not self._check_limit():
+        if not self._prompt.append_history(MessageType.CHAT, prompt.response[0],
+                                           self.available_tokens):
             return False
-        self._prompt.append_history(MessageType.CHAT, prompt.response[0])
-        self._message_count += 1
-
-        if not self._check_limit():
+        if not self._prompt.append_history(MessageType.CHAT, prompt.request,
+                                           self.available_tokens):
             return False
-        self._prompt.append_history(MessageType.CHAT, prompt.request)
-        self._message_count += 1
 
         # Append the context messages of the appended prompt
         for context_message in prompt.new_context:
-            if not self._check_limit():
+            if not self._prompt.append_history(MessageType.CONTEXT, context_message,
+                                               self.available_tokens):
                 return False
-            self._prompt.append_history(MessageType.CONTEXT, context_message)
-            self._message_count += 1
         return True

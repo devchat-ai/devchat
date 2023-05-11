@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import hashlib
+import math
 from typing import Dict, List
 from devchat.message import MessageType, Message
 from devchat.utils import unix_to_local_datetime
@@ -40,8 +41,8 @@ class Prompt(ABC):
         self.parent: str = None
         self.references: List[str] = []
         self._timestamp: int = None
-        self._request_tokens: int = None
-        self._response_tokens: int = None
+        self._request_tokens: int = 0
+        self._response_tokens: int = 0
         self._hash: str = None
 
     @property
@@ -84,22 +85,33 @@ class Prompt(ABC):
         return self._hash
 
     @abstractmethod
-    def append_new(self, message_type: MessageType, content: str):
+    def append_new(self, message_type: MessageType, content: str,
+                   available_tokens: int = math.inf) -> bool:
         """
-        Add to the current messages of the prompt.
+        Append a new message provided by the user to the prompt.
 
         Args:
             message_type (MessageType): The type of the message.
             content (str): The content of the message.
+            available_tokens (int): The number of tokens available for the message.
+
+        Returns:
+            bool: Whether the message is appended.
         """
 
     @abstractmethod
-    def append_history(self, message_type: MessageType, message: Message):
+    def append_history(self, message_type: MessageType, message: Message,
+                       available_tokens: int = math.inf) -> bool:
         """
         Add to the history messages of the prompt.
 
         Args:
+            message_type (MessageType): The type of the message.
             message (Message): The message to add.
+            available_tokens (int): The number of tokens available for the message.
+
+        Returns:
+            bool: Whether the message is appended.
         """
 
     @abstractmethod
