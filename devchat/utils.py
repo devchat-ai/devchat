@@ -7,6 +7,7 @@ from typing import List, Tuple
 import datetime
 import pytz
 from dateutil import tz
+import tiktoken
 
 
 def find_git_root():
@@ -113,3 +114,35 @@ def update_dict(dict_to_update, key, value) -> dict:
     """
     dict_to_update[key] = value
     return dict_to_update
+
+
+def message_tokens(message: dict, model: str) -> int:
+    """Returns the number of tokens used by a message."""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError as err:
+        raise ValueError(f"Invalid model {model} for tiktoken.") from err
+
+    num_tokens = 0
+    if model.startswith("gpt-3.5"):
+        num_tokens += 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        tokens_per_name = -1  # if there's a name, the role is omitted
+    elif model.startswith("gpt-4"):
+        num_tokens += 3
+        tokens_per_name = 1
+
+    for key, value in message.items():
+        num_tokens += len(encoding.encode(value))
+        if key == "name":
+            num_tokens += tokens_per_name
+    return num_tokens
+
+
+def response_tokens(response: str, model: str) -> int:
+    """Returns the number of tokens used by a response."""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError as err:
+        raise ValueError(f"Invalid model {model} for tiktoken.") from err
+
+    return len(encoding.encode(response)) + 3  # +3 for <|start|>assistant<|message|>
