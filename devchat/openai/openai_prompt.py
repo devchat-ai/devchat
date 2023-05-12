@@ -30,11 +30,6 @@ class OpenAIPrompt(Prompt):
         # Instruction
         if self._new_messages[MessageType.INSTRUCT]:
             combined += [msg.to_dict() for msg in self._new_messages[MessageType.INSTRUCT]]
-        # New context
-        if self.new_context:
-            combined += [update_dict(msg.to_dict(), 'content',
-                                     f"<context>\n{msg.content}\n</context>")
-                         for msg in self.new_context]
         # History context
         if self._history_messages[MessageType.CONTEXT]:
             combined += [update_dict(msg.to_dict(), 'content',
@@ -47,6 +42,11 @@ class OpenAIPrompt(Prompt):
         # Request
         if self.request:
             combined += [self.request.to_dict()]
+        # New context
+        if self.new_context:
+            combined += [update_dict(msg.to_dict(), 'content',
+                                     f"<context>\n{msg.content}\n</context>")
+                         for msg in self.new_context]
         return combined
 
     def append_new(self, message_type: MessageType, content: str,

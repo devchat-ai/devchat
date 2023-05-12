@@ -11,5 +11,5 @@ The title
 ```
 4. Utilize the <context>, if provided, to create the summary.
 5. Utilize the previous messages, if provided in the end of this prompt, to create the summary. Note that not all previous messages are necessarily relevant.
-
-If you need more information, feel free to ask.
+6. You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
+7. If you need more information, ask for it.

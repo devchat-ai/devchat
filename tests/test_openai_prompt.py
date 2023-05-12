@@ -161,8 +161,8 @@ def test_messages_combined():
 
     assert prompt.messages == [
         instruct_message.to_dict(),
-        expected_context_message,
-        expected_request_message
+        expected_request_message,
+        expected_context_message
     ]
 
 
