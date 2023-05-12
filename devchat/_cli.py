@@ -103,7 +103,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```json
     {
         "model": "gpt-3.5-turbo",
-        "token_limit": 3000,
+        "tokens-per-prompt": 3000,
         "provider": "OpenAI",
         "OpenAI": {
             "temperature": 0.2
@@ -116,7 +116,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```json
     {
         "model": "gpt-4",
-        "token_limit": 6000,
+        "tokens-per-prompt": 6000,
         "provider": "OpenAI",
         "OpenAI": {
             "temperature": 0.2,
@@ -154,8 +154,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             chat = OpenAIChat(openai_config)
 
             assistant = Assistant(chat, store)
-            if 'token_limit' in config:
-                assistant.token_limit = config['token_limit']
+            if 'tokens-per-prompt' in config:
+                assistant.token_limit = config['tokens-per-prompt']
 
             assistant.make_prompt(content, instruct_contents, context_contents,
                                   parent, reference)

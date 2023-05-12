@@ -1,3 +1,6 @@
+"""
+utils.py - Utility functions for DevChat.
+"""
 import os
 import re
 import getpass

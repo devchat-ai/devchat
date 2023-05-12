@@ -25,7 +25,7 @@ class Assistant:
 
     def _check_limit(self):
         if self._prompt.request_tokens > self.token_limit:
-            raise ValueError(f"Request tokens {self._prompt.request_tokens} "
+            raise ValueError(f"Prompt tokens {self._prompt.request_tokens} "
                              f"beyond limit {self.token_limit}.")
 
     def make_prompt(self, request: str,
@@ -48,13 +48,12 @@ class Assistant:
             combined_instruct = ''.join(instruct_contents)
             self._prompt.append_new(MessageType.INSTRUCT, combined_instruct)
             self._check_limit()
-
         # Add context to the prompt
         if context_contents:
             for context_content in context_contents:
-                if not self._prompt.append_new(MessageType.CONTEXT, context_content,
-                                               self.available_tokens):
-                    return
+                self._prompt.append_new(MessageType.CONTEXT, context_content)
+                self._check_limit()
+
         # Add history to the prompt
         self._prompt.references = validate_hashes(references)
         for reference_hash in self._prompt.references:

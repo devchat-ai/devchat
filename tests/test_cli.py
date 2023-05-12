@@ -1,3 +1,6 @@
+"""
+test_cli.py - Tests for the command line interface.
+"""
 import os
 import re
 import json
@@ -7,6 +10,7 @@ import pytest
 from git import Repo
 from click.testing import CliRunner
 from devchat._cli import main
+from devchat.utils import response_tokens
 
 runner = CliRunner()
 
@@ -65,7 +69,7 @@ def test_main_with_temp_config_file(git_repo):
     config_data = {
         'model': 'gpt-3.5-turbo-0301',
         'provider': 'OpenAI',
-        'tokens-per-prompt': 6000,
+        'tokens-per-prompt': 3000,
         'OpenAI': {
             'temperature': 0
         }
@@ -115,3 +119,60 @@ def test_main_with_instruct_and_context(git_repo, temp_files):  # pylint: disabl
                                   "It is really scorching."])
     assert result.exit_code == 0
     assert _get_core_content(result.output) == "hot summer\n"
+
+
+def test_main_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
+    config_data = {
+        'model': 'gpt-3.5-turbo',
+        'provider': 'OpenAI',
+        'tokens-per-prompt': 2000,
+        'OpenAI': {
+            'temperature': 0
+        }
+    }
+
+    chat_dir = os.path.join(git_repo, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+    temp_config_path = os.path.join(chat_dir, "config.json")
+
+    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
+        json.dump(config_data, temp_config_file)
+
+    content = ""
+    while response_tokens(content, config_data["model"]) < config_data["tokens-per-prompt"]:
+        content += "This is a test. Ignore what I say. This is a test. Ignore what I say."
+    result = runner.invoke(main, ['prompt', content])
+    assert result.exit_code != 0
+    assert "beyond limit" in result.output
+
+
+def test_main_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # pylint: disable=W0613
+    config_data = {
+        'model': 'gpt-3.5-turbo',
+        'provider': 'OpenAI',
+        'tokens-per-prompt': 2000,
+        'OpenAI': {
+            'temperature': 0
+        }
+    }
+
+    chat_dir = os.path.join(git_repo, ".chat")
+    if not os.path.exists(chat_dir):
+        os.makedirs(chat_dir)
+    temp_config_path = os.path.join(chat_dir, "config.json")
+
+    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
+        json.dump(config_data, temp_config_file)
+
+    content_file = tmpdir.join("content.txt")
+    content = ""
+    while response_tokens(content + "This is a test. Ignore what I say.", config_data["model"]) < \
+            config_data["tokens-per-prompt"]:
+        content += "This is a test. Ignore what I say."
+    content_file.write(content)
+
+    input_str = "This is a test. Ignore what I say."
+    result = runner.invoke(main, ['prompt', '-c', str(content_file), input_str])
+    assert result.exit_code != 0
+    assert "beyond limit" in result.output
