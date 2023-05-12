@@ -77,7 +77,7 @@ class OpenAIPrompt(Prompt):
             raise ValueError("The request cannot be empty.")
         message = OpenAIMessage(content, 'user')
         self._new_messages['request'] = message
-        self._request_tokens = message_tokens(message.to_dict(), self.model)
+        self._request_tokens += message_tokens(message.to_dict(), self.model)
 
     def set_response(self, response_str: str):
         """
