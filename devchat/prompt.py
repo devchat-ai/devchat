@@ -188,7 +188,8 @@ class Prompt(ABC):
                 "context": [msg.to_dict() for msg in self.new_context],
                 "request": self.request.content,
                 "response": message.content,
-                "hash": self.hash
+                "hash": self.hash,
+                "parent": self.parent
             }
             logs.append(shortlog_data)
         return logs

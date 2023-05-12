@@ -180,5 +180,8 @@ def log(skip, max_count):
 
     logs = []
     for record in recent_prompts:
-        logs.append(record.shortlog())
+        try:
+            logs.append(record.shortlog())
+        except Exception:
+            continue
     click.echo(json.dumps(logs, indent=2))
