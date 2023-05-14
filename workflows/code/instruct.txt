@@ -10,15 +10,14 @@ When responding:
 2. The summary and description should better be written in bullet points (excluding code).
 3. When modifying the provided code, include the entire modified functions, but exclude any unmodified functions.
    If any global statements are changed, include the full global statements; otherwise, do not include them.
-4. Enclose code or changes within blocks using triple backticks (```), and include the programming language and the file path, if available. For example:
-```
+4. Enclose code or changes within blocks using triple backticks (```), and include the programming language and the file path, if available.
+For example:
 ```python path=./path/to/file.py
 print("Hello, World!")
 ```
-```
 If no file paths or folder structure are provided and you are unsure about the file path of the code, you may omit the file path.
 5. Use separate code blocks for different files.
-6. Utilize the previous messages, if provided in the end of this prompt, to create your response. Note that not all previous messages are necessarily relevant.
-7. When providing a suggestion or instruction, begin by explaining the reason behind it.
-8. You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
-9. If you need more information, ask for it.
+6. When providing a suggestion or instruction, begin by explaining the reason behind it.
+7. Note that not all previous messages are necessarily relevant.
+You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
+8. If you need more information, ask for it.

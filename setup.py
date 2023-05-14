@@ -5,7 +5,7 @@ with open("devchat/requirements.txt", encoding='utf-8') as f:
 
 setup(
     name="devchat",
-    version="0.1.4",
+    version="0.1.5",
     packages=find_packages(),
     install_requires=requirements,
     entry_points={
