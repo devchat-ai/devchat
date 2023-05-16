@@ -42,9 +42,18 @@ The way developers chat and work with AI.
 - Write prompts to create code. Turn prompts to everything.
 
 - DevPromptOps
+  
+  <img width="500" alt="image" src="https://github.com/covespace/devchat/assets/592493/e8e1215b-53b0-4473-ab00-0665d33f204a">
+
 
 ***
 
+## Quick Start
+
+- Install by: `pip install devchat`
+- DevChat only works in a Git repository, so enter a Git directory.
+- Check out help: `devchat --help` and `devchat prompt --help`
+  
 ## Community
 
 ## Roadmap
