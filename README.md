@@ -1,7 +1,17 @@
 <div align="center">
 
 ![devchat](https://github.com/covespace/devchat/assets/592493/f39979fe-fe32-410b-bf9d-2118ac8ea3d5)
+
 # DevChat
+
+<br>
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![CircleCI](https://circleci.com/gh/covespace/devchat/tree/main.svg?style=shield)](https://circleci.com/gh/covespace/devchat/tree/main)
+[![GitHub license](https://img.shields.io/github/license/covespace/devchat.svg)](https://github.com/covespace/devchat/blob/main/LICENSE)
+[![Downloads](https://pepy.tech/badge/devchat)](https://pepy.tech/project/devchat)
+[![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
+[![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/9t3yrbBUXD)
 
 </div>
 <br>
@@ -9,7 +19,7 @@
 
 The DevChat core library and CLI.
 
-:point_right: Better check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and instantly enjoy the UI :clap:
+:point_right: Better check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the UI :clap:
 
 ***
 
@@ -39,17 +49,28 @@ The way developers chat and work with AI.
   
 ## What is Prompt-Centric Software Development (PSSD)?
 
+- The traditional code-centric paradigm is changing.
+
 - Write prompts to create code. Turn prompts to everything.
 
-- DevPromptOps
+- It is DevPromptOps
+  
+  <img width="500" alt="image" src="https://github.com/covespace/devchat/assets/592493/e8e1215b-53b0-4473-ab00-0665d33f204a">
+
 
 ***
 
+## Quick Start
+
+- Install by: `pip install devchat`
+- DevChat only works in a Git repository, so enter a Git directory.
+- Check out help: `devchat --help` and `devchat prompt --help`
+  
 ## Community
 
 ## Roadmap
 
-  - [x] Topic management.
-  - [ ] Application of code diff.
+  - [ ] Topic management.
+  - [ ] Better application of code diff.
   - [ ] Framework to define workflows.
-  - [ ] Interaction with other dev tools.
+  - [ ] Interaction with external dev tools.
