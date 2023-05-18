@@ -1,7 +1,17 @@
 <div align="center">
 
 ![devchat](https://github.com/covespace/devchat/assets/592493/f39979fe-fe32-410b-bf9d-2118ac8ea3d5)
+
 # DevChat
+
+<br>
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![CircleCI](https://circleci.com/gh/covespace/devchat/tree/main.svg?style=shield)](https://circleci.com/gh/covespace/devchat/tree/main)
+[![GitHub license](https://img.shields.io/github/license/covespace/devchat.svg)](https://github.com/covespace/devchat/blob/main/LICENSE)
+[![Downloads](https://pepy.tech/badge/devchat)](https://pepy.tech/project/devchat)
+[![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
+[![Discord Chat](https://img.shields.io/discord/784885193774350337?logo=discord)](https://discord.gg/9t3yrbBUXD)
 
 </div>
 <br>
