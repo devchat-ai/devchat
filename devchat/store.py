@@ -18,7 +18,7 @@ class Store:
         if not os.path.isdir(store_dir):
             os.makedirs(store_dir)
         self._graph_path = os.path.join(store_dir, 'prompts.graphml')
-        self._db_path = os.path.join(store_dir, 'prompts.db')
+        self._db_path = os.path.join(store_dir, 'prompts')
 
         if os.path.isfile(self._graph_path):
             try:
@@ -29,6 +29,12 @@ class Store:
             self._graph = nx.DiGraph()
 
         self._db = shelve.open(self._db_path)
+
+    def __del__(self):
+        """
+        Close the shelve file when the Store object is destroyed.
+        """
+        self._db.close()
 
     @property
     def graph_path(self) -> str:
