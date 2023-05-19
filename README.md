@@ -21,13 +21,17 @@ The DevChat core library and CLI.
 
 :point_right: Better check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the UI :clap:
 
+
+
 ***
 
 ## What is DevChat?
 
-The way developers chat and work with AI.
+DevChat helps you write prompts to create code and docs. It is _not_ limited to do predefined operations over short code snippets.
 
-:speech_balloon: Write prompts, _not_ code.
+DevChat is the way developers chat and work with AI.
+
+:speech_balloon: Build the future with prompts, _not_ code.
 
 ## Why DevChat?
 
