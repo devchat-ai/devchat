@@ -41,7 +41,7 @@ def init_dir() -> Tuple[dict, Store]:
         'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',
         'OpenAI': {
-            'temperature': 0.2
+            'temperature': 0
         }
     }
 
@@ -106,7 +106,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         "tokens-per-prompt": 3000,
         "provider": "OpenAI",
         "OpenAI": {
-            "temperature": 0.2
+            "temperature": 0
         }
     }
     ```
@@ -119,7 +119,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         "tokens-per-prompt": 6000,
         "provider": "OpenAI",
         "OpenAI": {
-            "temperature": 0.2,
+            "temperature": 0,
             "stream": true
         }
     }

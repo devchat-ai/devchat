@@ -11,7 +11,7 @@ class OpenAIChatConfig(BaseModel):
     Configuration object for the OpenAIChat class.
     """
     model: str
-    temperature: Optional[float] = Field(None, ge=0, le=2)
+    temperature: Optional[float] = Field(0, ge=0, le=2)
     top_p: Optional[float] = Field(None, ge=0, le=1)
     n: Optional[int] = Field(None, ge=1)
     stream: Optional[bool] = Field(None)
