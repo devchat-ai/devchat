@@ -23,11 +23,15 @@ The DevChat core library and CLI.
 
 
 
+https://github.com/covespace/devchat/assets/592493/76e997fe-33a3-4fee-8f67-5523df90316e
+
+
+
 ***
 
 ## What is DevChat?
 
-DevChat is a powerful tool that helps you write prompts to generate code and documentation.
+DevChat is an open-source tool that helps you write prompts to generate code and documentation.
 It is _not_ limited to performing predefined operations on short code snippets.
   
 DevChat is the way developers interact and collaborate with AI.
@@ -40,9 +44,13 @@ DevChat is the way developers interact and collaborate with AI.
   
   Chat history, code, files, directory trees, `git diff --cached`, or the output of any command.
 
+  <img width="500" alt="image" src="https://github.com/covespace/devchat-vscode/assets/592493/415df4aa-66d6-46e4-a30d-8bba6277028c">
+ 
 - To apply AI-generated code, DevChat streamlines your **actions to take**.
 
   View diffs, copy or insert, commit & sync, or export to documentation, wikis, and more.
+  
+  <img width="500" alt="image" src="https://github.com/covespace/devchat-vscode/assets/592493/bcccbf20-0d30-46f4-b19f-5f532c1caf85">
   
 - To guide AI in your work, define **your own workflows** with DevChat.
   
