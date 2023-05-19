@@ -60,6 +60,10 @@ class Store:
         if not prompt.hash:
             prompt.set_hash()
 
+        # Store the prompt object in the shelve database
+        self._db[prompt.hash] = prompt
+        self._db.sync()
+
         # Add the prompt to the graph
         self._graph.add_node(prompt.hash, timestamp=prompt.timestamp)
 
@@ -73,10 +77,6 @@ class Store:
                 raise ValueError(f'Reference {reference_hash} not found in the store.')
             self._graph.add_edge(prompt.hash, reference_hash)
         nx.write_graphml(self._graph, self._graph_path)
-
-        # Store the prompt object in the shelve database
-        self._db[prompt.hash] = prompt
-        self._db.sync()
 
     def get_prompt(self, prompt_hash: str) -> Prompt:
         """
