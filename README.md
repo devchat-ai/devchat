@@ -19,7 +19,7 @@
 
 The DevChat core library and CLI.
 
-:point_right: Better check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the UI :clap:
+:point_right: For a better experience, check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the enhanced UI :clap:
 
 
 
@@ -67,15 +67,21 @@ DevChat is the way developers interact and collaborate with AI.
 
 ## Quick Start
 
-- Install by: `pip install devchat`
-- DevChat only works in a Git repository, so enter a Git directory.
-- Check out help: `devchat --help` and `devchat prompt --help`
-  
+- Install DevChat by running: `pip install devchat`
+- Make sure you are in a Git repository, as DevChat only works within one.
+- To access help, use the commands: `devchat --help` and `devchat prompt --help`
+
 ## Community
+
+- Join our [Discord](https://discord.gg/9t3yrbBUXD)!
+
+- Participate in [discussions](https://github.com/covespace/devchat/discussions)!
 
 ## Roadmap
 
-  - [ ] Topic management.
-  - [ ] Better application of code diff.
-  - [ ] Framework to define workflows.
-  - [ ] Interaction with external dev tools.
+- [x] Implement code diff application.
+- [ ] Improve code diff application using code change instructions.
+- [ ] Develop a framework for defining workflows.
+- [ ] Implement topic management.
+- [ ] Enable interaction with external development tools.
+- [ ] Introduce more selective workflows.
