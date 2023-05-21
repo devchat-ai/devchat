@@ -43,27 +43,15 @@ class OpenAIChat(Chat):
         self.config = config
 
     def init_prompt(self, request: str) -> OpenAIPrompt:
-        """
-        Initialize a prompt for the chat system.
-
-        Args:
-            request (str): The basic request of the prompt.
-                           The returned prompt can be combined with more instructions and context.
-        """
         user, email = get_git_user_info()
         prompt = OpenAIPrompt(self.config.model, user, email)
         prompt.set_request(request)
         return prompt
 
-    def complete_response(self, prompt: OpenAIPrompt) -> str:
-        """
-        Retrieve a complete response JSON string from the chat system.
+    def load_prompt(self, data: dict) -> OpenAIPrompt:
+        return OpenAIPrompt(**data)
 
-        Args:
-            prompt (Prompt): A prompt of messages representing the conversation.
-        Returns:
-            str: A JSON string representing the complete response.
-        """
+    def complete_response(self, prompt: OpenAIPrompt) -> str:
         # Filter the config parameters with non-None values
         config_params = {
             key: value
@@ -78,14 +66,6 @@ class OpenAIChat(Chat):
         return response
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator[str]:
-        """
-        Retrieve a streaming response as an iterator of JSON strings from the chat system.
-
-        Args:
-            prompt (Prompt): A prompt of messages representing the conversation.
-        Returns:
-            Iterator[str]: An iterator over JSON strings representing the streaming response events.
-        """
         # Filter the config parameters with non-None values
         config_params = {
             key: value

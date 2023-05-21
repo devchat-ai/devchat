@@ -1,13 +1,15 @@
+from dataclasses import asdict
 import os
 import shelve
 from typing import List
 from xml.etree.ElementTree import ParseError
 import networkx as nx
+from devchat.chat import Chat
 from devchat.prompt import Prompt
 
 
 class Store:
-    def __init__(self, store_dir: str):
+    def __init__(self, store_dir: str, chat: Chat):
         """
         Initializes a Store instance.
 
@@ -17,8 +19,10 @@ class Store:
         store_dir = os.path.expanduser(store_dir)
         if not os.path.isdir(store_dir):
             os.makedirs(store_dir)
+
         self._graph_path = os.path.join(store_dir, 'prompts.graphml')
         self._db_path = os.path.join(store_dir, 'prompts')
+        self._chat = chat
 
         if os.path.isfile(self._graph_path):
             try:
@@ -61,7 +65,7 @@ class Store:
             prompt.set_hash()
 
         # Store the prompt object in the shelve database
-        self._db[prompt.hash] = prompt
+        self._db[prompt.hash] = asdict(prompt)
         self._db.sync()
 
         # Add the prompt to the graph
@@ -91,7 +95,7 @@ class Store:
             raise ValueError(f'Prompt {prompt_hash} not found in the store.')
 
         # Retrieve the prompt object from the shelve database
-        return self._db[prompt_hash]
+        return self._chat.load_prompt(self._db[prompt_hash])
 
     def select_recent(self, start: int, end: int) -> List[Prompt]:
         """

@@ -1,13 +1,12 @@
-from devchat.openai import OpenAIPrompt
+from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.store import Store
-from devchat.utils import get_git_user_info
 
 
 def test_get_prompt(tmp_path):
-    store = Store(tmp_path / "store.graphml")
-    name, email = get_git_user_info()
-    prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
-    prompt.set_request("Where was the 2020 World Series played?")
+    config = OpenAIChatConfig(model="gpt-3.5-turbo")
+    chat = OpenAIChat(config)
+    store = Store(tmp_path / "store.graphml", chat)
+    prompt = chat.init_prompt("Where was the 2020 World Series played?")
     response_str = '''
     {
       "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
@@ -34,14 +33,14 @@ def test_get_prompt(tmp_path):
 
 
 def test_select_recent(tmp_path):
-    store = Store(tmp_path / "store.graphml")
-    name, email = get_git_user_info()
+    config = OpenAIChatConfig(model="gpt-3.5-turbo")
+    chat = OpenAIChat(config)
+    store = Store(tmp_path / "store.graphml", chat)
 
     # Create and store 5 prompts
     hashes = []
     for index in range(5):
-        prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
-        prompt.set_request(f"Question {index}")
+        prompt = chat.init_prompt(f"Question {index}")
         response_str = f'''
         {{
           "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",

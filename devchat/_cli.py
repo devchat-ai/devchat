@@ -31,7 +31,7 @@ def handle_errors():
         sys.exit(os.EX_SOFTWARE)
 
 
-def init_dir() -> Tuple[dict, Store]:
+def init_dir() -> Tuple[dict, str]:
     git_root = find_git_root()
     chat_dir = os.path.join(git_root, ".chat")
     if not os.path.exists(chat_dir):
@@ -51,9 +51,8 @@ def init_dir() -> Tuple[dict, Store]:
     except FileNotFoundError:
         config_data = default_config_data
 
-    store = Store(chat_dir)
     git_ignore(git_root, chat_dir)
-    return config_data, store
+    return config_data, chat_dir
 
 
 @main.command()
@@ -133,7 +132,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```
 
     """
-    config, store = init_dir()
+    config, chat_dir = init_dir()
 
     with handle_errors():
         if content is None:
@@ -152,6 +151,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             openai_config = OpenAIChatConfig(model=model, **config['OpenAI'])
 
             chat = OpenAIChat(openai_config)
+            store = Store(chat_dir, chat)
 
             assistant = Assistant(chat, store)
             if 'tokens-per-prompt' in config:
@@ -174,9 +174,17 @@ def log(skip, max_count):
     """
     Show the prompt history.
     """
-    _, store = init_dir()
-
-    recent_prompts = store.select_recent(skip, skip + max_count)
+    config, chat_dir = init_dir()
+    provider = config.get('provider')
+    recent_prompts = []
+    if provider == 'OpenAI':
+        openai_config = OpenAIChatConfig(**config['OpenAI'])
+        chat = OpenAIChat(openai_config)
+        store = Store(chat_dir, chat)
+        recent_prompts = store.select_recent(skip, skip + max_count)
+    else:
+        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+        sys.exit(os.EX_DATAERR)
 
     logs = []
     for record in recent_prompts:
