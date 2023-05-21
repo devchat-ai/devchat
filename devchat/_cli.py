@@ -178,7 +178,7 @@ def log(skip, max_count):
     provider = config.get('provider')
     recent_prompts = []
     if provider == 'OpenAI':
-        openai_config = OpenAIChatConfig(**config['OpenAI'])
+        openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
         chat = OpenAIChat(openai_config)
         store = Store(chat_dir, chat)
         recent_prompts = store.select_recent(skip, skip + max_count)
