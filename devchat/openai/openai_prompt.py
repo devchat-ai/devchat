@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import json
 import math
 from typing import List
@@ -7,18 +8,13 @@ from devchat.utils import update_dict, message_tokens
 from .openai_message import OpenAIMessage
 
 
+@dataclass
 class OpenAIPrompt(Prompt):
     """
     A class to represent a prompt and its corresponding responses from OpenAI APIs.
     """
 
-    def __init__(self, model: str, user_name: str, user_email: str):
-        super().__init__(model, user_name, user_email)
-        self._id: str = None
-
-    @property
-    def model(self) -> str:
-        return self._model
+    _id: str = None
 
     @property
     def id(self) -> str:
