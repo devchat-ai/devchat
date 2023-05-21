@@ -19,13 +19,9 @@
 
 The DevChat core library and CLI.
 
-:point_right: For a better experience, check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the enhanced UI :clap:
-
-
+👉 For a better experience, check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the enhanced UI 👏
 
 https://github.com/covespace/devchat/assets/592493/76e997fe-33a3-4fee-8f67-5523df90316e
-
-
 
 ***
 
@@ -36,7 +32,7 @@ It is _not_ limited to performing predefined operations on short code snippets.
   
 DevChat is the way developers interact and collaborate with AI.
 
-:speech_balloon: Build the future with prompts, _not_ code.
+💬 Build the future with prompts, _not_ code.
 
 ## Why DevChat?
 
@@ -70,6 +66,7 @@ DevChat is the way developers interact and collaborate with AI.
   
   <img width="500" alt="image" src="https://github.com/covespace/devchat/assets/592493/e8e1215b-53b0-4473-ab00-0665d33f204a">
 
+  <sub>(This work is licensed by devchat.ai under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.)</sub>
 
 ***
 
