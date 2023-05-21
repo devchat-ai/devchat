@@ -62,11 +62,15 @@ DevChat is the way developers interact and collaborate with AI.
 
 - Write prompts to create code. Transform prompts into everything.
 
+  <img width="600" alt="image" src="https://github.com/covespace/devchat/assets/592493/dd32e900-92fd-4fa4-8489-96ed17ab5e0e">
+
+  <sub>(This image is licensed by devchat.ai under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.)</sub>
+  
 - It is DevPromptOps
   
   <img width="500" alt="image" src="https://github.com/covespace/devchat/assets/592493/e8e1215b-53b0-4473-ab00-0665d33f204a">
   
-  <sub>(This work is licensed by devchat.ai under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.)</sub>
+  <sub>(This image is licensed by devchat.ai under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.)</sub>
 
 ***
 
@@ -76,7 +80,8 @@ For UI, install the [Visual Studio Code extension](https://github.com/covespace/
 
 For CLI:
 - Install DevChat by running: `pip install devchat`.
-- Make sure you are in a Git repository, as DevChat only works within one.
+- Make sure you are working in a Git repository, as DevChat only works within one.
+- Set your [OpenAI API Key](https://platform.openai.com/account/api-keys) by running `export OPENAI_API_KEY="[sk-...]"`.
 - To access help, use the commands: `devchat --help` and `devchat prompt --help`.
 
 ## Community
@@ -85,6 +90,10 @@ For CLI:
 
 - Participate in [discussions](https://github.com/covespace/devchat/discussions)!
 
+## Contributing
+
+Issues and pull request are welcome: https://github.com/covespace/devchat/issues
+  
 ## Roadmap
 
 - [x] Implement code diff application.
@@ -94,7 +103,7 @@ For CLI:
 - [ ] Enable interaction with external development tools.
 - [ ] Introduce more selective workflows.
   
-## Contact Information
+## Contact
   
 hello@merico.dev
 
