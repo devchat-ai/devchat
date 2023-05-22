@@ -61,10 +61,6 @@ class Prompt(ABC):
         """
 
     @property
-    def new_messages(self) -> dict:
-        return self._new_messages
-
-    @property
     def new_context(self) -> List[Message]:
         return self._new_messages[Message.CONTEXT]
 
@@ -185,12 +181,11 @@ class Prompt(ABC):
         """
         formatted_str = self.formatted_header()
 
-        response = self.response.get(index, None)
-        if response is None or response.content is None:
+        if index >= len(self.response) or not self.response[index]:
             logger.error("Response %d is incomplete for formatted response.", index)
             return None
 
-        formatted_str += response.content.strip() + "\n\n"
+        formatted_str += self.response[index].content.strip() + "\n\n"
         formatted_str += f"prompt {self.hash}"
 
         return formatted_str
@@ -200,7 +195,7 @@ class Prompt(ABC):
         if not self.request or not self.response:
             raise ValueError("Prompt is incomplete for shortlog.")
         logs = []
-        for message in self.response.values():
+        for message in self.response:
             shortlog_data = {
                 "user": f"{self.user_name} <{self.user_email}>",
                 "date": self._timestamp,

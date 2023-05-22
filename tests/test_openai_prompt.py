@@ -103,7 +103,7 @@ def test_append_response(responses):
     ]
 
     assert len(prompt.response) == len(expected_messages)
-    for index, message in prompt.response.items():
+    for index, message in enumerate(prompt.response):
         assert message.role == expected_messages[index].role
         assert message.content == expected_messages[index].content
 

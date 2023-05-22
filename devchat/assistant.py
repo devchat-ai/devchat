@@ -95,7 +95,7 @@ class Assistant:
             response_str = str(self._chat.complete_response(self._prompt))
             self._prompt.set_response(response_str)
             self._store.store_prompt(self._prompt)
-            for index in self._prompt.response.keys():
+            for index in range(len(self._prompt.response)):
                 yield self._prompt.formatted_response(index) + '\n'
 
     def _append_prompt(self, prompt: Prompt) -> bool:
