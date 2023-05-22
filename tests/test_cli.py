@@ -43,13 +43,13 @@ def test_main_no_args(git_repo):  # pylint: disable=W0613
 
 
 def _check_output_format(output) -> bool:
-    pattern = r"(User: .+ <.+@.+>\nDate: .+\n\n(?:.*\n)*\n(?:prompt [a-f0-9]{40}\n\n?)+)"
+    pattern = r"(User: .+ <.+@.+>\nDate: .+\n\n(?:.*\n)*\n(?:prompt [a-f0-9]{64}\n\n?)+)"
     return bool(re.fullmatch(pattern, output))
 
 
 def _get_core_content(output) -> str:
     header_pattern = r"User: .+ <.+@.+>\nDate: .+\n\n"
-    footer_pattern = r"\n(?:prompt [a-f0-9]{40}\n\n?)+"
+    footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
 
     core_content = re.sub(header_pattern, "", output)
     core_content = re.sub(footer_pattern, "", core_content)

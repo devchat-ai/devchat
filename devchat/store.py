@@ -89,7 +89,6 @@ class Store:
 
         # Retrieve the prompt object from TinyDB
         prompt_data = self._db.search(where('_hash') == prompt_hash)
-        print(prompt_data)
         assert len(prompt_data) == 1
         return self._chat.load_prompt(prompt_data[0])
 

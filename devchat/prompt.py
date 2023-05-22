@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 import hashlib
 import math
 from typing import Dict, List
@@ -149,10 +149,10 @@ class Prompt(ABC):
         """Set the hash of the prompt."""
         if not self.request or not self.response:
             raise ValueError("Prompt is incomplete for hash.")
-        hash_str = self.request.content
-        for response in self.response.values():
-            hash_str += response.content
-        self._hash = hashlib.sha1(hash_str.encode()).hexdigest()
+        data = asdict(self)
+        assert data.pop('_hash') is None
+        string = str(tuple(sorted(data.items())))
+        self._hash = hashlib.sha256(string.encode('utf-8')).hexdigest()
         return self._hash
 
     def formatted_header(self) -> str:
