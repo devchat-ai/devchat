@@ -21,7 +21,7 @@ class Store:
             os.makedirs(store_dir)
 
         self._graph_path = os.path.join(store_dir, 'prompts.graphml')
-        self._db_path = os.path.join(store_dir, 'prompts')
+        self._db_path = os.path.join(store_dir, 'prompts.json')
         self._chat = chat
 
         if os.path.isfile(self._graph_path):
@@ -82,13 +82,15 @@ class Store:
         Args:
             prompt_hash (str): The hash of the prompt to retrieve.
         Returns:
-            Prompt: The retrieved prompt.
+            Prompt: The retrieved prompt. None if the prompt is not found.
         """
         if prompt_hash not in self._graph:
             raise ValueError(f'Prompt {prompt_hash} not found in the store.')
 
         # Retrieve the prompt object from TinyDB
         prompt_data = self._db.search(where('_hash') == prompt_hash)
+        if not prompt_data:
+            return None
         assert len(prompt_data) == 1
         return self._chat.load_prompt(prompt_data[0])
 
