@@ -167,7 +167,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             for response in assistant.iterate_response():
                 click.echo(response, nl=False)
         else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+            click.echo(f"Error: Invalid LLM in configuration '{provider}'")
             sys.exit(os.EX_DATAERR)
 
 
@@ -187,7 +187,7 @@ def log(skip, max_count):
         store = Store(chat_dir, chat)
         recent_prompts = store.select_recent(skip, skip + max_count)
     else:
-        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+        click.echo(f"Error: Invalid LLM in configuration '{provider}'")
         sys.exit(os.EX_DATAERR)
 
     logs = []
