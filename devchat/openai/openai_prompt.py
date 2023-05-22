@@ -3,7 +3,7 @@ import json
 import math
 from typing import List
 from devchat.prompt import Prompt
-from devchat.message import MessageType, Message
+from devchat.message import Message
 from devchat.utils import update_dict, message_tokens
 from .openai_message import OpenAIMessage
 
@@ -24,17 +24,17 @@ class OpenAIPrompt(Prompt):
     def messages(self) -> List[dict]:
         combined = []
         # Instruction
-        if self._new_messages[MessageType.INSTRUCT]:
-            combined += [msg.to_dict() for msg in self._new_messages[MessageType.INSTRUCT]]
+        if self._new_messages[Message.INSTRUCT]:
+            combined += [msg.to_dict() for msg in self._new_messages[Message.INSTRUCT]]
         # History context
-        if self._history_messages[MessageType.CONTEXT]:
+        if self._history_messages[Message.CONTEXT]:
             combined += [update_dict(msg.to_dict(), 'content',
                                      f"<context>\n{msg.content}\n</context>")
                          for msg in self.new_context]
         # History chat
-        if self._history_messages[MessageType.CHAT]:
+        if self._history_messages[Message.CHAT]:
             combined += [msg.to_dict() for msg
-                         in reversed(self._history_messages[MessageType.CHAT])]
+                         in reversed(self._history_messages[Message.CHAT])]
         # Request
         if self.request:
             combined += [self.request.to_dict()]
@@ -45,9 +45,9 @@ class OpenAIPrompt(Prompt):
                          for msg in self.new_context]
         return combined
 
-    def append_new(self, message_type: MessageType, content: str,
+    def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
-        if message_type not in (MessageType.INSTRUCT, MessageType.CONTEXT):
+        if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         message = OpenAIMessage(content, 'system')
         num_tokens = message_tokens(message.to_dict(), self.model)
@@ -57,9 +57,9 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def append_history(self, message_type: MessageType, message: Message,
+    def append_history(self, message_type: str, message: Message,
                        available_tokens: int = math.inf) -> bool:
-        if message_type == MessageType.INSTRUCT:
+        if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:

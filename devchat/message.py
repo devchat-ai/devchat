@@ -1,12 +1,5 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from dataclasses import dataclass
-
-
-class MessageType(Enum):
-    INSTRUCT = "instruct"
-    CONTEXT = "context"
-    CHAT = "chat"
 
 
 @dataclass
@@ -15,6 +8,10 @@ class Message(ABC):
     The basic unit of information in a prompt.
     """
     content: str = ""
+
+    INSTRUCT = "instruct"
+    CONTEXT = "context"
+    CHAT = "chat"
 
     @abstractmethod
     def to_dict(self) -> dict:

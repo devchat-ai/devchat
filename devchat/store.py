@@ -1,9 +1,9 @@
 from dataclasses import asdict
 import os
-import shelve
 from typing import List
 from xml.etree.ElementTree import ParseError
 import networkx as nx
+from tinydb import TinyDB, where
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 
@@ -32,13 +32,7 @@ class Store:
         else:
             self._graph = nx.DiGraph()
 
-        self._db = shelve.open(self._db_path)
-
-    def __del__(self):
-        """
-        Close the shelve file when the Store object is destroyed.
-        """
-        self._db.close()
+        self._db = TinyDB(self._db_path)
 
     @property
     def graph_path(self) -> str:
@@ -64,9 +58,8 @@ class Store:
         if not prompt.hash:
             prompt.set_hash()
 
-        # Store the prompt object in the shelve database
-        self._db[prompt.hash] = asdict(prompt)
-        self._db.sync()
+        # Store the prompt object in TinyDB
+        self._db.insert(asdict(prompt))
 
         # Add the prompt to the graph
         self._graph.add_node(prompt.hash, timestamp=prompt.timestamp)
@@ -94,8 +87,11 @@ class Store:
         if prompt_hash not in self._graph:
             raise ValueError(f'Prompt {prompt_hash} not found in the store.')
 
-        # Retrieve the prompt object from the shelve database
-        return self._chat.load_prompt(self._db[prompt_hash])
+        # Retrieve the prompt object from TinyDB
+        prompt_data = self._db.search(where('_hash') == prompt_hash)
+        print(prompt_data)
+        assert len(prompt_data) == 1
+        return self._chat.load_prompt(prompt_data[0])
 
     def select_recent(self, start: int, end: int) -> List[Prompt]:
         """

@@ -1,7 +1,7 @@
 import json
 import os
 import pytest
-from devchat.message import MessageType
+from devchat.message import Message
 from devchat.openai import OpenAIMessage
 from devchat.openai import OpenAIPrompt
 from devchat.utils import get_git_user_info
@@ -116,14 +116,14 @@ def test_messages_empty():
 def test_messages_instruct():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     instruct_message = OpenAIMessage('Instructions', 'system')
-    prompt.append_new(MessageType.INSTRUCT, 'Instructions')
+    prompt.append_new(Message.INSTRUCT, 'Instructions')
     assert prompt.messages == [instruct_message.to_dict()]
 
 
 def test_messages_context():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     context_message = OpenAIMessage('Context', 'system')
-    prompt.append_new(MessageType.CONTEXT, 'Context')
+    prompt.append_new(Message.CONTEXT, 'Context')
     expected_message = context_message.to_dict()
     expected_message["content"] = "<context>\n" + context_message.content + "\n</context>"
     assert prompt.messages == [expected_message]
@@ -132,7 +132,7 @@ def test_messages_context():
 def test_messages_record():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     with pytest.raises(ValueError):
-        prompt.append_new(MessageType.CHAT, 'Record')
+        prompt.append_new(Message.CHAT, 'Record')
 
 
 def test_messages_request():
@@ -149,8 +149,8 @@ def test_messages_combined():
     context_message = OpenAIMessage('Context', 'system')
     request_message = OpenAIMessage('Request', 'user')
 
-    prompt.append_new(MessageType.INSTRUCT, 'Instructions')
-    prompt.append_new(MessageType.CONTEXT, 'Context')
+    prompt.append_new(Message.INSTRUCT, 'Instructions')
+    prompt.append_new(Message.CONTEXT, 'Context')
     prompt.set_request('Request')
 
     expected_context_message = context_message.to_dict()

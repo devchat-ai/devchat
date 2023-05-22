@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import hashlib
 import math
 from typing import Dict, List
-from devchat.message import MessageType, Message
+from devchat.message import Message
 from devchat.utils import unix_to_local_datetime
 
 
@@ -30,14 +30,14 @@ class Prompt(ABC):
     user_name: str
     user_email: str
     _new_messages: Dict = field(default_factory=lambda: {
-        MessageType.INSTRUCT: [],
+        Message.INSTRUCT: [],
         'request': None,
-        MessageType.CONTEXT: [],
+        Message.CONTEXT: [],
         'response': {}
     })
     _history_messages: Dict[str, Message] = field(default_factory=lambda: {
-        MessageType.CONTEXT: [],
-        MessageType.CHAT: []
+        Message.CONTEXT: [],
+        Message.CHAT: []
     })
     parent: str = None
     references: List[str] = field(default_factory=list)
@@ -63,7 +63,7 @@ class Prompt(ABC):
 
     @property
     def new_context(self) -> List[Message]:
-        return self._new_messages[MessageType.CONTEXT]
+        return self._new_messages[Message.CONTEXT]
 
     @property
     def request(self) -> Message:
@@ -86,13 +86,13 @@ class Prompt(ABC):
         return self._hash
 
     @abstractmethod
-    def append_new(self, message_type: MessageType, content: str,
+    def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
         """
         Append a new message provided by the user to the prompt.
 
         Args:
-            message_type (MessageType): The type of the message.
+            message_type (str): The type of the message.
             content (str): The content of the message.
             available_tokens (int): The number of tokens available for the message.
 
@@ -101,13 +101,13 @@ class Prompt(ABC):
         """
 
     @abstractmethod
-    def append_history(self, message_type: MessageType, message: Message,
+    def append_history(self, message_type: str, message: Message,
                        available_tokens: int = math.inf) -> bool:
         """
         Add to the history messages of the prompt.
 
         Args:
-            message_type (MessageType): The type of the message.
+            message_type (str): The type of the message.
             message (Message): The message to add.
             available_tokens (int): The number of tokens available for the message.
 

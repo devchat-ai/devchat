@@ -1,6 +1,6 @@
 from typing import Optional, List, Iterator
 from devchat.utils import validate_hashes
-from devchat.message import MessageType
+from devchat.message import Message
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 from devchat.store import Store
@@ -46,12 +46,12 @@ class Assistant:
         # Add instructions to the prompt
         if instruct_contents:
             combined_instruct = ''.join(instruct_contents)
-            self._prompt.append_new(MessageType.INSTRUCT, combined_instruct)
+            self._prompt.append_new(Message.INSTRUCT, combined_instruct)
             self._check_limit()
         # Add context to the prompt
         if context_contents:
             for context_content in context_contents:
-                self._prompt.append_new(MessageType.CONTEXT, context_content)
+                self._prompt.append_new(Message.CONTEXT, context_content)
                 self._check_limit()
 
         # Add history to the prompt
@@ -91,16 +91,16 @@ class Assistant:
 
     def _append_prompt(self, prompt: Prompt) -> bool:
         # Append the first response and the request of the appended prompt
-        if not self._prompt.append_history(MessageType.CHAT, prompt.response[0],
+        if not self._prompt.append_history(Message.CHAT, prompt.response[0],
                                            self.available_tokens):
             return False
-        if not self._prompt.append_history(MessageType.CHAT, prompt.request,
+        if not self._prompt.append_history(Message.CHAT, prompt.request,
                                            self.available_tokens):
             return False
 
         # Append the context messages of the appended prompt
         for context_message in prompt.new_context:
-            if not self._prompt.append_history(MessageType.CONTEXT, context_message,
+            if not self._prompt.append_history(Message.CONTEXT, context_message,
                                                self.available_tokens):
                 return False
         return True
