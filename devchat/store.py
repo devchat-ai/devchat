@@ -71,12 +71,12 @@ class Store:
         # Add edges for parents and references
         if prompt.parent:
             if prompt.parent not in self._graph:
-                logger.warning("Parent {prompt.parent} not found in the store.")
+                logger.warning("Parent %s not found in the store.", prompt.parent)
             else:
                 self._graph.add_edge(prompt.hash, prompt.parent)
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
-                logger.warning('Reference {reference_hash} not found in the store.')
+                logger.warning("Reference %s not found in the store.", reference_hash)
             else:
                 self._graph.add_edge(prompt.hash, reference_hash)
         nx.write_graphml(self._graph, self._graph_path)
@@ -117,4 +117,11 @@ class Store:
                               reverse=True)
         if end > len(sorted_nodes):
             end = len(sorted_nodes)
-        return [self.get_prompt(note[0]) for note in sorted_nodes[start:end]]
+        prompts = []
+        for node in sorted_nodes[start:end]:
+            prompt = self.get_prompt(node[0])
+            if not prompt:
+                logger.error("Selected prompt %s not found in the store.", node[0])
+                continue
+            prompts.append(prompt)
+        return prompts

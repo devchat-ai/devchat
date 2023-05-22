@@ -187,7 +187,7 @@ class Prompt(ABC):
 
         response = self.response.get(index, None)
         if response is None or response.content is None:
-            logger.error("Response {index} is incomplete.")
+            logger.error("Response %d is incomplete for formatted response.", index)
             return None
 
         formatted_str += response.content.strip() + "\n\n"

@@ -61,7 +61,7 @@ class Assistant:
         for reference_hash in references:
             prompt = self._store.get_prompt(reference_hash)
             if not prompt:
-                logger.error("Reference prompt not found: {reference_hash}")
+                logger.error("Reference prompt not found: %s", reference_hash)
                 continue
             self._prompt.references.append(reference_hash)
             self._append_prompt(prompt)
@@ -71,7 +71,7 @@ class Assistant:
             while parent_hash:
                 parent_prompt = self._store.get_prompt(parent_hash)
                 if not parent_prompt:
-                    logger.error("Parent prompt not found: {parent_hash}")
+                    logger.error("Parent prompt not found: %s", parent_hash)
                     break
                 if not self._append_prompt(parent_prompt):
                     break
