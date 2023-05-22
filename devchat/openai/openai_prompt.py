@@ -90,10 +90,11 @@ class OpenAIPrompt(Prompt):
         self._request_tokens = response_data['usage']['prompt_tokens']
         self._response_tokens = response_data['usage']['completion_tokens']
 
-        self._new_messages['response'] = {
-            choice['index']: OpenAIMessage(**choice['message'])
-            for choice in response_data['choices']
-        }
+        for choice in response_data['choices']:
+            index = choice['index']
+            if index >= len(self.response):
+                self.response.extend([None] * (index - len(self.response) + 1))
+            self.response[index] = OpenAIMessage(**choice['message'])
         self.set_hash()
 
     def append_response(self, delta_str: str) -> str:
@@ -116,7 +117,10 @@ class OpenAIPrompt(Prompt):
             delta = choice['delta']
             index = choice['index']
 
-            if index not in self.response:
+            if index >= len(self.response):
+                self.response.extend([None] * (index - len(self.response) + 1))
+
+            if not self.response[index]:
                 self.response[index] = OpenAIMessage(**delta)
                 if index == 0:
                     delta_content = self.formatted_header()

@@ -36,7 +36,7 @@ class Prompt(ABC):
         Message.INSTRUCT: [],
         'request': None,
         Message.CONTEXT: [],
-        'response': {}
+        'response': []
     })
     _history_messages: Dict[str, Message] = field(default_factory=lambda: {
         Message.CONTEXT: [],
@@ -73,7 +73,7 @@ class Prompt(ABC):
         return self._new_messages['request']
 
     @property
-    def response(self) -> Dict[int, Message]:
+    def response(self) -> List[Message]:
         return self._new_messages['response']
 
     @property
