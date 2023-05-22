@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
 from devchat.utils import get_git_user_info
+from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
 
@@ -49,6 +50,12 @@ class OpenAIChat(Chat):
         return prompt
 
     def load_prompt(self, data: dict) -> OpenAIPrompt:
+        data['_new_messages'] = {
+            k: [OpenAIMessage(**m) for m in v] if isinstance(v, list) else OpenAIMessage(**v)
+            for k, v in data['_new_messages'].items()
+        }
+        data['_history_messages'] = {k: [OpenAIMessage(**m) for m in v]
+                                     for k, v in data['_history_messages'].items()}
         return OpenAIPrompt(**data)
 
     def complete_response(self, prompt: OpenAIPrompt) -> str:
