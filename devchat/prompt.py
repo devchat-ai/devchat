@@ -4,7 +4,10 @@ import hashlib
 import math
 from typing import Dict, List
 from devchat.message import Message
-from devchat.utils import unix_to_local_datetime
+from devchat.utils import unix_to_local_datetime, setup_logger
+
+
+logger = setup_logger(__name__)
 
 
 @dataclass
@@ -145,10 +148,16 @@ class Prompt(ABC):
             str: The delta content with index 0. None when the response is over.
         """
 
-    def set_hash(self):
-        """Set the hash of the prompt."""
+    def set_hash(self) -> str:
+        """
+        Calculate and set the hash of the prompt.
+
+        Returns:
+            str: The hash of the prompt. None if the prompt is incomplete.
+        """
         if not self.request or not self.response:
-            raise ValueError("Prompt is incomplete for hash.")
+            logger.error("Prompt is incomplete for hash.")
+            return None
         data = asdict(self)
         assert data.pop('_hash') is None
         string = str(tuple(sorted(data.items())))
@@ -165,12 +174,21 @@ class Prompt(ABC):
         return formatted_str
 
     def formatted_response(self, index: int) -> str:
-        """Formatted response of the prompt."""
+        """
+        Formatted response of the prompt.
+
+        Args:
+            index (int): The index of the response to format.
+
+        Returns:
+            str: The formatted response string. None if the response is incomplete.
+        """
         formatted_str = self.formatted_header()
 
         response = self.response.get(index, None)
         if response is None or response.content is None:
-            raise ValueError(f"Response {index} is incomplete.")
+            logger.error("Response {index} is incomplete.")
+            return None
 
         formatted_str += response.content.strip() + "\n\n"
         formatted_str += f"prompt {self.hash}"

@@ -1,9 +1,12 @@
 from typing import Optional, List, Iterator
-from devchat.utils import validate_hashes
+from devchat.utils import setup_logger
 from devchat.message import Message
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 from devchat.store import Store
+
+
+logger = setup_logger(__name__)
 
 
 class Assistant:
@@ -55,17 +58,23 @@ class Assistant:
                 self._check_limit()
 
         # Add history to the prompt
-        self._prompt.references = validate_hashes(references)
-        for reference_hash in self._prompt.references:
-            if not self._append_prompt(self._store.get_prompt(reference_hash)):
-                return
+        for reference_hash in references:
+            prompt = self._store.get_prompt(reference_hash)
+            if not prompt:
+                logger.error("Reference prompt not found: {reference_hash}")
+                continue
+            self._prompt.references.append(reference_hash)
+            self._append_prompt(prompt)
         if parent:
-            self._prompt.parent = validate_hashes([parent])[0]
+            self._prompt.parent = parent
             parent_hash = parent
             while parent_hash:
                 parent_prompt = self._store.get_prompt(parent_hash)
+                if not parent_prompt:
+                    logger.error("Parent prompt not found: {parent_hash}")
+                    break
                 if not self._append_prompt(parent_prompt):
-                    return
+                    break
                 parent_hash = parent_prompt.parent
 
     def iterate_response(self) -> Iterator[str]:

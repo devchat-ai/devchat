@@ -1,8 +1,10 @@
 """
 utils.py - Utility functions for DevChat.
 """
+import logging
 import os
 import re
+import sys
 import getpass
 import socket
 import subprocess
@@ -11,6 +13,22 @@ import datetime
 import pytz
 from dateutil import tz
 import tiktoken
+
+
+def setup_logger(name, level=logging.WARNING):
+    """Utility function to set up a logger with the specified name and level."""
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # Create a file handler for logging
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(formatter)
+
+    # Create a logger with the given name
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(console_handler)
+
+    return logger
 
 
 def find_git_root():
@@ -95,20 +113,12 @@ def parse_files(file_paths: List[str]) -> List[str]:
     return contents
 
 
-def is_valid_hash(hash_str):
+def valid_hash(hash_str):
     """Check if a string is a valid hash value."""
     # Hash values are usually alphanumeric with a fixed length
     # depending on the algorithm used to generate them
     pattern = re.compile(r'^[a-f0-9]{64}$')  # Example pattern for SHA-256 hash
     return bool(pattern.match(hash_str))
-
-
-def validate_hashes(hashes: List[str]) -> List[str]:
-    if hashes:
-        for value in hashes:
-            if not is_valid_hash(value):
-                raise ValueError(f"Invalid hash value {value}.")
-    return hashes
 
 
 def update_dict(dict_to_update, key, value) -> dict:

@@ -6,6 +6,10 @@ import networkx as nx
 from tinydb import TinyDB, where
 from devchat.chat import Chat
 from devchat.prompt import Prompt
+from devchat.utils import setup_logger
+
+
+logger = setup_logger(__name__)
 
 
 class Store:
@@ -67,12 +71,14 @@ class Store:
         # Add edges for parents and references
         if prompt.parent:
             if prompt.parent not in self._graph:
-                raise ValueError(f'Parent {prompt.parent} not found in the store.')
-            self._graph.add_edge(prompt.hash, prompt.parent)
+                logger.warning("Parent {prompt.parent} not found in the store.")
+            else:
+                self._graph.add_edge(prompt.hash, prompt.parent)
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
-                raise ValueError(f'Reference {reference_hash} not found in the store.')
-            self._graph.add_edge(prompt.hash, reference_hash)
+                logger.warning('Reference {reference_hash} not found in the store.')
+            else:
+                self._graph.add_edge(prompt.hash, reference_hash)
         nx.write_graphml(self._graph, self._graph_path)
 
     def get_prompt(self, prompt_hash: str) -> Prompt:

@@ -10,10 +10,12 @@ import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import find_git_root, git_ignore, parse_files
+from devchat.utils import find_git_root, git_ignore, parse_files, setup_logger
 
 
 click.rich_click.USE_MARKDOWN = True
+
+logger = setup_logger(__name__)
 
 
 @click.group()
@@ -27,7 +29,8 @@ def handle_errors():
     try:
         yield
     except Exception as error:
-        click.echo(f"Error: {error}", err=True)
+        logger.exception(error)
+        click.echo(f"Error: {error}")
         sys.exit(os.EX_SOFTWARE)
 
 
@@ -38,10 +41,11 @@ def init_dir() -> Tuple[dict, str]:
         os.makedirs(chat_dir)
 
     default_config_data = {
-        'model': 'gpt-3.5-turbo',
+        'model': 'gpt-4',
         'provider': 'OpenAI',
         'OpenAI': {
-            'temperature': 0
+            'temperature': 0,
+            'stream': True
         }
     }
 
