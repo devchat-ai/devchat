@@ -19,54 +19,58 @@
 
 The DevChat core library and CLI.
 
-👉 For a better experience, check out our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) on [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Install and enjoy the enhanced UI 👏
+👉 For an enhanced experience and UI, we welcome you to install [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Enjoy DevChat! 👏
 
 ***
 
 ## What is DevChat?
 
-DevChat is an open-source tool that helps you write prompts to generate code and documentation.
-It is _not_ limited to performing predefined operations on short code snippets.
-  
+DevChat is the open-source solution to help you write prompts to generate code and documentation, going beyond simple code auto-completion.
+It isn't limited to performing predefined operations on short code snippets.
+
 DevChat is the way developers interact and collaborate with AI.
 
 💬 Build the future with prompts, _not_ code.
 
 ## Why DevChat?
 
-- To enable AI to write code, DevChat assists you in providing **the right context** for AI.
-  
-  ![20230519-231038-00 00 00 000-00 00 20 989](https://github.com/covespace/devchat-vscode/assets/592493/cfb96c7f-bd45-4573-810e-17148aac79d1)
-  
+- Great output requires great input, to maximize the power of AI, DevChat assists you seamlessly to **provide the right context** to the AI.
+    
   Chat history, code, files, directory trees, `git diff --cached`, or the output of any command.
+  
+  ![20230523-220717-cut-merged-1684855581224](https://github.com/covespace/devchat-vscode/assets/592493/16bc09e4-4185-4bcb-8d5a-2173b0bfc3ed)
 
-- To apply AI-generated code, DevChat streamlines your **actions to take**.
+  ![20230523-220717-00 00 28 206-00 00 44 950](https://github.com/covespace/devchat-vscode/assets/592493/d5556310-bc7f-4abb-86a3-8e76e4aa720e)  
 
-  ![20230519-231038-00 00 24 989-00 00 44 688](https://github.com/covespace/devchat-vscode/assets/592493/2a0c4acf-6801-409c-bb18-ac75bae96938)
+- Once you have generated code with AI, DevChat **streamlines the actions** to properly integrate and ship.
   
   View diffs, copy or insert, commit & sync, or export to documentation, wikis, and more.
   
+  ![20230523-220717-00 00 46 728-00 01 00 120](https://github.com/covespace/devchat-vscode/assets/592493/a2bab011-8e31-47a9-838f-36e43cd2e98c)
+
+  ![20230523-220717-00 01 00 120-00 01 14 452](https://github.com/covespace/devchat-vscode/assets/592493/31e90fd5-e797-4726-b5b2-5c4dce1c7551)
+
 - To guide AI in your work, define **your own workflows** with DevChat.
   
-  ![20230519-231038-00 00 45 034-00 01 00 000](https://github.com/covespace/devchat-vscode/assets/592493/5a72e43f-0ed9-446a-81be-3e5f00009961)
-  
-  More prompt templates, iterative calls to AI, and program operations.
+  ![20230523-220717-00 01 14 614-00 01 41 680](https://github.com/covespace/devchat-vscode/assets/592493/94502efd-781b-448d-b945-dffcc41d7af3)
 
-- To suit your preferences, customize **your own experiences** with DevChat.
+  Explore more prompt templates, iterative calls to AI, and program operations.
+  
+- To ensure the experience fits your preferences, customize **your own experiences** with DevChat.
   
   Open-source, no waiting for opaque feature schedules. Access GPT-4 today and more models in the future.
   
-## What is Prompt-Centric Software Development (PSSD)?
+## What is Prompt-Centric Software Development (PCSD)?
 
 - The traditional code-centric paradigm is evolving.
 
-- Write prompts to create code. Transform prompts into everything.
+- Write prompts to create code. Transform prompts into all the artifacts in software engineering.
 
   <img width="600" alt="image" src="https://github.com/covespace/devchat/assets/592493/dd32e900-92fd-4fa4-8489-96ed17ab5e0e">
 
   <sub>(This image is licensed by devchat.ai under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.)</sub>
   
-- It is DevPromptOps
+- We like to call it DevPromptOps
   
   <img width="500" alt="image" src="https://github.com/covespace/devchat/assets/592493/e8e1215b-53b0-4473-ab00-0665d33f204a">
   
