@@ -134,5 +134,3 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# DevChat
-.chat

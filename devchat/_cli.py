@@ -55,7 +55,7 @@ def init_dir() -> Tuple[dict, str]:
     except FileNotFoundError:
         config_data = default_config_data
 
-    git_ignore(git_root, chat_dir)
+    git_ignore(chat_dir, '*')
     return config_data, chat_dir
 
 
