@@ -19,7 +19,7 @@
 
 The DevChat core library and CLI.
 
-👉 For an enhanced experience and UI, we welcome you to install [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Enjoy DevChat! 👏
+👉 **For an enhanced experience and UI, we welcome you to install [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat)! Enjoy DevChat VSCode!** 👏
 
 ***
 
@@ -80,7 +80,7 @@ DevChat is the way developers interact and collaborate with AI.
 
 ## Quick Start
 
-For UI, install the [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat).
+**For UI, install our [Visual Studio Code extension](https://github.com/covespace/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat).**
 
 For CLI:
 - Install DevChat by running: `pip install devchat`.
