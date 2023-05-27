@@ -3,6 +3,7 @@ This module contains the main function for the DevChat CLI.
 """
 from contextlib import contextmanager
 import json
+import logging
 import os
 import sys
 from typing import List, Optional, Tuple
@@ -14,8 +15,6 @@ from devchat.utils import find_git_root, git_ignore, parse_files, setup_logger
 
 
 click.rich_click.USE_MARKDOWN = True
-
-logger = setup_logger(__name__)
 
 
 @click.group()
@@ -29,8 +28,9 @@ def handle_errors():
     try:
         yield
     except Exception as error:
+        logger = logging.getLogger(__name__)
         logger.exception(error)
-        click.echo(f"Error: {error}")
+        click.echo(f"Error: {error}", err=True)
         sys.exit(os.EX_SOFTWARE)
 
 
@@ -55,6 +55,7 @@ def init_dir() -> Tuple[dict, str]:
     except FileNotFoundError:
         config_data = default_config_data
 
+    setup_logger(os.path.join(chat_dir, 'error.log'))
     git_ignore(chat_dir, '*')
     return config_data, chat_dir
 
@@ -167,7 +168,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             for response in assistant.iterate_response():
                 click.echo(response, nl=False)
         else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'")
+            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
             sys.exit(os.EX_DATAERR)
 
 
@@ -187,7 +188,7 @@ def log(skip, max_count):
         store = Store(chat_dir, chat)
         recent_prompts = store.select_recent(skip, skip + max_count)
     else:
-        click.echo(f"Error: Invalid LLM in configuration '{provider}'")
+        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
         sys.exit(os.EX_DATAERR)
 
     logs = []

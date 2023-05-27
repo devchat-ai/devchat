@@ -1,12 +1,12 @@
+import logging
 from typing import Optional, List, Iterator
-from devchat.utils import setup_logger
 from devchat.message import Message
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 from devchat.store import Store
 
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Assistant:
@@ -61,7 +61,7 @@ class Assistant:
         for reference_hash in references:
             prompt = self._store.get_prompt(reference_hash)
             if not prompt:
-                logger.error("Reference prompt not found: %s", reference_hash)
+                logger.error("Reference %s not retrievable while making prompt.", reference_hash)
                 continue
             self._prompt.references.append(reference_hash)
             self._append_prompt(prompt)
@@ -71,7 +71,7 @@ class Assistant:
             while parent_hash:
                 parent_prompt = self._store.get_prompt(parent_hash)
                 if not parent_prompt:
-                    logger.error("Parent prompt not found: %s", parent_hash)
+                    logger.error("Parent %s not retrievable while making prompt.", parent_hash)
                     break
                 if not self._append_prompt(parent_prompt):
                     break

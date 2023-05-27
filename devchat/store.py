@@ -1,4 +1,5 @@
 from dataclasses import asdict
+import logging
 import os
 from typing import List
 from xml.etree.ElementTree import ParseError
@@ -6,10 +7,9 @@ import networkx as nx
 from tinydb import TinyDB, where
 from devchat.chat import Chat
 from devchat.prompt import Prompt
-from devchat.utils import setup_logger
 
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Store:
@@ -71,12 +71,14 @@ class Store:
         # Add edges for parents and references
         if prompt.parent:
             if prompt.parent not in self._graph:
-                logger.warning("Parent %s not found in the store.", prompt.parent)
+                logger.warning("Parent %s not found while Prompt %s is stored to graph store.",
+                               prompt.parent, prompt.hash)
             else:
                 self._graph.add_edge(prompt.hash, prompt.parent)
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
-                logger.warning("Reference %s not found in the store.", reference_hash)
+                logger.warning("Reference %s not found while Prompt %s is stored to graph store.",
+                               reference_hash, prompt.hash)
             else:
                 self._graph.add_edge(prompt.hash, reference_hash)
         nx.write_graphml(self._graph, self._graph_path)
@@ -91,13 +93,13 @@ class Store:
             Prompt: The retrieved prompt. None if the prompt is not found.
         """
         if prompt_hash not in self._graph:
-            logger.warning("Prompt %s not found in the graph store.", prompt_hash)
+            logger.warning("Prompt %s not found while retrieving from graph store.", prompt_hash)
             return None
 
         # Retrieve the prompt object from TinyDB
         prompt_data = self._db.search(where('_hash') == prompt_hash)
         if not prompt_data:
-            logger.warning("Prompt %s not found in the object store.", prompt_hash)
+            logger.warning("Prompt %s not found while retrieving from object store.", prompt_hash)
             return None
         assert len(prompt_data) == 1
         return self._chat.load_prompt(prompt_data[0])
@@ -123,7 +125,7 @@ class Store:
         for node in sorted_nodes[start:end]:
             prompt = self.get_prompt(node[0])
             if not prompt:
-                logger.error("Selected prompt %s not found in the store.", node[0])
+                logger.error("Prompt %s not found while selecting from the store.", node[0])
                 continue
             prompts.append(prompt)
         return prompts

@@ -4,7 +4,6 @@ utils.py - Utility functions for DevChat.
 import logging
 import os
 import re
-import sys
 import getpass
 import socket
 import subprocess
@@ -15,20 +14,16 @@ from dateutil import tz
 import tiktoken
 
 
-def setup_logger(name, level=logging.WARNING):
-    """Utility function to set up a logger with the specified name and level."""
+def setup_logger(file_path, level=logging.WARNING):
+    """Utility function to set up a logger with the specified file path and level."""
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Create a file handler for logging
-    console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setFormatter(formatter)
+    file_handler = logging.FileHandler(file_path)
+    file_handler.setFormatter(formatter)
 
-    # Create a logger with the given name
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(console_handler)
-
-    return logger
+    # Set up the global logger
+    logging.basicConfig(level=level, handlers=[file_handler])
 
 
 def find_git_root():

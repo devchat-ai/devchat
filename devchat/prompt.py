@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 import hashlib
+import logging
 import math
 from typing import Dict, List
 from devchat.message import Message
-from devchat.utils import unix_to_local_datetime, setup_logger
+from devchat.utils import unix_to_local_datetime
 
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -152,7 +153,8 @@ class Prompt(ABC):
             str: The hash of the prompt. None if the prompt is incomplete.
         """
         if not self.request or not self.response:
-            logger.error("Prompt is incomplete for hash.")
+            logger.error("Incomplete prompt for hashing: request = %s, response = %s",
+                         self.request, self.response)
             return None
         data = asdict(self)
         assert data.pop('_hash') is None
@@ -182,7 +184,8 @@ class Prompt(ABC):
         formatted_str = self.formatted_header()
 
         if index >= len(self.response) or not self.response[index]:
-            logger.error("Response %d is incomplete for formatted response.", index)
+            logger.error("Response index %d is incomplete to format: request = %s, response = %s",
+                         index, self.request, self.response)
             return None
 
         formatted_str += self.response[index].content.strip() + "\n\n"
