@@ -70,10 +70,11 @@ class Store:
             })
 
     def _update_topics_table(self, prompt: Prompt):
-        if self._graph.in_degree(prompt):
+        if self._graph.in_degree(prompt.hash):
             logger.error("Prompt %s not a leaf to update topics table", prompt.hash)
 
         if prompt.parent:
+            print(self._topics_table.all())
             topic = next((topic for topic in self._topics_table.all()
                           if prompt.parent in topic['leaves']), None)
             if topic:
@@ -116,22 +117,14 @@ class Store:
                              prompt.parent, prompt.hash)
             else:
                 self._graph.add_edge(prompt.hash, prompt.parent)
-                self._update_topics_table(prompt)
-        else:
-            self._topics_table.insert({
-                'ancestor_hash': prompt.hash,
-                'descendant_hash': prompt.hash,
-                'latest_time': prompt.timestamp,
-                'title': None,
-                'hidden': False
-            })
+
+        self._update_topics_table(prompt)
 
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
-                logger.warning("Reference %s not found while Prompt %s is stored to graph store.",
-                               reference_hash, prompt.hash)
-            else:
-                self._graph.add_edge(prompt.hash, reference_hash)
+                logger.error("Reference %s not found while Prompt %s is stored to graph store.",
+                             reference_hash, prompt.hash)
+
         nx.write_graphml(self._graph, self._graph_path)
 
     def get_prompt(self, prompt_hash: str) -> Prompt:
