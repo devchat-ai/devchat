@@ -12,8 +12,10 @@ The title
 - The second line.
 ```
 4. Utilize the <context>, if provided, to create the summary.
-5. Utilize the previous messages, if provided in the end of this prompt, to create the summary.
-But Disregard any previous commit messages you have written.
+5. Utilize the previous messages, if provided in the end of this prompt, to improve the summary by clearly conveying the intention of code changes.
 Note that not all previous messages are necessarily relevant.
-6. You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
-7. If you need more information, ask for it.
+For example, disregard any previous commit messages you have written.
+You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
+6. Prioritize the diff output in the given <context> focusing on facts and results, rather than previous messages that only highlight purposes or intentions for your reference.
+
+If you need more information, ask for it.
