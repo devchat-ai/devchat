@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import logging
 import os
-from typing import List
+from typing import List, Optional
 from xml.etree.ElementTree import ParseError
 import networkx as nx
 from tinydb import TinyDB, where
@@ -155,23 +155,29 @@ class Store:
         assert len(prompt_data) == 1
         return self._chat.load_prompt(prompt_data[0])
 
-    def select_recent(self, start: int, end: int) -> List[Prompt]:
+    def select_recent(self, start: int, end: int, topic: Optional[str] = None) -> List[Prompt]:
         """
         Select recent prompts.
 
         Args:
             start (int): The start index.
             end (int): The end index (excluded).
+            topic (Optional[str]): The hash of the root prompt of the topic.
+                If set, select among the prompts of the topic.
         Returns:
             List[Prompt]: The list of prompts selected.
-                          If end is greater than the number of all prompts,
-                          the list will contain prompts from start to the end of the list.
+                If end is greater than the number of all prompts,
+                the list will contain prompts from start to the end of the list.
         """
-        sorted_nodes = sorted(self._graph.nodes(data=True),
-                              key=lambda x: x[1]['timestamp'],
-                              reverse=True)
-        if end > len(sorted_nodes):
-            end = len(sorted_nodes)
+        if topic:
+            ancestors = nx.ancestors(self._graph, topic)
+            nodes_with_data = [(node, self._graph.nodes[node]) for node in ancestors]
+            sorted_nodes = sorted(nodes_with_data, key=lambda x: x[1]['timestamp'], reverse=True)
+        else:
+            sorted_nodes = sorted(self._graph.nodes(data=True),
+                                  key=lambda x: x[1]['timestamp'],
+                                  reverse=True)
+
         prompts = []
         for node in sorted_nodes[start:end]:
             prompt = self.get_prompt(node[0])
@@ -179,6 +185,7 @@ class Store:
                 logger.error("Prompt %s not found while selecting from the store.", node[0])
                 continue
             prompts.append(prompt)
+
         return prompts
 
     @property
