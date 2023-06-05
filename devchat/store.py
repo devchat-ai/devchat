@@ -148,9 +148,9 @@ class Store:
         assert len(prompt_data) == 1
         return self._chat.load_prompt(prompt_data[0])
 
-    def select_recent(self, start: int, end: int, topic: Optional[str] = None) -> List[Prompt]:
+    def select_prompts(self, start: int, end: int, topic: Optional[str] = None) -> List[Prompt]:
         """
-        Select recent prompts.
+        Select recent prompts in reverse chronological order.
 
         Args:
             start (int): The start index.

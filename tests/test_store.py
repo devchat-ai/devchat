@@ -65,7 +65,7 @@ def test_select_recent(tmp_path):
         hashes.append(prompt.hash)
 
     # Test selecting recent prompts
-    recent_prompts = store.select_recent(0, 3)
+    recent_prompts = store.select_prompts(0, 3)
     assert len(recent_prompts) == 3
     for index, prompt in enumerate(recent_prompts):
         assert prompt.hash == hashes[4 - index]
@@ -125,7 +125,7 @@ def test_select_recent_with_topic(tmp_path):
         child_hashes.append(child_prompt.hash)
 
     # Test selecting recent prompts within the topic
-    recent_prompts = store.select_recent(0, 2, topic=root_prompt.hash)
+    recent_prompts = store.select_prompts(0, 2, topic=root_prompt.hash)
     assert len(recent_prompts) == 2
     for index, prompt in enumerate(recent_prompts):
         assert prompt.hash == child_hashes[2 - index]
@@ -208,7 +208,7 @@ def test_select_recent_with_nested_topic(tmp_path):
         grandchild_hashes.append(grandchild_prompt.hash)
 
     # Test selecting recent prompts within the nested topic
-    recent_prompts = store.select_recent(1, 3, topic=root_prompt.hash)
+    recent_prompts = store.select_prompts(1, 3, topic=root_prompt.hash)
     assert len(recent_prompts) == 2
     assert recent_prompts[0].hash == grandchild_hashes[0]
     assert recent_prompts[1].hash == child_prompt.hash
