@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import logging
 import os
-from typing import List, Optional
+from typing import List, Dict, Any, Optional
 from xml.etree.ElementTree import ParseError
 import networkx as nx
 from tinydb import TinyDB, where
@@ -175,11 +175,39 @@ class Store:
         for node in sorted_nodes[start:end]:
             prompt = self.get_prompt(node[0])
             if not prompt:
-                logger.error("Prompt %s not found while selecting from the store.", node[0])
+                logger.error("Prompt %s not found while selecting from the store", node[0])
                 continue
             prompts.append(prompt)
-
         return prompts
+
+    def select_topics(self, start: int, end: int) -> List[Dict[str, Any]]:
+        """
+        Select recent topics in reverse chronological order.
+
+        Args:
+            start (int): The start index.
+            end (int): The end index (excluded).
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries containing root prompts
+                with latest_time, title, and hidden fields.
+        """
+        topics = self._topics_table.all()
+        sorted_topics = sorted(topics, key=lambda x: x['latest_time'], reverse=True)
+
+        topics = []
+        for topic in sorted_topics[start:end]:
+            prompt = self.get_prompt(topic['root'])
+            if not prompt:
+                logger.error("Topic %s not found while selecting from the store", topic['root'])
+                continue
+            topics.append({
+                'root_prompt': prompt,
+                'latest_time': topic['latest_time'],
+                'title': topic['title'],
+                'hidden': topic['hidden'],
+            })
+        return topics
 
     @property
     def graph_path(self) -> str:
