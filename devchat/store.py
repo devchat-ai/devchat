@@ -8,7 +8,6 @@ from tinydb import TinyDB, where
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +17,8 @@ class Store:
         Initializes a Store instance.
 
         Args:
-            path (str): The folder to store the files containing the store.
+            store_dir (str): The folder to store the files containing the store.
+            chat (Chat): The Chat instance.
         """
         store_dir = os.path.expanduser(store_dir)
         if not os.path.isdir(store_dir):
@@ -37,20 +37,61 @@ class Store:
             self._graph = nx.DiGraph()
 
         self._db = TinyDB(self._db_path)
+        self._topics_table = self._db.table('topics')
 
-    @property
-    def graph_path(self) -> str:
-        """
-        The path to the graph store file.
-        """
-        return self._graph_path
+        if not self._topics_table or self._topics_table.all() == []:
+            self._initialize_topics_table()
 
-    @property
-    def db_path(self) -> str:
-        """
-        The path to the object store file.
-        """
-        return self._db_path
+    def _roots(self) -> List[object]:
+        graph = self._graph
+        return [node for node in graph.nodes() if graph.out_degree(node) == 0]
+
+    def _leaves(self) -> List[object]:
+        graph = self._graph
+        return [node for node in graph.nodes() if graph.in_degree(node) == 0]
+
+    def _initialize_topics_table(self):
+        roots = self._roots()
+        all_leaves = self._leaves()
+        root_to_leaves = {root: [] for root in roots}
+
+        for leaf in all_leaves:
+            root = next(nx.descendants(self._graph, leaf).intersection(roots))
+            root_to_leaves[root].append(leaf)
+
+        for root, leaves in root_to_leaves.items():
+            latest_time = max(self._graph.nodes[leaf]['timestamp'] for leaf in leaves)
+            self._topics_table.insert({
+                'root': root,
+                'leaves': leaves,
+                'latest_time': latest_time,
+                'title': None,
+                'hidden': False
+            })
+
+    def _update_topics_table(self, prompt: Prompt):
+        if self._graph.in_degree(prompt):
+            logger.error("Prompt %s not a leaf to update topics table", prompt.hash)
+
+        if prompt.parent:
+            topic = next((topic for topic in self._topics_table.all()
+                          if prompt.parent in topic['leaves']), None)
+            if topic:
+                topic['leaves'].remove(prompt.parent)
+                topic['leaves'].append(prompt.hash)
+                topic['latest_time'] = max(topic['latest_time'], prompt.timestamp)
+                self._topics_table.update(topic, doc_ids=[topic.doc_id])
+            else:
+                logger.error("Parent %s of prompt %s not found in topic leaves",
+                             prompt.parent, prompt.hash)
+        else:
+            self._topics_table.insert({
+                'root': prompt.hash,
+                'leaves': [prompt.hash],
+                'latest_time': prompt.timestamp,
+                'title': None,
+                'hidden': False
+            })
 
     def store_prompt(self, prompt: Prompt):
         """
@@ -71,10 +112,20 @@ class Store:
         # Add edges for parents and references
         if prompt.parent:
             if prompt.parent not in self._graph:
-                logger.warning("Parent %s not found while Prompt %s is stored to graph store.",
-                               prompt.parent, prompt.hash)
+                logger.error("Parent %s not found while Prompt %s is stored to graph store.",
+                             prompt.parent, prompt.hash)
             else:
                 self._graph.add_edge(prompt.hash, prompt.parent)
+                self._update_topics_table(prompt)
+        else:
+            self._topics_table.insert({
+                'ancestor_hash': prompt.hash,
+                'descendant_hash': prompt.hash,
+                'latest_time': prompt.timestamp,
+                'title': None,
+                'hidden': False
+            })
+
         for reference_hash in prompt.references:
             if reference_hash not in self._graph:
                 logger.warning("Reference %s not found while Prompt %s is stored to graph store.",
@@ -129,3 +180,17 @@ class Store:
                 continue
             prompts.append(prompt)
         return prompts
+
+    @property
+    def graph_path(self) -> str:
+        """
+        The path to the graph store file.
+        """
+        return self._graph_path
+
+    @property
+    def db_path(self) -> str:
+        """
+        The path to the object store file.
+        """
+        return self._db_path
