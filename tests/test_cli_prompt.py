@@ -1,13 +1,7 @@
-"""
-test_cli.py - Tests for the command line interface.
-"""
 import os
 import re
 import json
-import shutil
-import tempfile
 import pytest
-from git import Repo
 from click.testing import CliRunner
 from devchat._cli import main
 from devchat.utils import response_tokens
@@ -15,29 +9,7 @@ from devchat.utils import response_tokens
 runner = CliRunner()
 
 
-@pytest.fixture(name="git_repo")
-def fixture_git_repo(request):
-    # Create a temporary directory
-    repo_dir = tempfile.mkdtemp()
-
-    # Initialize a new Git repository in the temporary directory
-    Repo.init(repo_dir)
-
-    # Change the current working directory to the temporary directory
-    prev_cwd = os.getcwd()
-    os.chdir(repo_dir)
-
-    # Add a cleanup function to remove the temporary directory after the test
-    def cleanup():
-        os.chdir(prev_cwd)
-        shutil.rmtree(repo_dir)
-
-    request.addfinalizer(cleanup)
-
-    return repo_dir
-
-
-def test_main_no_args(git_repo):  # pylint: disable=W0613
+def test_prompt_no_args(git_repo):  # pylint: disable=W0613
     result = runner.invoke(main, ['prompt'])
     assert result.exit_code == 0
 
@@ -57,7 +29,7 @@ def _get_core_content(output) -> str:
     return core_content
 
 
-def test_main_with_content(git_repo):  # pylint: disable=W0613
+def test_prompt_with_content(git_repo):  # pylint: disable=W0613
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
@@ -65,7 +37,7 @@ def test_main_with_content(git_repo):  # pylint: disable=W0613
     assert "Paris" in result.output
 
 
-def test_main_with_temp_config_file(git_repo):
+def test_prompt_with_temp_config_file(git_repo):
     config_data = {
         'model': 'gpt-3.5-turbo-0301',
         'provider': 'OpenAI',
@@ -104,7 +76,7 @@ def fixture_temp_files(tmpdir):
     return str(instruct0), str(instruct1), str(instruct2), str(context)
 
 
-def test_main_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
+def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
@@ -112,7 +84,7 @@ def test_main_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
     assert _get_core_content(result.output) == "hot\n"
 
 
-def test_main_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
+def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[2],
                                   '--context', temp_files[3],
@@ -121,7 +93,7 @@ def test_main_with_instruct_and_context(git_repo, temp_files):  # pylint: disabl
     assert _get_core_content(result.output) == "hot summer\n"
 
 
-def test_main_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
+def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
     config_data = {
         'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',
@@ -147,7 +119,7 @@ def test_main_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
     assert "beyond limit" in result.output
 
 
-def test_main_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # pylint: disable=W0613
+def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # pylint: disable=W0613
     config_data = {
         'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',

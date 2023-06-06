@@ -19,7 +19,7 @@ click.rich_click.USE_MARKDOWN = True
 
 @click.group()
 def main():
-    """DevChat CLI: A command-line interface for the DevChat chatbot."""
+    """DevChat CLI: A command-line interface for DevChat."""
 
 
 @contextmanager
@@ -174,23 +174,24 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
 @main.command()
 @click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
-@click.option('--max-count', default=100, help='Limit the number of commits to output.')
-def log(skip, max_count):
+@click.option('-n', '--max-count', default=100, help='Limit the number of commits to output.')
+@click.option('-t', '--topic', 'topic_root', default=None,
+              help='Hash of the root prompt of the topic to select prompts from.')
+def log(skip, max_count, topic_root):
     """
     Show the prompt history.
     """
     config, chat_dir = init_dir()
     provider = config.get('provider')
-    recent_prompts = []
     if provider == 'OpenAI':
         openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
         chat = OpenAIChat(openai_config)
         store = Store(chat_dir, chat)
-        recent_prompts = store.select_recent(skip, skip + max_count)
     else:
         click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
         sys.exit(os.EX_DATAERR)
 
+    recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
     logs = []
     for record in recent_prompts:
         try:
@@ -198,3 +199,33 @@ def log(skip, max_count):
         except Exception:
             continue
     click.echo(json.dumps(logs, indent=2))
+
+
+@main.command()
+@click.option('--list', '-l', 'list_topics', is_flag=True,
+              help='List topics in reverse chronological order.')
+@click.option('--skip', default=0, help='Skip number of topics before showing the list.')
+@click.option('-n', '--max-count', default=100, help='Limit the number of topics to output.')
+def topic(list_topics: bool, skip: int, max_count: int):
+    """
+    Manage topics.
+    """
+    config, chat_dir = init_dir()
+    provider = config.get('provider')
+    if provider == 'OpenAI':
+        openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
+        chat = OpenAIChat(openai_config)
+        store = Store(chat_dir, chat)
+    else:
+        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+        sys.exit(os.EX_DATAERR)
+
+    if list_topics:
+        topics = store.select_topics(skip, skip + max_count)
+        topic_logs = []
+        for topic_data in topics:
+            try:
+                topic_logs.append(topic_data['root_prompt'].shortlog())
+            except Exception:
+                continue
+        click.echo(json.dumps(topic_logs, indent=2))

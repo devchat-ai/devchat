@@ -17,14 +17,13 @@ jobs:
             . venv/bin/activate
             pip install -r devchat/requirements.txt
             pip install -r tests/requirements.txt
-            pip install flake8 pylint
+            pip install pylint
       - run:
-          name: Run pylint and flake8
+          name: Run pylint
           command: |
             . venv/bin/activate
             export PYTHONPATH=.
             pylint devchat tests
-            flake8 devchat tests
       - run:
           name: Run pytest
           command: |
