@@ -1,40 +1,12 @@
-"""
-test_cli.py - Tests for the command line interface.
-"""
 import os
 import re
 import json
-import shutil
-import tempfile
 import pytest
-from git import Repo
 from click.testing import CliRunner
 from devchat._cli import main
 from devchat.utils import response_tokens
 
 runner = CliRunner()
-
-
-@pytest.fixture(name="git_repo")
-def fixture_git_repo(request):
-    # Create a temporary directory
-    repo_dir = tempfile.mkdtemp()
-
-    # Initialize a new Git repository in the temporary directory
-    Repo.init(repo_dir)
-
-    # Change the current working directory to the temporary directory
-    prev_cwd = os.getcwd()
-    os.chdir(repo_dir)
-
-    # Add a cleanup function to remove the temporary directory after the test
-    def cleanup():
-        os.chdir(prev_cwd)
-        shutil.rmtree(repo_dir)
-
-    request.addfinalizer(cleanup)
-
-    return repo_dir
 
 
 def test_prompt_no_args(git_repo):  # pylint: disable=W0613

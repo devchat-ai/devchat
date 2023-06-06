@@ -174,7 +174,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
 @click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
 @click.option('-n', '--max-count', default=100, help='Limit the number of commits to output.')
-@click.option('-t', '--topic', default=None, help='Hash of the root prompt of the topic to select prompts from.')
+@click.option('-t', '--topic', default=None,
+              help='Hash of the root prompt of the topic to select prompts from.')
 def log(skip, max_count, topic):
     """
     Show the prompt history.
