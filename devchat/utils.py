@@ -29,8 +29,9 @@ def setup_logger(file_path, level=logging.WARNING):
 def find_root_dir() -> Optional[str]:
     root = None
     try:
-        result = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
-        root = result.decode("utf-8").strip()
+        result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                                capture_output=True, text=True, check=True)
+        root = result.stdout.strip()
     except subprocess.CalledProcessError:
         try:
             result = subprocess.run(["svn", "info"], capture_output=True, text=True, check=True)
