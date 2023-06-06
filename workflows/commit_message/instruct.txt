@@ -8,14 +8,15 @@ For example:
 ```commitmsg
 The title
 
-- The first line.
-- The second line.
+- The first bullet point.
+- The second bullet point.
 ```
-4. Utilize the <context>, if provided, to create the summary.
-5. Utilize the previous messages, if provided in the end of this prompt, to improve the summary by clearly conveying the intention of code changes.
+4. Utilize the diff output in the <context> to create the summary.
+5. Utilize the previous messages, if provided in the end of this prompt, to improve the title or bullet points by clearly conveying the intention of code changes.
 Note that not all previous messages are necessarily relevant.
 For example, disregard any previous commit messages you have written.
 You may encounter duplicate or conflicting messages, and the later messages should be considered as the most accurate.
-6. Prioritize the diff output in the given <context> focusing on facts and results, rather than previous messages that only highlight purposes or intentions for your reference.
+6. Prioritize the diff output in the given <context> and focus on actual code changes.
+Disregard any previous messages unrelated to the diff output.
 
 If you need more information, ask for it.
