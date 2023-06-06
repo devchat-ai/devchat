@@ -15,7 +15,7 @@ long_description = read_file("README.md")
 
 setup(
     name="devchat",
-    version="0.1.9",
+    version="0.1.10",
     packages=find_packages(),
     install_requires=requirements,
     entry_points={
@@ -32,6 +32,11 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3'
+        'Programming Language :: Python :: 3',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: Information Technology',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Software Development'
     ]
 )
