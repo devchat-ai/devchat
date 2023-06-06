@@ -71,7 +71,17 @@ def test_select_recent(tmp_path):
         assert prompt.hash == hashes[4 - index]
 
 
-def test_select_recent_with_topic(tmp_path):
+def test_select_topics_no_topics(tmp_path):
+    config = OpenAIChatConfig(model="gpt-3.5-turbo")
+    chat = OpenAIChat(config)
+    store = Store(tmp_path / "store.graphml", chat)
+
+    # Test selecting topics when there are no topics
+    topics = store.select_topics(0, 5)
+    assert len(topics) == 0
+
+
+def test_select_topics_and_prompts_with_single_root(tmp_path):
     config = OpenAIChatConfig(model="gpt-3.5-turbo")
     chat = OpenAIChat(config)
     store = Store(tmp_path / "store.graphml", chat)
@@ -124,7 +134,12 @@ def test_select_recent_with_topic(tmp_path):
         store.store_prompt(child_prompt)
         child_hashes.append(child_prompt.hash)
 
-    # Test selecting recent prompts within the topic
+    # Test selecting topics
+    topics = store.select_topics(0, 5)
+    assert len(topics) == 1
+    assert topics[0]['root_prompt'].hash == root_prompt.hash
+
+    # Test selecting prompts within the topic
     recent_prompts = store.select_prompts(0, 2, topic=root_prompt.hash)
     assert len(recent_prompts) == 2
     for index, prompt in enumerate(recent_prompts):

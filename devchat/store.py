@@ -42,28 +42,13 @@ class Store:
         if not self._topics_table or self._topics_table.all() == []:
             self._initialize_topics_table()
 
-    def _roots(self) -> List[object]:
-        graph = self._graph
-        return [node for node in graph.nodes() if graph.out_degree(node) == 0]
-
-    def _leaves(self) -> List[object]:
-        graph = self._graph
-        return [node for node in graph.nodes() if graph.in_degree(node) == 0]
-
     def _initialize_topics_table(self):
-        roots = self._roots()
-        all_leaves = self._leaves()
-        root_to_leaves = {root: [] for root in roots}
-
-        for leaf in all_leaves:
-            root = next(nx.descendants(self._graph, leaf).intersection(roots))
-            root_to_leaves[root].append(leaf)
-
-        for root, leaves in root_to_leaves.items():
-            latest_time = max(self._graph.nodes[leaf]['timestamp'] for leaf in leaves)
+        roots = [node for node in self._graph.nodes() if self._graph.out_degree(node) == 0]
+        for root in roots:
+            latest_time = max(self._graph.nodes[node]['timestamp'] for
+                              node in nx.ancestors(self._graph, root))
             self._topics_table.insert({
                 'root': root,
-                'leaves': leaves,
                 'latest_time': latest_time,
                 'title': None,
                 'hidden': False
@@ -74,21 +59,15 @@ class Store:
             logger.error("Prompt %s not a leaf to update topics table", prompt.hash)
 
         if prompt.parent:
-            print(self._topics_table.all())
-            topic = next((topic for topic in self._topics_table.all()
-                          if prompt.parent in topic['leaves']), None)
-            if topic:
-                topic['leaves'].remove(prompt.parent)
-                topic['leaves'].append(prompt.hash)
-                topic['latest_time'] = max(topic['latest_time'], prompt.timestamp)
-                self._topics_table.update(topic, doc_ids=[topic.doc_id])
-            else:
-                logger.error("Parent %s of prompt %s not found in topic leaves",
-                             prompt.parent, prompt.hash)
+            for topic in self._topics_table.all():
+                if prompt.parent == topic['root'] or \
+                        prompt.parent in nx.ancestors(self._graph, topic['root']):
+                    topic['latest_time'] = max(topic['latest_time'], prompt.timestamp)
+                    self._topics_table.update(topic, doc_ids=[topic.doc_id])
+                    break
         else:
             self._topics_table.insert({
                 'root': prompt.hash,
-                'leaves': [prompt.hash],
                 'latest_time': prompt.timestamp,
                 'title': None,
                 'hidden': False
@@ -190,10 +169,11 @@ class Store:
 
         Returns:
             List[Dict[str, Any]]: A list of dictionaries containing root prompts
-                with latest_time, title, and hidden fields.
+                with latest_time, and title fields.
         """
-        topics = self._topics_table.all()
-        sorted_topics = sorted(topics, key=lambda x: x['latest_time'], reverse=True)
+        visible_topics = self._topics_table.search(
+            where('hidden') == False)  # pylint: disable=C0121
+        sorted_topics = sorted(visible_topics, key=lambda x: x['latest_time'], reverse=True)
 
         topics = []
         for topic in sorted_topics[start:end]:
