@@ -172,25 +172,24 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             sys.exit(os.EX_DATAERR)
 
 
-@main.command()
 @click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
 @click.option('-n', '--max-count', default=100, help='Limit the number of commits to output.')
-def log(skip, max_count):
+@click.option('-t', '--topic', default=None, help='Hash of the root prompt of the topic to select prompts from.')
+def log(skip, max_count, topic):
     """
     Show the prompt history.
     """
     config, chat_dir = init_dir()
     provider = config.get('provider')
-    recent_prompts = []
     if provider == 'OpenAI':
         openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
         chat = OpenAIChat(openai_config)
         store = Store(chat_dir, chat)
-        recent_prompts = store.select_prompts(skip, skip + max_count)
     else:
         click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
         sys.exit(os.EX_DATAERR)
 
+    recent_prompts = store.select_prompts(skip, skip + max_count, topic)
     logs = []
     for record in recent_prompts:
         try:
