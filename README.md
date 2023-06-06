@@ -91,8 +91,10 @@ For CLI:
 ## Community
 
 - Join our [Discord](https://discord.gg/9t3yrbBUXD)!
-
 - Participate in [discussions](https://github.com/covespace/devchat/discussions)!
+- Chinese speaking users: 欢迎加入中文讨论组！
+
+  <img width="300" alt="image" src="https://github.com/covespace/devchat-vscode/assets/592493/4407f1af-9f95-4dd4-b08f-e12125a0cf2c">
 
 ## Contributing
 
@@ -103,7 +105,7 @@ Issues and pull request are welcome: https://github.com/covespace/devchat/issues
 - [x] Implement code diff application.
 - [ ] Improve code diff application using code change instructions.
 - [ ] Develop a framework for defining workflows.
-- [ ] Implement topic management.
+- [x] Implement topic management.
 - [ ] Enable interaction with external development tools.
 - [ ] Introduce more selective workflows.
   
@@ -112,4 +114,3 @@ Issues and pull request are welcome: https://github.com/covespace/devchat/issues
 hello@merico.dev
 
 We are creators of [Apache DevLake](https://devlake.apache.org/).
-
