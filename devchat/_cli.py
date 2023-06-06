@@ -11,7 +11,7 @@ import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import find_git_root, git_ignore, parse_files, setup_logger
+from devchat.utils import find_root_dir, git_ignore, parse_files, setup_logger
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -35,8 +35,11 @@ def handle_errors():
 
 
 def init_dir() -> Tuple[dict, str]:
-    git_root = find_git_root()
-    chat_dir = os.path.join(git_root, ".chat")
+    root_dir = find_root_dir()
+    if not root_dir:
+        click.echo("Error: Not inside a Git or SVN repository", err=True)
+        sys.exit(os.EX_DATAERR)
+    chat_dir = os.path.join(root_dir, ".chat")
     if not os.path.exists(chat_dir):
         os.makedirs(chat_dir)
 

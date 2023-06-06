@@ -7,7 +7,7 @@ import re
 import getpass
 import socket
 import subprocess
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import datetime
 import pytz
 from dateutil import tz
@@ -26,12 +26,21 @@ def setup_logger(file_path, level=logging.WARNING):
     logging.basicConfig(level=level, handlers=[file_handler])
 
 
-def find_git_root():
+def find_root_dir() -> Optional[str]:
+    root = None
     try:
-        root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
-        return root.decode("utf-8").strip()
-    except subprocess.CalledProcessError as error:
-        raise RuntimeError("Not inside a Git repository") from error
+        result = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
+        root = result.decode("utf-8").strip()
+    except subprocess.CalledProcessError:
+        try:
+            result = subprocess.run(["svn", "info"], capture_output=True, text=True, check=True)
+            if result.returncode == 0:
+                for line in result.stdout.splitlines():
+                    if line.startswith("Working Copy Root Path: "):
+                        root = line.split("Working Copy Root Path: ", 1)[1].strip()
+        except subprocess.CalledProcessError:
+            root = None
+    return root
 
 
 def git_ignore(target_dir: str, *ignore_entries: str) -> None:
