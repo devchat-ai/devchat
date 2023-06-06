@@ -146,7 +146,8 @@ class Store:
         """
         if topic:
             ancestors = nx.ancestors(self._graph, topic)
-            nodes_with_data = [(node, self._graph.nodes[node]) for node in ancestors] + [(topic, self._graph.nodes[topic])]
+            nodes_with_data = [(node, self._graph.nodes[node]) for node in ancestors] + \
+                [(topic, self._graph.nodes[topic])]
             sorted_nodes = sorted(nodes_with_data, key=lambda x: x[1]['timestamp'], reverse=True)
         else:
             sorted_nodes = sorted(self._graph.nodes(data=True),
