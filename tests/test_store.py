@@ -146,7 +146,7 @@ def test_select_topics_and_prompts_with_single_root(tmp_path):
         assert prompt.hash == child_hashes[2 - index]
 
 
-def test_select_recent_with_nested_topic(tmp_path):
+def test_select_recent_with_topic_tree(tmp_path):
     config = OpenAIChatConfig(model="gpt-3.5-turbo")
     chat = OpenAIChat(config)
     store = Store(tmp_path / "store.graphml", chat)
@@ -221,6 +221,11 @@ def test_select_recent_with_nested_topic(tmp_path):
         grandchild_prompt.set_response(grandchild_response_str)
         store.store_prompt(grandchild_prompt)
         grandchild_hashes.append(grandchild_prompt.hash)
+
+    # Test selecting topics
+    topics = store.select_topics(0, 5)
+    assert len(topics) == 1
+    assert topics[0]['root_prompt'].hash == root_prompt.hash
 
     # Test selecting recent prompts within the nested topic
     recent_prompts = store.select_prompts(1, 3, topic=root_prompt.hash)
