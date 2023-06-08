@@ -84,8 +84,8 @@ DevChat is the way developers interact and collaborate with AI.
 
 For CLI:
 - Install DevChat by running: `pip install devchat`.
-- Make sure you are working in a Git repository, as DevChat only works within one.
-- Set your [OpenAI API Key](https://platform.openai.com/account/api-keys) by running `export OPENAI_API_KEY="[sk-...]"`.
+- Make sure you are working in a Git or SVN repository, as DevChat only works within one.
+- Set your [OpenAI API Key](https://platform.openai.com/account/api-keys) by running `export OPENAI_API_KEY="[sk-...]"` (or DevChat access key).
 - To access help, use the commands: `devchat --help` and `devchat prompt --help`.
 
 ## Community
