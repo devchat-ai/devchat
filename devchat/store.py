@@ -63,6 +63,9 @@ class Store:
 
         if prompt.parent:
             for topic in self._topics_table.all():
+                if topic['root'] not in self._graph:
+                    self._graph.add_node(topic['root'], timestamp=topic['latest_time'])
+                    logger.warning("Topic %s not found in graph but added", topic['root'])
                 if prompt.parent == topic['root'] or \
                         prompt.parent in nx.ancestors(self._graph, topic['root']):
                     topic['latest_time'] = max(topic['latest_time'], prompt.timestamp)
