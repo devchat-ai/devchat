@@ -44,11 +44,12 @@ def init_dir() -> Tuple[dict, str]:
         os.makedirs(chat_dir)
 
     default_config_data = {
-        'model': 'gpt-4',
-        'provider': 'OpenAI',
-        'OpenAI': {
-            'temperature': 0,
-            'stream': True
+        "model": "gpt-4",
+        "tokens-per-prompt": 6000,
+        "provider": "OpenAI",
+        "OpenAI": {
+            "temperature": 0,
+            "stream": True
         }
     }
 
@@ -105,21 +106,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     Configuration
     -------------
 
-    DevChat CLI reads its configuration from `.chat/config.json` in your current Git root directory.
+    DevChat CLI reads its configuration from `.chat/config.json`
+    in your current Git or SVN root directory.
     If the file is not found, it uses the following default configuration:
-    ```json
-    {
-        "model": "gpt-3.5-turbo",
-        "tokens-per-prompt": 3000,
-        "provider": "OpenAI",
-        "OpenAI": {
-            "temperature": 0
-        }
-    }
-    ```
-
-    To customize the configuration, create `.chat/config.json` in your current Git root directory
-    and modify the settings as needed. We recoommend the following settings:
     ```json
     {
         "model": "gpt-4",
@@ -131,6 +120,10 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         }
     }
     ```
+
+    To customize the configuration, create `.chat/config.json`
+    in your current Git or SVN root directory
+    and modify the settings as needed.
 
     Note: To use OpenAI's APIs, you must have an API key to run the CLI.
     Run the following command line with your API key:
