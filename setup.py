@@ -15,7 +15,7 @@ long_description = read_file("README.md")
 
 setup(
     name="devchat",
-    version="0.1.10",
+    version="0.1.12",
     packages=find_packages(),
     install_requires=requirements,
     entry_points={
@@ -23,7 +23,7 @@ setup(
             "devchat = devchat._cli:main",
         ],
     },
-    url="https://github.com/covespace/devchat",
+    url="https://github.com/devchat-ai/devchat",
     license="Apache License 2.0",
     description="DevChat is an open-source tool that helps developers write prompts to "
                 "generate code and documentation.",
