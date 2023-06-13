@@ -2,7 +2,7 @@ from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
-from devchat.utils import get_git_user_info
+from devchat.utils import get_user_info
 from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
@@ -45,7 +45,7 @@ class OpenAIChat(Chat):
         self.config = config
 
     def init_prompt(self, request: str) -> OpenAIPrompt:
-        user, email = get_git_user_info()
+        user, email = get_user_info()
         prompt = OpenAIPrompt(self.config.model, user, email)
         prompt.set_request(request)
         return prompt

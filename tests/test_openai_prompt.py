@@ -4,11 +4,11 @@ import pytest
 from devchat.message import Message
 from devchat.openai import OpenAIMessage
 from devchat.openai import OpenAIPrompt
-from devchat.utils import get_git_user_info
+from devchat.utils import get_user_info
 
 
 def test_prompt_init_and_set_response():
-    name, email = get_git_user_info()
+    name, email = get_user_info()
     prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
     assert prompt.model == "gpt-3.5-turbo"
 
@@ -43,7 +43,7 @@ def test_prompt_init_and_set_response():
 
 
 def test_prompt_model_mismatch():
-    name, email = get_git_user_info()
+    name, email = get_user_info()
     prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
 
     response_str = '''
@@ -91,7 +91,7 @@ def fixture_responses():
 
 
 def test_append_response(responses):
-    name, email = get_git_user_info()
+    name, email = get_user_info()
     prompt = OpenAIPrompt("gpt-3.5-turbo-0301", name, email)
 
     for response in responses:

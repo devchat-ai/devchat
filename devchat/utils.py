@@ -29,11 +29,12 @@ def setup_logger(file_path, level=logging.WARNING):
 def find_root_dir() -> Optional[str]:
     try:
         result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                                capture_output=True, text=True, check=True)
+                                capture_output=True, text=True, check=True, encoding='utf-8')
         return result.stdout.strip()
     except Exception:
         try:
-            result = subprocess.run(["svn", "info"], capture_output=True, text=True, check=True)
+            result = subprocess.run(["svn", "info"],
+                                    capture_output=True, text=True, check=True, encoding='utf-8')
             if result.returncode == 0:
                 for line in result.stdout.splitlines():
                     if line.startswith("Working Copy Root Path: "):
@@ -80,20 +81,20 @@ def unix_to_local_datetime(unix_time) -> datetime.datetime:
     return local_dt
 
 
-def get_git_user_info() -> Tuple[str, str]:
+def get_user_info() -> Tuple[str, str]:
     try:
         cmd = ['git', 'config', 'user.name']
-        git_user_name = subprocess.check_output(cmd).decode('utf-8').strip()
-    except subprocess.CalledProcessError:
-        git_user_name = getpass.getuser()
+        user_name = subprocess.check_output(cmd, encoding='utf-8').strip()
+    except Exception:
+        user_name = getpass.getuser()
 
     try:
         cmd = ['git', 'config', 'user.email']
-        git_user_email = subprocess.check_output(cmd).decode('utf-8').strip()
-    except subprocess.CalledProcessError:
-        git_user_email = git_user_name + '@' + socket.gethostname()
+        user_email = subprocess.check_output(cmd, encoding='utf-8').strip()
+    except Exception:
+        user_email = user_name + '@' + socket.gethostname()
 
-    return git_user_name, git_user_email
+    return user_name, user_email
 
 
 def parse_files(file_paths: List[str]) -> List[str]:
