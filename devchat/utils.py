@@ -27,21 +27,20 @@ def setup_logger(file_path, level=logging.WARNING):
 
 
 def find_root_dir() -> Optional[str]:
-    root = None
     try:
         result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
                                 capture_output=True, text=True, check=True)
-        root = result.stdout.strip()
-    except subprocess.CalledProcessError:
+        return result.stdout.strip()
+    except Exception:
         try:
             result = subprocess.run(["svn", "info"], capture_output=True, text=True, check=True)
             if result.returncode == 0:
                 for line in result.stdout.splitlines():
                     if line.startswith("Working Copy Root Path: "):
-                        root = line.split("Working Copy Root Path: ", 1)[1].strip()
-        except subprocess.CalledProcessError:
-            root = None
-    return root
+                        return line.split("Working Copy Root Path: ", 1)[1].strip()
+        except Exception:
+            return os.path.expanduser("~")
+    return None
 
 
 def git_ignore(target_dir: str, *ignore_entries: str) -> None:

@@ -37,7 +37,7 @@ def handle_errors():
 def init_dir() -> Tuple[dict, str]:
     root_dir = find_root_dir()
     if not root_dir:
-        click.echo("Error: Not inside a Git or SVN repository", err=True)
+        click.echo("Error: Failed to find home to store .chat", err=True)
         sys.exit(os.EX_DATAERR)
     chat_dir = os.path.join(root_dir, ".chat")
     if not os.path.exists(chat_dir):
@@ -55,7 +55,7 @@ def init_dir() -> Tuple[dict, str]:
     try:
         with open(os.path.join(chat_dir, 'config.json'), 'r', encoding='utf-8') as file:
             config_data = json.load(file)
-    except FileNotFoundError:
+    except Exception:
         config_data = default_config_data
 
     setup_logger(os.path.join(chat_dir, 'error.log'))
