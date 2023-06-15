@@ -6,3 +6,4 @@ pytz~=2023.3
 rich_click~=1.6.1
 tiktoken~=0.4.0
 tinydb~=4.7.1
+urllib3<2.0
