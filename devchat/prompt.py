@@ -89,7 +89,7 @@ class Prompt(ABC):
     def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
         """
-        Append a new message provided by the user to the prompt.
+        Append a new message provided by the user to this prompt.
 
         Args:
             message_type (str): The type of the message.
@@ -101,15 +101,13 @@ class Prompt(ABC):
         """
 
     @abstractmethod
-    def prepend_history(self, message_type: str, message: Message,
-                        available_tokens: int = math.inf) -> bool:
+    def prepend_history(self, prompt: "Prompt", token_limit: int = math.inf) -> bool:
         """
-        Add to the beginning of the history messages of the prompt.
+        Add the prompt to the beginning of the history messages.
 
         Args:
-            message_type (str): The type of the message.
-            message (Message): The message to add.
-            available_tokens (int): The number of tokens available for the message.
+            prompt(Prompt): The prompt to prepend.
+            token_limit (int): The max number of tokens for this prompt.
 
         Returns:
             bool: Whether the message is prepended.

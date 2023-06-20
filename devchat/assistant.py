@@ -2,7 +2,6 @@ import logging
 from typing import Optional, List, Iterator
 from devchat.message import Message
 from devchat.chat import Chat
-from devchat.prompt import Prompt
 from devchat.store import Store
 
 
@@ -64,7 +63,7 @@ class Assistant:
                 logger.error("Reference %s not retrievable while making prompt.", reference_hash)
                 continue
             self._prompt.references.append(reference_hash)
-            self._append_prompt(prompt)
+            self._prompt.prepend_history(prompt, self.token_limit)
         if parent:
             self._prompt.parent = parent
             parent_hash = parent
@@ -73,7 +72,7 @@ class Assistant:
                 if not parent_prompt:
                     logger.error("Parent %s not retrievable while making prompt.", parent_hash)
                     break
-                if not self._append_prompt(parent_prompt):
+                if not self._prompt.prepend_history(parent_prompt, self.token_limit):
                     break
                 parent_hash = parent_prompt.parent
 
@@ -97,19 +96,3 @@ class Assistant:
             self._store.store_prompt(self._prompt)
             for index in range(len(self._prompt.response)):
                 yield self._prompt.formatted_response(index) + '\n'
-
-    def _append_prompt(self, prompt: Prompt) -> bool:
-        # Append the first response and the request of the appended prompt
-        if not self._prompt.prepend_history(Message.CHAT, prompt.response[0],
-                                            self.available_tokens):
-            return False
-        if not self._prompt.prepend_history(Message.CHAT, prompt.request,
-                                            self.available_tokens):
-            return False
-
-        # Append the context messages of the appended prompt
-        for context_message in prompt.new_context:
-            if not self._prompt.prepend_history(Message.CONTEXT, context_message,
-                                                self.available_tokens):
-                return False
-        return True

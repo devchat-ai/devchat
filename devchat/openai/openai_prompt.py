@@ -56,12 +56,25 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def prepend_history(self, message_type: str, message: Message,
-                        available_tokens: int = math.inf) -> bool:
+    def prepend_history(self, prompt: 'OpenAIPrompt', token_limit: int = math.inf) -> bool:
+        # Prepend the first response and the request of the prompt
+        if not self._prepend_history(Message.CHAT, prompt.response[0], token_limit):
+            return False
+        if not self._prepend_history(Message.CHAT, prompt.request, token_limit):
+            return False
+
+        # Append the context messages of the appended prompt
+        for context_message in prompt.new_context:
+            if not self._prepend_history(Message.CONTEXT, context_message, token_limit):
+                return False
+        return True
+
+    def _prepend_history(self, message_type: str, message: Message,
+                         token_limit: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
         num_tokens = message_tokens(message.to_dict(), self.model)
-        if num_tokens > available_tokens:
+        if num_tokens > token_limit - self._request_tokens:
             return False
         self._history_messages[message_type].insert(0, message)
         self._request_tokens += num_tokens
