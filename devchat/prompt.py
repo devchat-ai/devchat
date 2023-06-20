@@ -101,10 +101,10 @@ class Prompt(ABC):
         """
 
     @abstractmethod
-    def append_history(self, message_type: str, message: Message,
-                       available_tokens: int = math.inf) -> bool:
+    def prepend_history(self, message_type: str, message: Message,
+                        available_tokens: int = math.inf) -> bool:
         """
-        Add to the history messages of the prompt.
+        Add to the beginning of the history messages of the prompt.
 
         Args:
             message_type (str): The type of the message.
@@ -112,7 +112,7 @@ class Prompt(ABC):
             available_tokens (int): The number of tokens available for the message.
 
         Returns:
-            bool: Whether the message is appended.
+            bool: Whether the message is prepended.
         """
 
     @abstractmethod

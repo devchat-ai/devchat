@@ -100,16 +100,16 @@ class Assistant:
 
     def _append_prompt(self, prompt: Prompt) -> bool:
         # Append the first response and the request of the appended prompt
-        if not self._prompt.append_history(Message.CHAT, prompt.response[0],
-                                           self.available_tokens):
+        if not self._prompt.prepend_history(Message.CHAT, prompt.response[0],
+                                            self.available_tokens):
             return False
-        if not self._prompt.append_history(Message.CHAT, prompt.request,
-                                           self.available_tokens):
+        if not self._prompt.prepend_history(Message.CHAT, prompt.request,
+                                            self.available_tokens):
             return False
 
         # Append the context messages of the appended prompt
         for context_message in prompt.new_context:
-            if not self._prompt.append_history(Message.CONTEXT, context_message,
-                                               self.available_tokens):
+            if not self._prompt.prepend_history(Message.CONTEXT, context_message,
+                                                self.available_tokens):
                 return False
         return True

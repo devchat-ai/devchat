@@ -30,11 +30,10 @@ class OpenAIPrompt(Prompt):
         if self._history_messages[Message.CONTEXT]:
             combined += [update_dict(msg.to_dict(), 'content',
                                      f"<context>\n{msg.content}\n</context>")
-                         for msg in self.new_context]
+                         for msg in self._history_messages[Message.CONTEXT]]
         # History chat
         if self._history_messages[Message.CHAT]:
-            combined += [msg.to_dict() for msg
-                         in reversed(self._history_messages[Message.CHAT])]
+            combined += [msg.to_dict() for msg in self._history_messages[Message.CHAT]]
         # Request
         if self.request:
             combined += [self.request.to_dict()]
@@ -57,14 +56,14 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def append_history(self, message_type: str, message: Message,
-                       available_tokens: int = math.inf) -> bool:
+    def prepend_history(self, message_type: str, message: Message,
+                        available_tokens: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
             return False
-        self._history_messages[message_type].append(message)
+        self._history_messages[message_type].insert(0, message)
         self._request_tokens += num_tokens
         return True
 
