@@ -44,15 +44,64 @@ class OpenAIPrompt(Prompt):
                          for msg in self.new_context]
         return combined
 
+    def input_messages(self, messages: List[dict]):
+        state = "new_instruct"
+        for message_data in messages:
+            message = OpenAIMessage(**message_data)
+
+            if state == "new_instruct":
+                if message.role == "system" and not message.content.startswith("<context>"):
+                    self._new_messages[Message.INSTRUCT].append(message)
+                else:
+                    state = "history_context"
+
+            if state == "history_context":
+                if message.role == "system" and message.content.startswith("<context>"):
+                    content = message.content.replace("<context>", "").replace("</context>", "")
+                    message.content = content.strip()
+                    self._history_messages[Message.CONTEXT].append(message)
+                else:
+                    state = "history_chat"
+
+            if state == "history_chat":
+                if message.role in ("user", "assistant"):
+                    self._history_messages[Message.CHAT].append(message)
+                else:
+                    state = "new_context"
+
+            if state == "new_context":
+                if message.role == "system" and message.content.startswith("<context>"):
+                    content = message.content.replace("<context>", "").replace("</context>", "")
+                    message.content = content.strip()
+                    self._new_messages[Message.CONTEXT].append(message)
+
+        if not self.request:
+            last_user_message = self._history_messages[Message.CHAT].pop()
+            self._new_messages["request"] = last_user_message
+
     def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
+        # New instructions and context are of the system role
         message = OpenAIMessage(content, 'system')
+
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
             return False
+
         self._new_messages[message_type].append(message)
+        self._request_tokens += num_tokens
+        return True
+
+    def _prepend_history(self, message_type: str, message: Message,
+                         token_limit: int = math.inf) -> bool:
+        if message_type == Message.INSTRUCT:
+            raise ValueError("History messages cannot be of type INSTRUCT.")
+        num_tokens = message_tokens(message.to_dict(), self.model)
+        if num_tokens > token_limit - self._request_tokens:
+            return False
+        self._history_messages[message_type].insert(0, message)
         self._request_tokens += num_tokens
         return True
 
@@ -67,17 +116,6 @@ class OpenAIPrompt(Prompt):
         for context_message in prompt.new_context:
             if not self._prepend_history(Message.CONTEXT, context_message, token_limit):
                 return False
-        return True
-
-    def _prepend_history(self, message_type: str, message: Message,
-                         token_limit: int = math.inf) -> bool:
-        if message_type == Message.INSTRUCT:
-            raise ValueError("History messages cannot be of type INSTRUCT.")
-        num_tokens = message_tokens(message.to_dict(), self.model)
-        if num_tokens > token_limit - self._request_tokens:
-            return False
-        self._history_messages[message_type].insert(0, message)
-        self._request_tokens += num_tokens
         return True
 
     def set_request(self, content: str) -> int:
