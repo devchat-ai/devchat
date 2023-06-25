@@ -4,7 +4,7 @@ import hashlib
 import math
 from typing import Dict, List
 from devchat.message import Message
-from devchat.utils import unix_to_local_datetime, get_logger
+from devchat.utils import unix_to_local_datetime, get_logger, user_id
 
 
 logger = get_logger(__name__)
@@ -171,7 +171,7 @@ class Prompt(ABC):
 
     def formatted_header(self) -> str:
         """Formatted string header of the prompt."""
-        formatted_str = f"User: {self.user_name} <{self.user_email}>\n"
+        formatted_str = f"User: {user_id(self.user_name, self.user_email)[0]}\n"
 
         local_time = unix_to_local_datetime(self._timestamp)
         formatted_str += f"Date: {local_time.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
@@ -207,7 +207,7 @@ class Prompt(ABC):
         logs = []
         for message in self.response:
             shortlog_data = {
-                "user": f"{self.user_name} <{self.user_email}>",
+                "user": user_id(self.user_name, self.user_email)[0],
                 "date": self._timestamp,
                 "context": [msg.to_dict() for msg in self.new_context],
                 "request": self.request.content,

@@ -9,6 +9,7 @@ import socket
 import subprocess
 from typing import List, Tuple, Optional
 import datetime
+import hashlib
 import pytz
 from dateutil import tz
 import tiktoken
@@ -114,6 +115,12 @@ def get_user_info() -> Tuple[str, str]:
         user_email = user_name + '@' + socket.gethostname()
 
     return user_name, user_email
+
+
+def user_id(user_name, user_email) -> Tuple[str, str]:
+    user_str = f"{user_name} <{user_email}>"
+    user_hash = hashlib.sha1(user_str.encode('utf-8')).hexdigest()
+    return user_str, user_hash
 
 
 def parse_files(file_paths: List[str]) -> List[str]:
