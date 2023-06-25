@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 import hashlib
-import logging
 import math
 from typing import Dict, List
 from devchat.message import Message
-from devchat.utils import unix_to_local_datetime
+from devchat.utils import unix_to_local_datetime, get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

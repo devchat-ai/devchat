@@ -1,5 +1,4 @@
 from dataclasses import asdict
-import logging
 import os
 from typing import List, Dict, Any, Optional
 from xml.etree.ElementTree import ParseError
@@ -7,8 +6,9 @@ import networkx as nx
 from tinydb import TinyDB, where
 from devchat.chat import Chat
 from devchat.prompt import Prompt
+from devchat.utils import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Store:

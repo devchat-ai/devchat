@@ -14,16 +14,35 @@ from dateutil import tz
 import tiktoken
 
 
-def setup_logger(file_path, level=logging.WARNING):
-    """Utility function to set up a logger with the specified file path and level."""
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+
+def setup_logger(file_path):
+    """Utility function to set up a global file log handler."""
+
+    for handler in logging.root.handlers:
+        logging.root.removeHandler(handler)
     # Create a file handler for logging
     file_handler = logging.FileHandler(file_path)
-    file_handler.setFormatter(formatter)
+    file_handler.setFormatter(log_formatter)
+    logging.root.addHandler(file_handler)
 
-    # Set up the global logger
-    logging.basicConfig(level=level, handlers=[file_handler])
+
+def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Logger:
+    local_logger = logging.getLogger(name)
+
+    # Default to 'INFO' if 'LOG_LEVEL' env var is not set
+    log_level_str = os.getenv('LOG_LEVEL', 'INFO')
+    log_level = getattr(logging, log_level_str.upper(), logging.INFO)
+    local_logger.setLevel(log_level)
+
+    # If a handler is provided, configure and add it to the logger
+    if handler is not None:
+        handler.setLevel(log_level)
+        handler.setFormatter(log_formatter)
+        local_logger.addHandler(handler)
+
+    return local_logger
 
 
 def find_root_dir() -> Optional[str]:
@@ -118,9 +137,7 @@ def parse_files(file_paths: List[str]) -> List[str]:
 
 def valid_hash(hash_str):
     """Check if a string is a valid hash value."""
-    # Hash values are usually alphanumeric with a fixed length
-    # depending on the algorithm used to generate them
-    pattern = re.compile(r'^[a-f0-9]{64}$')  # Example pattern for SHA-256 hash
+    pattern = re.compile(r'^[a-f0-9]{64}$')  # for SHA-256 hash
     return bool(pattern.match(hash_str))
 
 

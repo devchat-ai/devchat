@@ -1,11 +1,11 @@
-import logging
 from typing import Optional, List, Iterator
 from devchat.message import Message
 from devchat.chat import Chat
 from devchat.store import Store
+from devchat.utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Assistant:

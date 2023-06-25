@@ -3,7 +3,6 @@ This module contains the main function for the DevChat CLI.
 """
 from contextlib import contextmanager
 import json
-import logging
 import os
 import sys
 from typing import List, Optional, Tuple
@@ -11,7 +10,8 @@ import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import find_root_dir, git_ignore, parse_files, setup_logger
+from devchat.utils import find_root_dir, git_ignore, parse_files
+from devchat.utils import setup_logger, get_logger
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -28,7 +28,7 @@ def handle_errors():
     try:
         yield
     except Exception as error:
-        logger = logging.getLogger(__name__)
+        logger = get_logger(__name__)
         logger.exception(error)
         click.echo(f"Error: {error}", err=True)
         sys.exit(os.EX_SOFTWARE)
