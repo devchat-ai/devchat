@@ -4,8 +4,10 @@ import math
 from typing import List
 from devchat.prompt import Prompt
 from devchat.message import Message
-from devchat.utils import update_dict, message_tokens
+from devchat.utils import update_dict, message_tokens, get_logger
 from .openai_message import OpenAIMessage
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -74,10 +76,15 @@ class OpenAIPrompt(Prompt):
                     content = message.content.replace("<context>", "").replace("</context>", "")
                     message.content = content.strip()
                     self._new_messages[Message.CONTEXT].append(message)
+                else:
+                    logger.warning("Invalid new context message: %s", message)
 
         if not self.request:
             last_user_message = self._history_messages[Message.CHAT].pop()
-            self._new_messages["request"] = last_user_message
+            if last_user_message.role == "user":
+                self._new_messages["request"] = last_user_message
+            else:
+                logger.warning("Invalid user request: %s", last_user_message)
 
     def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
