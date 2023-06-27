@@ -131,7 +131,6 @@ class OpenAIPrompt(Prompt):
                          token_limit: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
-        
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > token_limit - self._request_tokens:
             return False
