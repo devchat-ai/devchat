@@ -36,7 +36,8 @@ class Prompt(ABC):
         Message.INSTRUCT: [],
         'request': None,
         Message.CONTEXT: [],
-        'response': []
+        'response': [],
+        Message.FUNCTION: []
     })
     _history_messages: Dict[str, Message] = field(default_factory=lambda: {
         Message.CONTEXT: [],
@@ -206,12 +207,18 @@ class Prompt(ABC):
             raise ValueError("Prompt is incomplete for shortlog.")
         logs = []
         for message in self.response:
+            if message.content:
+                message_content = message.content + message.function_to_block()
+            else:
+                message_function = message.function_to_block()
+                message_content = message_function if message_function != "" else None
+                
             shortlog_data = {
                 "user": user_id(self.user_name, self.user_email)[0],
                 "date": self._timestamp,
                 "context": [msg.to_dict() for msg in self.new_context],
                 "request": self.request.content,
-                "response": message.content,
+                "response": message_content,
                 "hash": self.hash,
                 "parent": self.parent
             }

@@ -11,7 +11,7 @@ from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
 from devchat.utils import find_root_dir, git_ignore, parse_files
-from devchat.utils import setup_logger, get_logger
+from devchat.utils import setup_logger, get_logger, parse_functions
 
 
 click.rich_click.USE_MARKDOWN = True
@@ -75,8 +75,11 @@ def init_dir() -> Tuple[dict, str]:
               help='Add one or more files to the prompt as a context.')
 @click.option('-m', '--model', help='Specify the model to temporarily use for the prompt '
               '(prefer to modify .chat/config.json).')
+@click.option('-n', '--function-called', help='Specify the function name which produces the prompt.')
+@click.option('-f', '--function', help='Add one file to the prompt as GPT functions for 0613 model.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
-           instruct: Optional[List[str]], context: Optional[List[str]], model: Optional[str]):
+           instruct: Optional[List[str]], context: Optional[List[str]], model: Optional[str], 
+           function_called: Optional[str], function: Optional[str]):
     """
     Main function to run the chat application.
 
@@ -144,6 +147,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
+        function_contents = parse_functions(function)
+        role = "user" if not function_called else "function"
 
         provider = config.get('provider')
         if provider == 'OpenAI':
@@ -158,7 +163,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             if 'tokens-per-prompt' in config:
                 assistant.token_limit = config['tokens-per-prompt']
 
-            assistant.make_prompt(content, instruct_contents, context_contents,
+            assistant.make_prompt(content, instruct_contents, context_contents, 
+                                  role, function_called, function_contents,
                                   parent, reference)
 
             for response in assistant.iterate_response():

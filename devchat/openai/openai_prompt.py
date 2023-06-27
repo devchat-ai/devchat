@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import json
 import math
-from typing import List
+from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
 from devchat.utils import update_dict, message_tokens, get_logger
@@ -85,13 +85,39 @@ class OpenAIPrompt(Prompt):
                 self._new_messages["request"] = last_user_message
             else:
                 logger.warning("Invalid user request: %s", last_user_message)
+    def set_messages(self, message_type: str, messages: List[dict]) -> None:
+        """
+		This method is used to set messages of a specific type in the '_new_messages' dictionary.
+		The messages are stored under the 'message_type' key in the '_new_messages' dictionary.
+
+		Args:
+			message_type (str): The type of the messages to set.
+			messages (list[dict]): A list of messages to set. Each message is a dictionary that contains information about a function.
+		"""
+        self._new_messages[message_type] = messages
+        
+    def get_messages(self, message_type: str) -> Optional[List[dict]]:
+        """
+		This method is used to retrieve messages of a specific type from the '_new_messages' dictionary.
+		The messages are stored under the 'message_type' key in the '_new_messages' dictionary.
+		This method is primarily used in the creation of 'openai.ChatCompletion' objects, where it is passed as an argument.
+
+		Args:
+			message_type (str): The type of the messages to retrieve.
+
+		Returns:
+			list[dict]: A list of messages of the specified type if they exist in the '_new_messages' dictionary.
+						Each message is a dictionary that contains information about a function.
+			None: If there are no messages of the specified type in the '_new_messages' dictionary.
+		"""
+        return self._new_messages.get(message_type)
 
     def append_new(self, message_type: str, content: str,
                    available_tokens: int = math.inf) -> bool:
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         # New instructions and context are of the system role
-        message = OpenAIMessage(content, 'system')
+        message = OpenAIMessage(content, role = 'system')
 
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
@@ -105,6 +131,7 @@ class OpenAIPrompt(Prompt):
                          token_limit: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
+        
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > token_limit - self._request_tokens:
             return False
@@ -125,10 +152,31 @@ class OpenAIPrompt(Prompt):
                 return False
         return True
 
-    def set_request(self, content: str) -> int:
+    def set_request(self, content: str, role: str = "user", function_name: str = None) -> int:
+        """
+		Set a new request with the specified content, role, and function name.
+
+		If the content is empty or only contains spaces, a ValueError is raised.
+
+		The role can be "user" or "function". If the role is "function", the function_name parameter
+		specifies the name of the function that is called.
+
+		The new request is stored as an OpenAIMessage object in _new_messages['request'], and the
+		_request_tokens value is updated.
+
+		Args:
+			content (str): The content of the request.
+			role (str, optional): The role of the sender. Defaults to "user".
+			function_name (str, optional): The name of the function that is called if the role is "function". Defaults to None.
+
+		Raises:
+			ValueError: If the content is empty or only contains spaces.
+		"""
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, 'user')
+        # After calling a GPT function, we send its output to GPT. A "function" role is used for distinction, 
+        # and the function_name parameter specifies the called function.. 
+        message = OpenAIMessage(content, role = role, function_name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
 
@@ -182,13 +230,20 @@ class OpenAIPrompt(Prompt):
                 self.response[index] = OpenAIMessage(**delta)
                 if index == 0:
                     delta_content = self.formatted_header()
-                    delta_content += self.response[0].content
+                    
+					# In this condition, we only handle the content variable. 
+					# This is because function_call cannot be output as a character stream like content.
+                    if self.response[0].content:
+                        delta_content += self.response[0].content
             else:
                 if index == 0:
                     delta_content = self.response[0].stream_from_dict(delta)
                 else:
                     self.response[index].stream_from_dict(delta)
-                     
+                    
+            if finish_reason == "function_call":
+                delta_content += self.response[index].function_to_block()
+                  
             if finish_reason:
                 delta_content += f"\n\nfinish_reason: {finish_reason}"
 

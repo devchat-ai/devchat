@@ -4,6 +4,7 @@ utils.py - Utility functions for DevChat.
 import logging
 import os
 import re
+import json
 import getpass
 import socket
 import subprocess
@@ -14,6 +15,7 @@ import pytz
 from dateutil import tz
 import tiktoken
 
+logger = logging.getLogger(__name__)
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -141,6 +143,26 @@ def parse_files(file_paths: List[str]) -> List[str]:
             contents.append(content)
     return contents
 
+def parse_functions(file_path: str) -> Optional[List[dict]]:
+    """
+    This function parses a JSON file and returns its content as a list of dictionaries.
+    
+    :param file_path: The path to the JSON file to parse.
+    :return: A list of dictionaries representing the JSON data, or None if an error occurred.
+    """
+    # Check if the file path is not empty
+    if not file_path:
+        return None
+    
+    try:
+        # Open the file in read mode with utf-8 encoding
+        with open(file_path, 'r', encoding='utf-8') as file:
+            # Load and return the JSON data as a list of dictionaries
+            return json.load(file)
+    except Exception as e:
+        # If an error occurred, return None
+        logger.error(f"An error occurred while parsing the file: {e}")
+        return None
 
 def valid_hash(hash_str):
     """Check if a string is a valid hash value."""
@@ -172,7 +194,7 @@ def message_tokens(message: dict, model: str) -> int:
         tokens_per_name = 1
 
     for key, value in message.items():
-        num_tokens += len(encoding.encode(value))
+        num_tokens += len(encoding.encode(json.dumps(value)))
         if key == "name":
             num_tokens += tokens_per_name
     return num_tokens

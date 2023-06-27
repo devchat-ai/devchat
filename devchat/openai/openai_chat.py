@@ -2,6 +2,7 @@ from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
+from devchat.message import Message
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
@@ -44,17 +45,17 @@ class OpenAIChat(Chat):
         """
         self.config = config
 
-    def init_prompt(self, request: str) -> OpenAIPrompt:
+    def init_prompt(self, request: str, role: str = 'user', function_name: str = '') -> OpenAIPrompt:
         user, email = get_user_info()
         self.config.user = user_id(user, email)[1]
         prompt = OpenAIPrompt(self.config.model, user, email)
-        prompt.set_request(request)
+        prompt.set_request(request, role, function_name)
         return prompt
 
     def load_prompt(self, data: dict) -> OpenAIPrompt:
         data['_new_messages'] = {
             k: [OpenAIMessage(**m) for m in v] if isinstance(v, list) else OpenAIMessage(**v)
-            for k, v in data['_new_messages'].items()
+            for k, v in data['_new_messages'].items() if k != 'function'
         }
         data['_history_messages'] = {k: [OpenAIMessage(**m) for m in v]
                                      for k, v in data['_history_messages'].items()}
@@ -67,9 +68,14 @@ class OpenAIChat(Chat):
             for key, value in self.config.dict().items() if value is not None
         }
         config_params['stream'] = False
+        
+        functions = {"functions": prompt.get_messages(Message.FUNCTION), "function_call":"auto"} if prompt.get_messages(Message.FUNCTION) else {}
+        if not config_params['model'].endswith('-0613'):
+            functions = {}
 
         response = openai.ChatCompletion.create(
             messages=prompt.messages,
+            **functions,
             **config_params
         )
         return response
@@ -82,8 +88,13 @@ class OpenAIChat(Chat):
         }
         config_params['stream'] = True
 
+        functions = {"functions": prompt.get_messages(Message.FUNCTION), "function_call":"auto"} if prompt.get_messages(Message.FUNCTION) else {}
+        if not config_params['model'].endswith('-0613'):
+            functions = {}
+            
         response = openai.ChatCompletion.create(
             messages=prompt.messages,
+            **functions,
             **config_params
         )
         return response

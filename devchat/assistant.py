@@ -32,6 +32,7 @@ class Assistant:
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
+                    role: Optional[str], function_name: Optional[str], function_calls: Optional[str],
                     parent: Optional[str] = None, references: Optional[List[str]] = None):
         """
         Make a prompt for the chat API.
@@ -43,7 +44,7 @@ class Assistant:
             parent (Optional[str]): The parent prompt hash. None means a new topic.
             references (Optional[List[str]]): The reference prompt hashes.
         """
-        self._prompt = self._chat.init_prompt(request)
+        self._prompt = self._chat.init_prompt(request, role="user", function_name=function_name)
         self._check_limit()
         # Add instructions to the prompt
         if instruct_contents:
@@ -55,6 +56,10 @@ class Assistant:
             for context_content in context_contents:
                 self._prompt.append_new(Message.CONTEXT, context_content)
                 self._check_limit()
+        # Add function calls to the prompt
+        if function_calls:
+            self._prompt.set_messages(Message.FUNCTION, function_calls)
+            self._check_limit()
 
         # Add history to the prompt
         for reference_hash in references:

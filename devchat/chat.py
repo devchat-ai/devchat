@@ -13,7 +13,7 @@ class Chat(ABC):
     """
 
     @abstractmethod
-    def init_prompt(self, request: str) -> Prompt:
+    def init_prompt(self, request: str, role: str, function_name: str) -> Prompt:
         """
         Initialize a prompt for the chat system.
 
