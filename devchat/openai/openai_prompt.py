@@ -182,14 +182,22 @@ class OpenAIPrompt(Prompt):
                 self.response[index] = OpenAIMessage(**delta)
                 if index == 0:
                     delta_content = self.formatted_header()
-                    delta_content += self.response[0].content
+                    delta_content += self.response[0].content if self.response[0].content else ''
             else:
                 if index == 0:
                     delta_content = self.response[0].stream_from_dict(delta)
                 else:
                     self.response[index].stream_from_dict(delta)
-                     
+
+                if 'function_call' in delta:
+                    if 'name' in delta['function_call']:
+                        self.response[index].function_call['name'] = self.response[index].function_call.get('name', '') + delta['function_call']['name']
+                    if 'arguments' in delta['function_call']:
+                        self.response[index].function_call['arguments'] = self.response[index].function_call.get('arguments', '') + delta['function_call']['arguments']
+
             if finish_reason:
+                if finish_reason == 'function_call':
+                    delta_content += self.response[index].function_call_to_json()
                 delta_content += f"\n\nfinish_reason: {finish_reason}"
 
         return delta_content
