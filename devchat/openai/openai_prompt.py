@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import json
 import math
-from typing import List
+from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
 from devchat.utils import update_dict, message_tokens, get_logger
@@ -125,10 +125,10 @@ class OpenAIPrompt(Prompt):
                 return False
         return True
 
-    def set_request(self, content: str) -> int:
+    def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, 'user')
+        message = OpenAIMessage(content, role = ('user' if not function_name else 'function'), name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
 
