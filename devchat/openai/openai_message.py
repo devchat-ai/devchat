@@ -81,14 +81,6 @@ class OpenAIMessage(Message):
         """
         return self._validate_string(self.name)
 
-    def _validate_function_name(self) -> bool:
-        """Validate the function name attribute.
-
-        Returns:
-            bool: True if the function name is valid or None, False otherwise.
-        """
-        return self._validate_string(self.function_name)
-
     def _validate_string(self, string: str) -> bool:
         """Validate a string attribute.
 
