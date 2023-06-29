@@ -87,7 +87,7 @@ class OpenAIChat(Chat):
         if 'functions' in config_params and self.config.model.endswith('-0613'):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
-        
+
         response = openai.ChatCompletion.create(
             messages=prompt.messages,
             **config_params

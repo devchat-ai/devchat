@@ -191,9 +191,13 @@ class OpenAIPrompt(Prompt):
 
                 if 'function_call' in delta:
                     if 'name' in delta['function_call']:
-                        self.response[index].function_call['name'] = self.response[index].function_call.get('name', '') + delta['function_call']['name']
+                        self.response[index].function_call['name'] = \
+                            self.response[index].function_call.get('name', '') + \
+                            delta['function_call']['name']
                     if 'arguments' in delta['function_call']:
-                        self.response[index].function_call['arguments'] = self.response[index].function_call.get('arguments', '') + delta['function_call']['arguments']
+                        self.response[index].function_call['arguments'] = \
+                            self.response[index].function_call.get('arguments', '') + \
+                            delta['function_call']['arguments']
 
             if finish_reason:
                 if finish_reason == 'function_call':
