@@ -46,11 +46,11 @@ class OpenAIChat(Chat):
         """
         self.config = config
 
-    def init_prompt(self, request: str) -> OpenAIPrompt:
+    def init_prompt(self, request: str, function_name: Optional[str] = None) -> OpenAIPrompt:
         user, email = get_user_info()
         self.config.user = user_id(user, email)[1]
         prompt = OpenAIPrompt(self.config.model, user, email)
-        prompt.set_request(request)
+        prompt.set_request(request, function_name=function_name)
         return prompt
 
     def load_prompt(self, data: dict) -> OpenAIPrompt:

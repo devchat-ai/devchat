@@ -24,7 +24,7 @@ class OpenAIMessage(Message):
         state = asdict(self)
         if state['name'] is None:
             del state['name']
-        if state['role'] != "assistant":
+        if not state['function_call'] or len(state['function_call'].keys()) == 0:
             del state['function_call']
 
         return state
@@ -71,7 +71,7 @@ class OpenAIMessage(Message):
         Returns:
             bool: True if the role is valid, False otherwise.
         """
-        return self.role in ["system", "user", "assistant"]
+        return self.role in ["system", "user", "assistant", "function"]
 
     def _validate_name(self) -> bool:
         """Validate the name attribute.
@@ -79,8 +79,24 @@ class OpenAIMessage(Message):
         Returns:
             bool: True if the name is valid or None, False otherwise.
         """
-        if self.name is None:
+        return self._validate_string(self.name)
+
+    def _validate_function_name(self) -> bool:
+        """Validate the function name attribute.
+
+        Returns:
+            bool: True if the function name is valid or None, False otherwise.
+        """
+        return self._validate_string(self.function_name)
+
+    def _validate_string(self, string: str) -> bool:
+        """Validate a string attribute.
+
+        Returns:
+            bool: True if the string is valid or None, False otherwise.
+        """
+        if string is None:
             return True
-        if not self.name.strip():
+        if not string.strip():
             return False
-        return len(self.name) <= 64 and self.name.replace("_", "").isalnum()
+        return len(string) <= 64 and string.replace("_", "").isalnum()
