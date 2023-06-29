@@ -75,7 +75,7 @@ def init_dir() -> Tuple[dict, str]:
               help='Add one or more files to the prompt as a context.')
 @click.option('-m', '--model', help='Specify the model to temporarily use for the prompt '
               '(prefer to modify .chat/config.json).')
-@click.option('--functions', type=click.Path(exists=True), 
+@click.option('--functions', type=click.Path(exists=True),
               help='Path to a JSON file with functions for the prompt.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
