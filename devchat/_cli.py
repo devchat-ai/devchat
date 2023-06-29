@@ -75,9 +75,11 @@ def init_dir() -> Tuple[dict, str]:
               help='Add one or more files to the prompt as a context.')
 @click.option('-m', '--model', help='Specify the model to temporarily use for the prompt '
               '(prefer to modify .chat/config.json).')
-@click.option('--functions', type=click.Path(exists=True), help='Path to a JSON file with functions for the prompt.')
+@click.option('--functions', type=click.Path(exists=True), 
+              help='Path to a JSON file with functions for the prompt.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
-           instruct: Optional[List[str]], context: Optional[List[str]], model: Optional[str], functions: Optional[str] = None):
+           instruct: Optional[List[str]], context: Optional[List[str]],
+           model: Optional[str], functions: Optional[str] = None):
     """
     Main function to run the chat application.
 
@@ -152,9 +154,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
                 model = config['model']
             functions_data = None
             if functions is not None:
-                with open(functions, 'r', encoding="utf-8") as f:
-                    functions_data = json.load(f)
-            openai_config = OpenAIChatConfig(model=model, functions=functions_data, **config['OpenAI'])
+                with open(functions, 'r', encoding="utf-8") as f_file:
+                    functions_data = json.load(f_file)
+            openai_config = OpenAIChatConfig(model=model,
+                                             functions=functions_data,
+                                             **config['OpenAI'])
 
             chat = OpenAIChat(openai_config)
             store = Store(chat_dir, chat)
