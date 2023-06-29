@@ -188,7 +188,7 @@ class OpenAIPrompt(Prompt):
                     delta_content = self.response[0].stream_from_dict(delta)
                 else:
                     self.response[index].stream_from_dict(delta)
-                     
+
             if finish_reason:
                 delta_content += f"\n\nfinish_reason: {finish_reason}"
 
