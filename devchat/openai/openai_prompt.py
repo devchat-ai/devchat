@@ -128,7 +128,8 @@ class OpenAIPrompt(Prompt):
     def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, role = ('user' if not function_name else 'function'), name=function_name)
+        message = OpenAIMessage(content, role = ('user' if not function_name else 'function'),
+                                name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
 
