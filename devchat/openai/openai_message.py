@@ -1,3 +1,4 @@
+import ast
 import json
 from dataclasses import dataclass, asdict, field
 from typing import Dict, Optional
@@ -25,9 +26,9 @@ class OpenAIMessage(Message):
             del state['name']
         if state['role'] != "assistant":
             del state['function_call']
-            
+
         return state
-    
+
     def function_call_to_json(self):
         '''
         convert function_call to json
@@ -44,7 +45,7 @@ class OpenAIMessage(Message):
             # arguments field may be not a json string
             # we can try parse it by eval
             try:
-                function_call_copy['arguments'] = eval(function_call_copy['arguments'])
+                function_call_copy['arguments'] = ast.literal_eval(function_call_copy['arguments'])
             except Exception:
                 # if it is not a json string, we can do nothing
                 try:
@@ -52,7 +53,7 @@ class OpenAIMessage(Message):
                 except Exception:
                     pass
         return '\n```command\n' + json.dumps(function_call_copy) + '\n```\n'
-        
+
 
     def stream_from_dict(self, message_data: dict) -> str:
         """Append to the message from a dictionary returned from a streaming chat API."""
@@ -61,7 +62,7 @@ class OpenAIMessage(Message):
             self.content += delta
         else:
             self.content = delta
-                        
+
         return delta
 
     def _validate_role(self) -> bool:
