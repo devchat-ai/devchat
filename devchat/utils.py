@@ -1,6 +1,4 @@
-"""
-utils.py - Utility functions for DevChat.
-"""
+import json
 import logging
 import os
 import re
@@ -171,6 +169,8 @@ def message_tokens(message: dict, model: str) -> int:
         tokens_per_name = 1
 
     for key, value in message.items():
+        if key == 'function_call':
+            value = json.dumps(value)
         num_tokens += len(encoding.encode(value))
         if key == "name":
             num_tokens += tokens_per_name
