@@ -22,8 +22,7 @@ class OpenAIChatConfig(BaseModel):
     frequency_penalty: Optional[float] = Field(None, ge=-2.0, le=2.0)
     logit_bias: Optional[Dict[int, float]] = Field(None)
     user: Optional[str] = Field(None)
-    request_timeout: Optional[int] = Field(20, ge=3)
-    # functions is a new parameter for the OpenAI GPT model
+    request_timeout: Optional[int] = Field(32, ge=3)
     functions: Optional[List[Dict[str, Any]]] = Field(None)
 
     class Config:
