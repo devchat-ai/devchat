@@ -14,25 +14,23 @@ import pytz
 from dateutil import tz
 import tiktoken
 
-
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-def setup_logger(file_path):
+def setup_logger(file_path: Optional[str] = None):
     """Utility function to set up a global file log handler."""
-
-    for handler in logging.root.handlers:
-        logging.root.removeHandler(handler)
-    # Create a file handler for logging
-    file_handler = logging.FileHandler(file_path)
-    file_handler.setFormatter(log_formatter)
-    logging.root.addHandler(file_handler)
+    if file_path is None:
+        handler = logging.StreamHandler()
+    else:
+        handler = logging.FileHandler(file_path)
+    handler.setFormatter(log_formatter)
+    logging.root.handlers = [handler]
 
 
 def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Logger:
     local_logger = logging.getLogger(name)
 
-    # Default to 'INFO' if 'LOG_LEVEL' env var is not set
+    # Default to 'INFO' if 'LOG_LEVEL' env is not set
     log_level_str = os.getenv('LOG_LEVEL', 'INFO')
     log_level = getattr(logging, log_level_str.upper(), logging.INFO)
     local_logger.setLevel(log_level)
@@ -43,6 +41,7 @@ def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Log
         handler.setFormatter(log_formatter)
         local_logger.addHandler(handler)
 
+    local_logger.info("Get %s", str(local_logger))
     return local_logger
 
 
