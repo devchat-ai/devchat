@@ -44,7 +44,6 @@ class OpenAIChat(Chat):
         Args:
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
-        self.functions = config.functions
         self.config = config
 
     def init_prompt(self, request: str) -> OpenAIPrompt:
@@ -69,8 +68,7 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if self.functions is not None and self.config.model.endswith('-0613'):
-            config_params['functions'] = self.functions
+        if 'functions' in config_params and self.config.model.endswith('-0613'):
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
@@ -86,8 +84,7 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if self.functions is not None and self.config.model.endswith('-0613'):
-            config_params['functions'] = self.functions
+        if 'functions' in config_params and self.config.model.endswith('-0613'):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
