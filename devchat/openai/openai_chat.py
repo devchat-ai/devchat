@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Iterator
+from typing import Any, Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field, Extra
 import openai
 from devchat.chat import Chat
@@ -23,6 +23,8 @@ class OpenAIChatConfig(BaseModel):
     logit_bias: Optional[Dict[int, float]] = Field(None)
     user: Optional[str] = Field(None)
     request_timeout: Optional[int] = Field(20, ge=3)
+    # functions is a new parameter for the OpenAI GPT model
+    functions: Optional[List[Dict[str, Any]]] = Field(None)
 
     class Config:
         """
@@ -42,6 +44,7 @@ class OpenAIChat(Chat):
         Args:
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
+        self.functions = config.functions
         self.config = config
 
     def init_prompt(self, request: str) -> OpenAIPrompt:
@@ -66,6 +69,9 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
+        if self.functions is not None and self.config.model.endswith('-0613'):
+            config_params['functions'] = self.functions
+            config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
         response = openai.ChatCompletion.create(
@@ -80,6 +86,9 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
+        if self.functions is not None and self.config.model.endswith('-0613'):
+            config_params['functions'] = self.functions
+            config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
         response = openai.ChatCompletion.create(
