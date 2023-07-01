@@ -173,6 +173,7 @@ class OpenAIPrompt(Prompt):
         for choice in response_data['choices']:
             delta = choice['delta']
             index = choice['index']
+            finish_reason = choice['finish_reason']
 
             if index >= len(self.response):
                 self.response.extend([None] * (index - len(self.response) + 1))
@@ -187,6 +188,9 @@ class OpenAIPrompt(Prompt):
                     delta_content = self.response[0].stream_from_dict(delta)
                 else:
                     self.response[index].stream_from_dict(delta)
+
+            if finish_reason:
+                delta_content += f"\n\nfinish_reason: {finish_reason}"
 
         return delta_content
 
