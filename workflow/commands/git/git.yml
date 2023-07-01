@@ -1,0 +1,26 @@
+version: 2.1
+commands:
+  git_diff:
+    description: "Runs the 'git diff' command with optional flags and a specified path."
+    parameters:
+      option_string:
+        type: string
+        default: ""
+        description: "Optional flags or arguments to pass to the 'git diff' command."
+      path:
+        type: string
+        description: "The file or directory to run the 'git diff' command on."
+    steps:
+      - run: git diff << parameters.option_string >> << parameters.path >>
+  git_log:
+    description: "Runs the 'git log' command with optional flags and a specified path."
+    parameters:
+      option_string:
+        type: string
+        default: ""
+        description: "Optional flags or arguments to pass to the 'git log' command."
+      path:
+        type: string
+        description: "The file or directory to run the 'git log' command on."
+    steps:
+      - run: git log << parameters.option_string >> << parameters.path >>
