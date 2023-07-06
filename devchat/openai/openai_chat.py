@@ -67,7 +67,7 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if 'functions' in config_params and self.config.model.endswith('-0613'):
+        if 'functions' in config_params:
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
@@ -83,7 +83,7 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if 'functions' in config_params and self.config.model.endswith('-0613'):
+        if 'functions' in config_params:
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
