@@ -11,6 +11,7 @@ class OpenAIMessage(Message):
     role: str = None
     name: Optional[str] = None
     function_call: Dict[str, str] = field(default_factory=dict)
+    finish_reason: str = None
 
     def __post_init__(self):
         if not self._validate_role():
@@ -22,6 +23,7 @@ class OpenAIMessage(Message):
 
     def to_dict(self) -> dict:
         state = asdict(self)
+        del state['finish_reason']
         if state['name'] is None:
             del state['name']
         if not state['function_call'] or len(state['function_call'].keys()) == 0:

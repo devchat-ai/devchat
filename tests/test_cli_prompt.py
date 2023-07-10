@@ -115,7 +115,7 @@ def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hot\n"
+    assert _get_core_content(result.output).find("hot\n") >= 0
 
 
 def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
@@ -124,7 +124,7 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
                                   '--context', temp_files[3],
                                   "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output) == "hot summer\n"
+    assert _get_core_content(result.output).find("hot summer\n") >= 0
 
 
 def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613

@@ -152,7 +152,8 @@ class OpenAIPrompt(Prompt):
             index = choice['index']
             if index >= len(self.response):
                 self.response.extend([None] * (index - len(self.response) + 1))
-            self.response[index] = OpenAIMessage(**choice['message'])
+            self.response[index] = OpenAIMessage(**choice['message'],
+                                                 finish_reason = choice['finish_reason'])
         self.set_hash()
 
     def append_response(self, delta_str: str) -> str:
