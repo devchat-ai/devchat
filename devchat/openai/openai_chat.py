@@ -23,7 +23,6 @@ class OpenAIChatConfig(BaseModel):
     logit_bias: Optional[Dict[int, float]] = Field(None)
     user: Optional[str] = Field(None)
     request_timeout: Optional[int] = Field(32, ge=3)
-    functions: Optional[List[Dict[str, Any]]] = Field(None)
 
     class Config:
         """
@@ -55,7 +54,7 @@ class OpenAIChat(Chat):
     def load_prompt(self, data: dict) -> OpenAIPrompt:
         data['_new_messages'] = {
             k: [OpenAIMessage(**m) for m in v] if isinstance(v, list) else OpenAIMessage(**v)
-            for k, v in data['_new_messages'].items()
+            for k, v in data['_new_messages'].items() if k != 'function'
         }
         data['_history_messages'] = {k: [OpenAIMessage(**m) for m in v]
                                      for k, v in data['_history_messages'].items()}
@@ -67,7 +66,8 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if 'functions' in config_params:
+        if prompt.get_functions():
+            config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
@@ -83,7 +83,8 @@ class OpenAIChat(Chat):
             key: value
             for key, value in self.config.dict().items() if value is not None
         }
-        if 'functions' in config_params:
+        if prompt.get_functions():
+            config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 

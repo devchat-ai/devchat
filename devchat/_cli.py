@@ -154,12 +154,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         if provider == 'OpenAI':
             if model is None:
                 model = config['model']
-            functions_data = None
-            if functions is not None:
-                with open(functions, 'r', encoding="utf-8") as f_file:
-                    functions_data = json.load(f_file)
             openai_config = OpenAIChatConfig(model=model,
-                                             functions=functions_data,
                                              **config['OpenAI'])
 
             chat = OpenAIChat(openai_config)
@@ -169,8 +164,13 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             if 'tokens-per-prompt' in config:
                 assistant.token_limit = config['tokens-per-prompt']
 
+            functions_data = None
+            if functions is not None:
+                with open(functions, 'r', encoding="utf-8") as f_file:
+                    functions_data = json.load(f_file)
             assistant.make_prompt(content, instruct_contents, context_contents,
-                                  parent, reference, function_name=function_name)
+                                  functions_data, parent, reference,
+                                  function_name=function_name)
 
             for response in assistant.iterate_response():
                 click.echo(response, nl=False)

@@ -32,7 +32,8 @@ class Assistant:
 
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
-                    parent: Optional[str] = None, references: Optional[List[str]] = None,
+                    functions: Optional[List[dict]],
+					parent: Optional[str] = None, references: Optional[List[str]] = None,
                     function_name: Optional[str] = None):
         """
         Make a prompt for the chat API.
@@ -56,6 +57,10 @@ class Assistant:
             for context_content in context_contents:
                 self._prompt.append_new(Message.CONTEXT, context_content)
                 self._check_limit()
+        # Add functions to the prompt
+        if functions:
+            self._prompt.set_functions(functions)
+            self._check_limit()
 
         # Add history to the prompt
         for reference_hash in references:
