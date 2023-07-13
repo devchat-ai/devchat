@@ -195,7 +195,14 @@ class Prompt(ABC):
                          index, self.request, self.response)
             return None
 
-        formatted_str += self.response[index].content.strip() + "\n\n"
+        if self.response[index].content:
+            formatted_str += self.response[index].content
+            formatted_str += "\n\n"
+
+        if self.response[index].finish_reason == 'function_call':
+            formatted_str += self.response[index].function_call_to_json()
+        formatted_str += f"\n\nfinish_reason: {self.response[index].finish_reason}" + "\n\n"
+
         formatted_str += f"prompt {self.hash}"
 
         return formatted_str

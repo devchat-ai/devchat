@@ -101,6 +101,18 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
+    def set_functions(self, functions, available_tokens: int = math.inf):
+        num_tokens = message_tokens({"functions": json.dumps(functions)}, self.model)
+        if num_tokens > available_tokens:
+            return False
+
+        self._new_messages[Message.FUNCTION] = functions
+        self._request_tokens += num_tokens
+        return True
+
+    def get_functions(self):
+        return self._new_messages.get(Message.FUNCTION, None)
+
     def _prepend_history(self, message_type: str, message: Message,
                          token_limit: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
@@ -152,7 +164,8 @@ class OpenAIPrompt(Prompt):
             index = choice['index']
             if index >= len(self.response):
                 self.response.extend([None] * (index - len(self.response) + 1))
-            self.response[index] = OpenAIMessage(**choice['message'])
+            self.response[index] = OpenAIMessage(**choice['message'],
+                                                 finish_reason = choice['finish_reason'])
         self.set_hash()
 
     def append_response(self, delta_str: str) -> str:

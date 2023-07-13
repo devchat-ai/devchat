@@ -11,6 +11,7 @@ class Message(ABC):
 
     INSTRUCT = "instruct"
     CONTEXT = "context"
+    FUNCTION = "function"
     CHAT = "chat"
 
     @abstractmethod
