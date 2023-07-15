@@ -8,8 +8,6 @@ import subprocess
 from typing import List, Tuple, Optional
 import datetime
 import hashlib
-import pytz
-from dateutil import tz
 import tiktoken
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -86,14 +84,11 @@ def git_ignore(target_dir: str, *ignore_entries: str) -> None:
 
 
 def unix_to_local_datetime(unix_time) -> datetime.datetime:
-    # Get the local time zone
-    local_tz = tz.tzlocal()
+    # Convert the Unix time to a naive datetime object in UTC
+    naive_dt = datetime.datetime.utcfromtimestamp(unix_time).replace(tzinfo=datetime.timezone.utc)
 
-    # Convert the Unix time to a naive datetime object
-    naive_dt = datetime.datetime.utcfromtimestamp(unix_time)
-
-    # Localize the naive datetime object to the local time zone
-    local_dt = naive_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    # Convert the UTC datetime object to the local timezone
+    local_dt = naive_dt.astimezone()
 
     return local_dt
 
