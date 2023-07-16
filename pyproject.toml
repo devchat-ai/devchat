@@ -1,6 +1,40 @@
 [tool.poetry]
 name = "devchat"
-version = "0.1.0"
+version = "0.1.15"
+description = "DevChat is an open-source tool that helps developers write prompts to generate code and documentation."
+authors = ["DevChat Team <hello@devchat.ai>"]
+license = "Apache License 2.0"
+readme = "README.md"
+homepage = "https://github.com/devchat-ai/devchat"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development"
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+networkx = "^3.1"
+openai = "^0.27.8"
+pydantic = "^1.10.7"
+rich_click = "^1.6.1"
+tiktoken = "^0.4.0"
+tinydb = "^4.7.1"
+urllib3 = "<2.0"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli:main"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.17.4"
+pytest = "^7.4.0"
+gitpython = "^3.1.32"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
