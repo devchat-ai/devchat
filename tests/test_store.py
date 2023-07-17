@@ -1,11 +1,18 @@
+from typing import Tuple
+import pytest
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.store import Store
 
 
-def test_get_prompt(tmp_path):
+@pytest.fixture(name="chat_store", scope="function")
+def create_chat_store(tmp_path) -> Tuple[OpenAIChat, Store]:
     config = OpenAIChatConfig(model="gpt-3.5-turbo")
     chat = OpenAIChat(config)
-    store = Store(tmp_path / "store.graphml", chat)
+    return chat, Store(tmp_path, chat)
+
+
+def test_get_prompt(chat_store):
+    chat, store = chat_store
     prompt = chat.init_prompt("Where was the 2020 World Series played?")
     response_str = '''
     {
@@ -32,10 +39,8 @@ def test_get_prompt(tmp_path):
     assert store.get_prompt(prompt.hash).timestamp == prompt.timestamp
 
 
-def test_select_recent(tmp_path):
-    config = OpenAIChatConfig(model="gpt-3.5-turbo")
-    chat = OpenAIChat(config)
-    store = Store(tmp_path / "store.graphml", chat)
+def test_select_recent(chat_store):
+    chat, store = chat_store
 
     # Create and store 5 prompts
     hashes = []
@@ -71,20 +76,16 @@ def test_select_recent(tmp_path):
         assert prompt.hash == hashes[4 - index]
 
 
-def test_select_topics_no_topics(tmp_path):
-    config = OpenAIChatConfig(model="gpt-3.5-turbo")
-    chat = OpenAIChat(config)
-    store = Store(tmp_path / "store.graphml", chat)
+def test_select_topics_no_topics(chat_store):
+    _, store = chat_store
 
     # Test selecting topics when there are no topics
     topics = store.select_topics(0, 5)
     assert len(topics) == 0
 
 
-def test_select_topics_and_prompts_with_single_root(tmp_path):
-    config = OpenAIChatConfig(model="gpt-3.5-turbo")
-    chat = OpenAIChat(config)
-    store = Store(tmp_path / "store.graphml", chat)
+def test_select_topics_and_prompts_with_single_root(chat_store):
+    chat, store = chat_store
 
     # Create and store a root prompt
     root_prompt = chat.init_prompt("Root question")
@@ -146,10 +147,8 @@ def test_select_topics_and_prompts_with_single_root(tmp_path):
         assert prompt.hash == child_hashes[2 - index]
 
 
-def test_select_recent_with_topic_tree(tmp_path):
-    config = OpenAIChatConfig(model="gpt-3.5-turbo")
-    chat = OpenAIChat(config)
-    store = Store(tmp_path / "store.graphml", chat)
+def test_select_recent_with_topic_tree(chat_store):
+    chat, store = chat_store
 
     # Create and store a root prompt
     root_prompt = chat.init_prompt("Root question")
