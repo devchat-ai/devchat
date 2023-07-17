@@ -19,7 +19,7 @@ click.rich_click.USE_MARKDOWN = True
 
 
 @click.group()
-@click.version_option(pkg_resources.get_distribution("devchat").version, '--version', '-v',
+@click.version_option(pkg_resources.get_distribution("devchat").version, '--version',
                       message='DevChat %(version)s')
 def main():
     """DevChat CLI: A command-line interface for DevChat."""
@@ -184,13 +184,18 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
 @main.command()
 @click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
-@click.option('-n', '--max-count', default=100, help='Limit the number of commits to output.')
+@click.option('-n', '--max-count', default=1, help='Limit the number of commits to output.')
 @click.option('-t', '--topic', 'topic_root', default=None,
               help='Hash of the root prompt of the topic to select prompts from.')
-def log(skip, max_count, topic_root):
+@click.option('--delete', default=None, help='Delete a leaf prompt from the log.')
+def log(skip, max_count, topic_root, delete):
     """
-    Show the prompt history.
+    Manage the prompt history.
     """
+    if delete and (skip != 0 or max_count != 1 or topic_root is not None):
+        click.echo("Error: The --delete option cannot be used with other options.", err=True)
+        sys.exit(os.EX_USAGE)
+
     config, chat_dir = init_dir()
     provider = config.get('provider')
     if provider == 'OpenAI':
@@ -201,14 +206,21 @@ def log(skip, max_count, topic_root):
         click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
         sys.exit(os.EX_DATAERR)
 
-    recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
-    logs = []
-    for record in recent_prompts:
-        try:
-            logs.append(record.shortlog())
-        except Exception:
-            continue
-    click.echo(json.dumps(logs, indent=2))
+    if delete:
+        success = store.delete_prompt(delete)
+        if success:
+            click.echo(f"Prompt {delete} deleted successfully.")
+        else:
+            click.echo(f"Failed to delete prompt {delete}.")
+    else:
+        recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
+        logs = []
+        for record in recent_prompts:
+            try:
+                logs.append(record.shortlog())
+            except Exception:
+                continue
+        click.echo(json.dumps(logs, indent=2))
 
 
 @main.command()
