@@ -6,6 +6,7 @@ import json
 import os
 import sys
 from typing import List, Optional, Tuple
+import pkg_resources
 import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
@@ -18,6 +19,8 @@ click.rich_click.USE_MARKDOWN = True
 
 
 @click.group()
+@click.version_option(pkg_resources.get_distribution("devchat").version, '--version', '-v',
+                      message='DevChat %(version)s')
 def main():
     """DevChat CLI: A command-line interface for DevChat."""
 
