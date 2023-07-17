@@ -196,6 +196,35 @@ class Store:
             })
         return topics
 
+    def delete_prompt(self, prompt_hash: str) -> bool:
+        """
+        Delete a prompt from the store if it is a leaf.
+
+        Args:
+            prompt_hash (str): The hash of the prompt to delete.
+
+        Returns:
+            bool: True if the prompt is successfully deleted, False otherwise.
+        """
+        # Check if the prompt is a leaf
+        if self._graph.in_degree(prompt_hash) != 0:
+            logger.error("Prompt %s is not a leaf, cannot be deleted.", prompt_hash)
+            return False
+
+        # Remove the prompt from the graph
+        self._graph.remove_node(prompt_hash)
+
+        # Update the topics table
+        self._topics_table.remove(where('root') == prompt_hash)
+
+        # Remove the prompt from the database
+        self._db.remove(where('_hash') == prompt_hash)
+
+        # Save the graph
+        nx.write_graphml(self._graph, self._graph_path)
+
+        return True
+
     @property
     def graph_path(self) -> str:
         """
