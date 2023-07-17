@@ -11,28 +11,34 @@ def create_chat_store(tmp_path) -> Tuple[OpenAIChat, Store]:
     return chat, Store(tmp_path, chat)
 
 
+def _create_response_str(cmpl_id: str, created: int, content: str) -> str:
+    """Create a response string from the given parameters."""
+    return f'''
+    {{
+      "id": "{cmpl_id}",
+      "object": "chat.completion",
+      "created": {created},
+      "model": "gpt-3.5-turbo-0301",
+      "usage": {{"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87}},
+      "choices": [
+        {{
+          "message": {{
+            "role": "assistant",
+            "content": "{content}"
+          }},
+          "finish_reason": "stop",
+          "index": 0
+        }}
+      ]
+    }}
+    '''
+
+
 def test_get_prompt(chat_store):
     chat, store = chat_store
     prompt = chat.init_prompt("Where was the 2020 World Series played?")
-    response_str = '''
-    {
-      "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
-      "object": "chat.completion",
-      "created": 1577649420,
-      "model": "gpt-3.5-turbo-0301",
-      "usage": {"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87},
-      "choices": [
-        {
-          "message": {
-            "role": "assistant",
-            "content": "The 2020 World Series was played in Arlington, Texas."
-          },
-          "finish_reason": "stop",
-          "index": 0
-        }
-      ]
-    }
-    '''
+    response_str = _create_response_str("chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve", 1577649420,
+                                        "The 2020 World Series was played in Arlington, Texas.")
     prompt.set_response(response_str)
     store.store_prompt(prompt)
 
@@ -46,25 +52,8 @@ def test_select_recent(chat_store):
     hashes = []
     for index in range(5):
         prompt = chat.init_prompt(f"Question {index}")
-        response_str = f'''
-        {{
-          "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
-          "object": "chat.completion",
-          "created": 167764942{index},
-          "model": "gpt-3.5-turbo-0301",
-          "usage": {{"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87}},
-          "choices": [
-            {{
-              "message": {{
-                "role": "assistant",
-                "content": "Answer {index}"
-              }},
-              "finish_reason": "stop",
-              "index": 0
-            }}
-          ]
-        }}
-        '''
+        response_str = _create_response_str(f"chatcmpl-id{index}", 1577649420 + index,
+                                            f"Answer {index}")
         prompt.set_response(response_str)
         store.store_prompt(prompt)
         hashes.append(prompt.hash)
@@ -89,23 +78,7 @@ def test_select_topics_and_prompts_with_single_root(chat_store):
 
     # Create and store a root prompt
     root_prompt = chat.init_prompt("Root question")
-    root_response_str = '''{
-        "id": "chatcmpl-root",
-        "object": "chat.completion",
-        "created": 1677649400,
-        "model": "gpt-3.5-turbo-0301",
-        "usage": {"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87},
-        "choices": [
-            {
-                "message": {
-                    "role": "assistant",
-                    "content": "Root answer"
-                },
-                "finish_reason": "stop",
-                "index": 0
-            }
-        ]
-    }'''
+    root_response_str = _create_response_str("chatcmpl-root", 1677649400, "Root answer")
     root_prompt.set_response(root_response_str)
     store.store_prompt(root_prompt)
 
@@ -114,23 +87,8 @@ def test_select_topics_and_prompts_with_single_root(chat_store):
     for index in range(3):
         child_prompt = chat.init_prompt(f"Child question {index}")
         child_prompt.parent = root_prompt.hash
-        child_response_str = f'''{{
-            "id": "chatcmpl-child{index}",
-            "object": "chat.completion",
-            "created": 167764940{index + 1},
-            "model": "gpt-3.5-turbo-0301",
-            "usage": {{"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87}},
-            "choices": [
-                {{
-                    "message": {{
-                        "role": "assistant",
-                        "content": "Child answer {index}"
-                    }},
-                    "finish_reason": "stop",
-                    "index": 0
-                }}
-            ]
-        }}'''
+        child_response_str = _create_response_str(f"chatcmpl-child{index}", 1677649400 + index,
+                                                  f"Child answer {index}")
         child_prompt.set_response(child_response_str)
         store.store_prompt(child_prompt)
         child_hashes.append(child_prompt.hash)
@@ -152,46 +110,14 @@ def test_select_recent_with_topic_tree(chat_store):
 
     # Create and store a root prompt
     root_prompt = chat.init_prompt("Root question")
-    root_response_str = '''{
-        "id": "chatcmpl-root",
-        "object": "chat.completion",
-        "created": 1677649400,
-        "model": "gpt-3.5-turbo-0301",
-        "usage": {"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87},
-        "choices": [
-            {
-                "message": {
-                    "role": "assistant",
-                    "content": "Root answer"
-                },
-                "finish_reason": "stop",
-                "index": 0
-            }
-        ]
-    }'''
+    root_response_str = _create_response_str("chatcmpl-root", 1677649400, "Root answer")
     root_prompt.set_response(root_response_str)
     store.store_prompt(root_prompt)
 
     # Create and store a child prompt for the root prompt
     child_prompt = chat.init_prompt("Child question")
     child_prompt.parent = root_prompt.hash
-    child_response_str = '''{
-        "id": "chatcmpl-child",
-        "object": "chat.completion",
-        "created": 1677649401,
-        "model": "gpt-3.5-turbo-0301",
-        "usage": {"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87},
-        "choices": [
-            {
-                "message": {
-                    "role": "assistant",
-                    "content": "Child answer"
-                },
-                "finish_reason": "stop",
-                "index": 0
-            }
-        ]
-    }'''
+    child_response_str = _create_response_str("chatcmpl-child", 1677649401, "Child answer")
     child_prompt.set_response(child_response_str)
     store.store_prompt(child_prompt)
 
@@ -200,23 +126,8 @@ def test_select_recent_with_topic_tree(chat_store):
     for index in range(2):
         grandchild_prompt = chat.init_prompt(f"Grandchild question {index}")
         grandchild_prompt.parent = child_prompt.hash
-        grandchild_response_str = f'''{{
-            "id": "chatcmpl-grandchild{index}",
-            "object": "chat.completion",
-            "created": 167764940{index + 2},
-            "model": "gpt-3.5-turbo-0301",
-            "usage": {{"prompt_tokens": 56, "completion_tokens": 31, "total_tokens": 87}},
-            "choices": [
-                {{
-                    "message": {{
-                        "role": "assistant",
-                        "content": "Grandchild answer {index}"
-                    }},
-                    "finish_reason": "stop",
-                    "index": 0
-                }}
-            ]
-        }}'''
+        grandchild_response_str = _create_response_str(f"chatcmpl-grandchild{index}", 1677649402 + index,
+                                                       f"Grandchild answer {index}")
         grandchild_prompt.set_response(grandchild_response_str)
         store.store_prompt(grandchild_prompt)
         grandchild_hashes.append(grandchild_prompt.hash)
