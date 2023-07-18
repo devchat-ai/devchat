@@ -4,7 +4,8 @@ import math
 from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
-from devchat.utils import update_dict, message_tokens, get_logger
+from devchat.utils import update_dict, get_logger
+from devchat.utils import message_tokens, response_tokens
 from .openai_message import OpenAIMessage
 
 logger = get_logger(__name__)
@@ -166,7 +167,6 @@ class OpenAIPrompt(Prompt):
                 self.response.extend([None] * (index - len(self.response) + 1))
             self.response[index] = OpenAIMessage(**choice['message'],
                                                  finish_reason=choice['finish_reason'])
-        self.set_hash()
 
     def append_response(self, delta_str: str) -> str:
         """
@@ -219,6 +219,16 @@ class OpenAIPrompt(Prompt):
                 delta_content += f"\n\nfinish_reason: {finish_reason}"
 
         return delta_content
+
+    def _count_response_tokens(self) -> int:
+        if self._response_tokens:
+            return self._response_tokens
+
+        total = 0
+        for response_message in self.response:
+            total += response_tokens(response_message.content, self.model)
+        self._response_tokens = total
+        return total
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):

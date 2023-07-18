@@ -49,6 +49,25 @@ class Prompt(ABC):
     _response_tokens: int = 0
     _hash: str = None
 
+    def _check_complete(self) -> bool:
+        """
+        Check if the prompt is complete for hashing.
+
+        Returns:
+            bool: Whether the prompt is complete.
+        """
+        if not self.request or not self.response:
+            logger.warning("Incomplete prompt: request = %s, response = %s",
+                           self.request, self.response)
+            return False
+
+        if not self._request_tokens or not self._response_tokens:
+            logger.warning("Incomplete prompt: request_tokens = %d, response_tokens = %d",
+                           self._request_tokens, self._response_tokens)
+            return False
+
+        return True
+
     @property
     def timestamp(self) -> int:
         return self._timestamp
@@ -72,6 +91,12 @@ class Prompt(ABC):
     @property
     def response_tokens(self) -> int:
         return self._response_tokens
+
+    @abstractmethod
+    def _count_response_tokens(self) -> int:
+        """
+        Calculate the number of tokens used in the responses.
+        """
 
     @property
     def hash(self) -> str:
@@ -152,17 +177,21 @@ class Prompt(ABC):
             str: The delta content with index 0. None when the response is over.
         """
 
-    def set_hash(self) -> str:
+    def finalize_hash(self) -> str:
         """
         Calculate and set the hash of the prompt.
 
         Returns:
             str: The hash of the prompt. None if the prompt is incomplete.
         """
-        if not self.request or not self.response:
-            logger.error("Incomplete prompt for hashing: request = %s, response = %s",
-                         self.request, self.response)
-            return None
+        if not self._check_complete():
+            self._hash = None
+
+        if self._hash:
+            return self._hash
+
+        self._count_response_tokens()
+
         data = asdict(self)
         assert data.pop('_hash') is None
         string = str(tuple(sorted(data.items())))

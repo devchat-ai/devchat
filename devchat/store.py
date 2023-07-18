@@ -86,8 +86,7 @@ class Store:
         Args:
             prompt (Prompt): The prompt to store.
         """
-        if not prompt.hash:
-            prompt.set_hash()
+        prompt.finalize_hash()
 
         # Store the prompt object in TinyDB
         self._db.insert(asdict(prompt))
