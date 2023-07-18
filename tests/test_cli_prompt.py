@@ -83,32 +83,34 @@ def fixture_temp_files(tmpdir):
     context.write("It is summer.")
     return str(instruct0), str(instruct1), str(instruct2), str(context)
 
+
 @pytest.fixture(name="functions_file")
 def fixture_functions_file(tmpdir):
     functions_file = tmpdir.join('functions.json')
     functions_file.write("""
-	[
-		{
-		"name": "get_current_weather",
-		"description": "Get the current weather in a given location",
-		"parameters": {
-			"type": "object",
-			"properties": {
-			"location": {
-				"type": "string",
-				"description": "The city and state, e.g. San Francisco, CA"
-			},
-			"unit": {
-				"type": "string",
-				"enum": ["celsius", "fahrenheit"]
-			}
-			},
-			"required": ["location"]
-		}
-		}
-	]
-	""")
+        [
+            {
+            "name": "get_current_weather",
+            "description": "Get the current weather in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA"
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"]
+                }
+                },
+                "required": ["location"]
+            }
+            }
+        ]
+        """)
     return str(functions_file)
+
 
 def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
@@ -129,9 +131,8 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
 
 def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
     # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
-                                  '-f', functions_file,
-								  "What is the weather like in Boston?"])
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
+                                  "What is the weather like in Boston?"])
 
     core_content = _get_core_content(result.output)
     assert result.exit_code == 0
@@ -139,9 +140,9 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     assert core_content.find('"name": "get_current_weather"') >= 0
     assert core_content.find('command') > 0
 
-	# compare with no -f options
+    # compare with no -f options
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
-								  "What is the weather like in Boston?"])
+                                  'What is the weather like in Boston?'])
 
     core_content = _get_core_content(result.output)
     assert result.exit_code == 0
@@ -151,9 +152,8 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
 
 def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
     # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
-                                  '-f', functions_file,
-								  "What is the weather like in Boston?"])
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
+                                  'What is the weather like in Boston?'])
 
     prompt_hash = _get_prompt_hash(result.output)
     result = runner.invoke(main, ['log', '-t', prompt_hash])
@@ -166,17 +166,17 @@ def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable
 
 
 def test_prompt_log_compatibility():
-	# import test!!
-	# Historical Record Compatibility Test
-	# create git repo folder
-	# install old devchat
-	# run prompt, create old version records
-	# run topic -l, expect topic list
-	# uninstall old devchat
-	# install new devchat
-	# run topic -l, expect topic list
-	# run prompt -f ./.chat/functions.json "list files in porject", expect function call return
-	# run topic -l, expect function call in topic list
+    # import test!!
+    # Historical Record Compatibility Test
+    # create git repo folder
+    # install old devchat
+    # run prompt, create old version records
+    # run topic -l, expect topic list
+    # uninstall old devchat
+    # install new devchat
+    # run topic -l, expect topic list
+    # run prompt -f ./.chat/functions.json "list files in porject", expect function call return
+    # run topic -l, expect function call in topic list
     assert True
 
 
@@ -185,7 +185,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-f', functions_file,
                                   '-n', 'get_current_weather',
-								  '{"temperature": "22", "unit": "celsius", "description": "Sunny"}'])
+                                  '{"temperature": "22", "unit": "celsius", "weather": "Sunny"}'])
 
     core_content = _get_core_content(result.output)
     assert result.exit_code == 0
@@ -195,7 +195,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
     prompt_hash = _get_prompt_hash(result.output)
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-p', prompt_hash,
-								  'what is the GPT function name?'])
+                                  'what is the GPT function name?'])
 
     core_content = _get_core_content(result.output)
     assert result.exit_code == 0

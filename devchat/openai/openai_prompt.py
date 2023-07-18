@@ -140,7 +140,7 @@ class OpenAIPrompt(Prompt):
     def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, role = ('user' if not function_name else 'function'),
+        message = OpenAIMessage(content, role=('user' if not function_name else 'function'),
                                 name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
@@ -165,7 +165,7 @@ class OpenAIPrompt(Prompt):
             if index >= len(self.response):
                 self.response.extend([None] * (index - len(self.response) + 1))
             self.response[index] = OpenAIMessage(**choice['message'],
-                                                 finish_reason = choice['finish_reason'])
+                                                 finish_reason=choice['finish_reason'])
         self.set_hash()
 
     def append_response(self, delta_str: str) -> str:

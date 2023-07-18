@@ -56,7 +56,6 @@ class OpenAIMessage(Message):
                     pass
         return '\n```command\n' + json.dumps(function_call_copy) + '\n```\n'
 
-
     def stream_from_dict(self, message_data: dict) -> str:
         """Append to the message from a dictionary returned from a streaming chat API."""
         delta = message_data.get('content', '')

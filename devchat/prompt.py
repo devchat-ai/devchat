@@ -218,8 +218,8 @@ class Prompt(ABC):
                 "date": self._timestamp,
                 "context": [msg.to_dict() for msg in self.new_context],
                 "request": self.request.content,
-                "response": (message.content if message.content else "") + \
-                    message.function_call_to_json(),
+                "response": ((message.content if message.content else "")
+                             + message.function_call_to_json()),
                 "hash": self.hash,
                 "parent": self.parent
             }

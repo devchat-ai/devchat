@@ -33,7 +33,7 @@ class Assistant:
     def make_prompt(self, request: str,
                     instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
                     functions: Optional[List[dict]],
-					parent: Optional[str] = None, references: Optional[List[str]] = None,
+                    parent: Optional[str] = None, references: Optional[List[str]] = None,
                     function_name: Optional[str] = None):
         """
         Make a prompt for the chat API.
