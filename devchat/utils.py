@@ -140,6 +140,29 @@ def valid_hash(hash_str):
     return bool(pattern.match(hash_str))
 
 
+def check_format(formatted_response) -> bool:
+    pattern = r"(User: .+ <.+@.+>\nDate: .+\n\n(?:.*\n)*\n(?:prompt [a-f0-9]{64}\n\n?)+)"
+    return bool(re.fullmatch(pattern, formatted_response))
+
+
+def get_content(formatted_response) -> str:
+    header_pattern = r"User: .+ <.+@.+>\nDate: .+\n\n"
+    footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
+
+    content = re.sub(header_pattern, "", formatted_response)
+    content = re.sub(footer_pattern, "", content)
+
+    return content
+
+
+def get_prompt_hash(formatted_response) -> str:
+    footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
+    # get the last prompt hash
+    prompt_hash = re.findall(footer_pattern, formatted_response)[-1].strip()
+    prompt_hash = prompt_hash.replace("prompt ", "")
+    return prompt_hash
+
+
 def update_dict(dict_to_update, key, value) -> dict:
     """
     Update a dictionary with a key-value pair and return the dictionary.

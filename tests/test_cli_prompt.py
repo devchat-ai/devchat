@@ -1,10 +1,10 @@
 import os
-import re
 import json
 import pytest
 from click.testing import CliRunner
 from devchat._cli import main
 from devchat.utils import response_tokens
+from devchat.utils import check_format, get_content, get_prompt_hash
 
 runner = CliRunner()
 
@@ -14,34 +14,11 @@ def test_prompt_no_args(git_repo):  # pylint: disable=W0613
     assert result.exit_code == 0
 
 
-def _check_output_format(output) -> bool:
-    pattern = r"(User: .+ <.+@.+>\nDate: .+\n\n(?:.*\n)*\n(?:prompt [a-f0-9]{64}\n\n?)+)"
-    return bool(re.fullmatch(pattern, output))
-
-
-def _get_core_content(output) -> str:
-    header_pattern = r"User: .+ <.+@.+>\nDate: .+\n\n"
-    footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
-
-    core_content = re.sub(header_pattern, "", output)
-    core_content = re.sub(footer_pattern, "", core_content)
-
-    return core_content
-
-
-def _get_prompt_hash(output) -> str:
-    footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
-    # get the last prompt hash
-    prompt_hash = re.findall(footer_pattern, output)[-1].strip()
-    prompt_hash = prompt_hash.replace("prompt ", "")
-    return prompt_hash
-
-
 def test_prompt_with_content(git_repo):  # pylint: disable=W0613
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
-    assert _check_output_format(result.output)
+    assert check_format(result.output)
     assert "Paris" in result.output
 
 
@@ -66,7 +43,7 @@ def test_prompt_with_temp_config_file(git_repo):
     content = "What is the capital of Spain?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
-    assert _check_output_format(result.output)
+    assert check_format(result.output)
     assert "Madrid" in result.output
 
 
@@ -117,7 +94,7 @@ def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output).find("hot\n") >= 0
+    assert get_content(result.output).find("hot\n") >= 0
 
 
 def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
@@ -126,7 +103,7 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
                                   '--context', temp_files[3],
                                   "It is really scorching."])
     assert result.exit_code == 0
-    assert _get_core_content(result.output).find("hot summer\n") >= 0
+    assert get_content(result.output).find("hot summer\n") >= 0
 
 
 def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
@@ -134,7 +111,7 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
                                   "What is the weather like in Boston?"])
 
-    core_content = _get_core_content(result.output)
+    core_content = get_content(result.output)
     assert result.exit_code == 0
     assert core_content.find("finish_reason: function_call") >= 0
     assert core_content.find('"name": "get_current_weather"') >= 0
@@ -144,7 +121,7 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   'What is the weather like in Boston?'])
 
-    core_content = _get_core_content(result.output)
+    core_content = get_content(result.output)
     assert result.exit_code == 0
     assert core_content.find("finish_reason: stop") >= 0
     assert core_content.find('command') == -1
@@ -155,7 +132,7 @@ def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
                                   'What is the weather like in Boston?'])
 
-    prompt_hash = _get_prompt_hash(result.output)
+    prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['log', '-t', prompt_hash])
 
     result_json = json.loads(result.output)
@@ -187,17 +164,17 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
                                   '-n', 'get_current_weather',
                                   '{"temperature": "22", "unit": "celsius", "weather": "Sunny"}'])
 
-    core_content = _get_core_content(result.output)
+    core_content = get_content(result.output)
     assert result.exit_code == 0
     assert core_content.find("finish_reason: stop") >= 0
     assert core_content.find("The current weather is 22 degrees") >= 0
 
-    prompt_hash = _get_prompt_hash(result.output)
+    prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-p', prompt_hash,
                                   'what is the GPT function name?'])
 
-    core_content = _get_core_content(result.output)
+    core_content = get_content(result.output)
     assert result.exit_code == 0
     assert core_content.find("get_current_weather") >= 0
 
