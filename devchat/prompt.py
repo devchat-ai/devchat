@@ -36,7 +36,7 @@ class Prompt(ABC):
         Message.INSTRUCT: [],
         'request': None,
         Message.CONTEXT: [],
-        'response': []
+        'responses': []
     })
     _history_messages: Dict[str, Message] = field(default_factory=lambda: {
         Message.CONTEXT: [],
@@ -56,9 +56,9 @@ class Prompt(ABC):
         Returns:
             bool: Whether the prompt is complete.
         """
-        if not self.request or not self.response:
+        if not self.request or not self.responses:
             logger.warning("Incomplete prompt: request = %s, response = %s",
-                           self.request, self.response)
+                           self.request, self.responses)
             return False
 
         if not self._request_tokens or not self._response_tokens:
@@ -81,8 +81,8 @@ class Prompt(ABC):
         return self._new_messages['request']
 
     @property
-    def response(self) -> List[Message]:
-        return self._new_messages['response']
+    def responses(self) -> List[Message]:
+        return self._new_messages['responses']
 
     @property
     def request_tokens(self) -> int:
@@ -193,7 +193,7 @@ class Prompt(ABC):
         self._count_response_tokens()
 
         data = asdict(self)
-        assert data.pop('_hash') is None
+        data.pop('_hash')
         string = str(tuple(sorted(data.items())))
         self._hash = hashlib.sha256(string.encode('utf-8')).hexdigest()
         return self._hash
@@ -219,18 +219,18 @@ class Prompt(ABC):
         """
         formatted_str = self.formatted_header()
 
-        if index >= len(self.response) or not self.response[index]:
+        if index >= len(self.responses) or not self.responses[index]:
             logger.error("Response index %d is incomplete to format: request = %s, response = %s",
-                         index, self.request, self.response)
+                         index, self.request, self.responses)
             return None
 
-        if self.response[index].content:
-            formatted_str += self.response[index].content
+        if self.responses[index].content:
+            formatted_str += self.responses[index].content
             formatted_str += "\n\n"
 
-        if self.response[index].finish_reason == 'function_call':
-            formatted_str += self.response[index].function_call_to_json()
-        formatted_str += f"\n\nfinish_reason: {self.response[index].finish_reason}" + "\n\n"
+        if self.responses[index].finish_reason == 'function_call':
+            formatted_str += self.responses[index].function_call_to_json()
+        formatted_str += f"\n\nfinish_reason: {self.responses[index].finish_reason}" + "\n\n"
 
         formatted_str += f"prompt {self.hash}"
 
@@ -238,19 +238,22 @@ class Prompt(ABC):
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""
-        if not self.request or not self.response:
+        if not self.request or not self.responses:
             raise ValueError("Prompt is incomplete for shortlog.")
-        logs = []
-        for message in self.response:
-            shortlog_data = {
-                "user": user_id(self.user_name, self.user_email)[0],
-                "date": self._timestamp,
-                "context": [msg.to_dict() for msg in self.new_context],
-                "request": self.request.content,
-                "response": ((message.content if message.content else "")
-                             + message.function_call_to_json()),
-                "hash": self.hash,
-                "parent": self.parent
-            }
-            logs.append(shortlog_data)
-        return logs
+
+        responses = []
+        for message in self.responses:
+            responses += ((message.content if message.content else "")
+                          + message.function_call_to_json())
+
+        return {
+            "user": user_id(self.user_name, self.user_email)[0],
+            "date": self._timestamp,
+            "context": [msg.to_dict() for msg in self.new_context],
+            "request": self.request.content,
+            "responses": responses,
+            "request_tokens": self._request_tokens,
+            "response_tokens": self._response_tokens,
+            "hash": self.hash,
+            "parent": self.parent
+        }

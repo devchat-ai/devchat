@@ -38,9 +38,9 @@ def test_prompt_init_and_set_response():
     assert prompt.timestamp == 1677649420
     assert prompt.request_tokens == 56
     assert prompt.response_tokens == 31
-    assert len(prompt.response) == 1
-    assert prompt.response[0].role == "assistant"
-    assert prompt.response[0].content == "The 2020 World Series was played in Arlington, Texas."
+    assert len(prompt.responses) == 1
+    assert prompt.responses[0].role == "assistant"
+    assert prompt.responses[0].content == "The 2020 World Series was played in Arlington, Texas."
 
 
 def test_prompt_model_mismatch():
@@ -103,8 +103,8 @@ def test_append_response(responses):
         OpenAIMessage(role='assistant', content='Tomorrow!')
     ]
 
-    assert len(prompt.response) == len(expected_messages)
-    for index, message in enumerate(prompt.response):
+    assert len(prompt.responses) == len(expected_messages)
+    for index, message in enumerate(prompt.responses):
         assert message.role == expected_messages[index].role
         assert message.content == expected_messages[index].content
 

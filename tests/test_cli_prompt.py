@@ -137,9 +137,9 @@ def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable
 
     result_json = json.loads(result.output)
     assert result.exit_code == 0
-    assert result_json[0][0]['request'] == 'What is the weather like in Boston?'
-    assert result_json[0][0]['response'].find("```command") >= 0
-    assert result_json[0][0]['response'].find("get_current_weather") >= 0
+    assert result_json[0]['request'] == 'What is the weather like in Boston?'
+    assert result_json[0]['responses'][0].find("```command") >= 0
+    assert result_json[0]['responses'][0].find("get_current_weather") >= 0
 
 
 def test_prompt_log_compatibility():

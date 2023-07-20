@@ -127,7 +127,7 @@ class OpenAIPrompt(Prompt):
 
     def prepend_history(self, prompt: 'OpenAIPrompt', token_limit: int = math.inf) -> bool:
         # Prepend the first response and the request of the prompt
-        if not self._prepend_history(Message.CHAT, prompt.response[0], token_limit):
+        if not self._prepend_history(Message.CHAT, prompt.responses[0], token_limit):
             return False
         if not self._prepend_history(Message.CHAT, prompt.request, token_limit):
             return False
@@ -163,10 +163,10 @@ class OpenAIPrompt(Prompt):
 
         for choice in response_data['choices']:
             index = choice['index']
-            if index >= len(self.response):
-                self.response.extend([None] * (index - len(self.response) + 1))
-            self.response[index] = OpenAIMessage(**choice['message'],
-                                                 finish_reason=choice['finish_reason'])
+            if index >= len(self.responses):
+                self.responses.extend([None] * (index - len(self.responses) + 1))
+            self.responses[index] = OpenAIMessage(**choice['message'],
+                                                  finish_reason=choice['finish_reason'])
 
     def append_response(self, delta_str: str) -> str:
         """
@@ -189,33 +189,33 @@ class OpenAIPrompt(Prompt):
             index = choice['index']
             finish_reason = choice['finish_reason']
 
-            if index >= len(self.response):
-                self.response.extend([None] * (index - len(self.response) + 1))
+            if index >= len(self.responses):
+                self.responses.extend([None] * (index - len(self.responses) + 1))
 
-            if not self.response[index]:
-                self.response[index] = OpenAIMessage(**delta)
+            if not self.responses[index]:
+                self.responses[index] = OpenAIMessage(**delta)
                 if index == 0:
                     delta_content = self.formatted_header()
-                    delta_content += self.response[0].content if self.response[0].content else ''
+                    delta_content += self.responses[0].content if self.responses[0].content else ''
             else:
                 if index == 0:
-                    delta_content = self.response[0].stream_from_dict(delta)
+                    delta_content = self.responses[0].stream_from_dict(delta)
                 else:
-                    self.response[index].stream_from_dict(delta)
+                    self.responses[index].stream_from_dict(delta)
 
                 if 'function_call' in delta:
                     if 'name' in delta['function_call']:
-                        self.response[index].function_call['name'] = \
-                            self.response[index].function_call.get('name', '') + \
+                        self.responses[index].function_call['name'] = \
+                            self.responses[index].function_call.get('name', '') + \
                             delta['function_call']['name']
                     if 'arguments' in delta['function_call']:
-                        self.response[index].function_call['arguments'] = \
-                            self.response[index].function_call.get('arguments', '') + \
+                        self.responses[index].function_call['arguments'] = \
+                            self.responses[index].function_call.get('arguments', '') + \
                             delta['function_call']['arguments']
 
             if finish_reason:
                 if finish_reason == 'function_call':
-                    delta_content += self.response[index].function_call_to_json()
+                    delta_content += self.responses[index].function_call_to_json()
                 delta_content += f"\n\nfinish_reason: {finish_reason}"
 
         return delta_content
@@ -225,7 +225,7 @@ class OpenAIPrompt(Prompt):
             return self._response_tokens
 
         total = 0
-        for response_message in self.response:
+        for response_message in self.responses:
             total += response_tokens(response_message.content, self.model)
         self._response_tokens = total
         return total
