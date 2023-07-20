@@ -90,7 +90,7 @@ def fixture_functions_file(tmpdir):
 
 
 def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0
@@ -98,7 +98,7 @@ def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
 
 
 def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-i', temp_files[0], '-i', temp_files[2],
                                   '--context', temp_files[3],
                                   "It is really scorching."])
@@ -108,7 +108,7 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
 
 def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
     # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   "What is the weather like in Boston?"])
 
     core_content = get_content(result.output)
@@ -118,7 +118,7 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     assert core_content.find('command') > 0
 
     # compare with no -f options
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   'What is the weather like in Boston?'])
 
     core_content = get_content(result.output)
@@ -129,7 +129,7 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
 
 def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
     # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4', '-f', functions_file,
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   'What is the weather like in Boston?'])
 
     prompt_hash = get_prompt_hash(result.output)
@@ -159,24 +159,24 @@ def test_prompt_log_compatibility():
 
 # test prompt with function replay
 def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-f', functions_file,
                                   '-n', 'get_current_weather',
                                   '{"temperature": "22", "unit": "celsius", "weather": "Sunny"}'])
 
-    core_content = get_content(result.output)
+    content = get_content(result.output)
     assert result.exit_code == 0
-    assert core_content.find("finish_reason: stop") >= 0
-    assert core_content.find("The current weather is 22 degrees") >= 0
+    assert content.find("finish_reason: stop") >= 0
+    assert "22 degrees Celsius and sunny" in content
 
     prompt_hash = get_prompt_hash(result.output)
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-p', prompt_hash,
                                   'what is the GPT function name?'])
 
-    core_content = get_content(result.output)
+    content = get_content(result.output)
     assert result.exit_code == 0
-    assert core_content.find("get_current_weather") >= 0
+    assert content.find("get_current_weather") >= 0
 
 
 def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
