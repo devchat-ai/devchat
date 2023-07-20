@@ -94,11 +94,11 @@ class Assistant:
                 yield self._prompt.append_response(str(chunk))
             self._store.store_prompt(self._prompt)
             yield f'\n\nprompt {self._prompt.hash}\n'
-            for index in range(1, len(self._prompt.response)):
+            for index in range(1, len(self._prompt.responses)):
                 yield self._prompt.formatted_response(index) + '\n'
         else:
             response_str = str(self._chat.complete_response(self._prompt))
             self._prompt.set_response(response_str)
             self._store.store_prompt(self._prompt)
-            for index in range(len(self._prompt.response)):
+            for index in range(len(self._prompt.responses)):
                 yield self._prompt.formatted_response(index) + '\n'

@@ -156,6 +156,8 @@ def get_content(formatted_response) -> str:
 
 
 def get_prompt_hash(formatted_response) -> str:
+    if not check_format(formatted_response):
+        raise ValueError("Invalid formatted response.")
     footer_pattern = r"\n(?:prompt [a-f0-9]{64}\n\n?)+"
     # get the last prompt hash
     prompt_hash = re.findall(footer_pattern, formatted_response)[-1].strip()

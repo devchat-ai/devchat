@@ -243,8 +243,8 @@ class Prompt(ABC):
 
         responses = []
         for message in self.responses:
-            responses += ((message.content if message.content else "")
-                          + message.function_call_to_json())
+            responses.append((message.content if message.content else "")
+                             + message.function_call_to_json())
 
         return {
             "user": user_id(self.user_name, self.user_email)[0],
