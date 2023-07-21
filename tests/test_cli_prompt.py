@@ -90,7 +90,7 @@ def fixture_functions_file(tmpdir):
 
 
 def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
     assert result.exit_code == 0
@@ -98,7 +98,7 @@ def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
 
 
 def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
+    result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[2],
                                   '--context', temp_files[3],
                                   "It is really scorching."])
@@ -198,8 +198,9 @@ def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W061
         json.dump(config_data, temp_config_file)
 
     content = ""
-    while response_tokens(content, config_data["model"]) < config_data["tokens-per-prompt"]:
-        content += "This is a test. Ignore what I say. This is a test. Ignore what I say."
+    while response_tokens({"content": content}, config_data["model"]) \
+            < config_data["tokens-per-prompt"]:
+        content += "This is a test. Ignore what I say.\n"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code != 0
     assert "beyond limit" in result.output
@@ -225,9 +226,9 @@ def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # py
 
     content_file = tmpdir.join("content.txt")
     content = ""
-    while response_tokens(content + "This is a test. Ignore what I say.", config_data["model"]) < \
+    while response_tokens({"content": content}, config_data["model"]) < \
             config_data["tokens-per-prompt"]:
-        content += "This is a test. Ignore what I say."
+        content += "This is a test. Ignore what I say.\n"
     content_file.write(content)
 
     input_str = "This is a test. Ignore what I say."

@@ -181,10 +181,10 @@ def message_tokens(message: dict, model: str) -> int:
         raise ValueError(f"Invalid model {model} for tiktoken.") from err
 
     num_tokens = 0
-    if model.startswith("gpt-3.5"):
+    if model == "gpt-3.5-turbo-0301":
         num_tokens += 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif model.startswith("gpt-4"):
+    else:
         num_tokens += 3
         tokens_per_name = 1
 
@@ -197,11 +197,6 @@ def message_tokens(message: dict, model: str) -> int:
     return num_tokens
 
 
-def response_tokens(response: str, model: str) -> int:
+def response_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a response."""
-    try:
-        encoding = tiktoken.encoding_for_model(model)
-    except KeyError as err:
-        raise ValueError(f"Invalid model {model} for tiktoken.") from err
-
-    return len(encoding.encode(response)) + 3  # +3 for <|start|>assistant<|message|>
+    return message_tokens(message, model)

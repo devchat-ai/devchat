@@ -226,7 +226,7 @@ class OpenAIPrompt(Prompt):
 
         total = 0
         for response_message in self.responses:
-            total += response_tokens(response_message.content, self.model)
+            total += response_tokens(response_message.to_dict(), self.model)
         self._response_tokens = total
         return total
 
