@@ -54,7 +54,7 @@ class OpenAIMessage(Message):
                     function_call_copy['arguments'] = json.loads(function_call_copy['arguments'])
                 except Exception:
                     pass
-        return '\n```command\n' + json.dumps(function_call_copy) + '\n```\n'
+        return '```command\n' + json.dumps(function_call_copy) + '\n```'
 
     def stream_from_dict(self, message_data: dict) -> str:
         """Append to the message from a dictionary returned from a streaming chat API."""

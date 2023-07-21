@@ -111,35 +111,35 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   "What is the weather like in Boston?"])
 
-    core_content = get_content(result.output)
+    content = get_content(result.output)
     assert result.exit_code == 0
-    assert core_content.find("finish_reason: function_call") >= 0
-    assert core_content.find('"name": "get_current_weather"') >= 0
-    assert core_content.find('command') > 0
+    assert 'finish_reason: function_call' in content
+    assert '```command' in content
+    assert '"name": "get_current_weather"' in content
 
     # compare with no -f options
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   'What is the weather like in Boston?'])
 
-    core_content = get_content(result.output)
+    content = get_content(result.output)
     assert result.exit_code == 0
-    assert core_content.find("finish_reason: stop") >= 0
-    assert core_content.find('command') == -1
+    assert 'finish_reason: stop' not in content
+    assert 'command' not in content
 
 
 def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   'What is the weather like in Boston?'])
-
+    assert result.exit_code == 0
     prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['log', '-t', prompt_hash])
 
     result_json = json.loads(result.output)
     assert result.exit_code == 0
     assert result_json[0]['request'] == 'What is the weather like in Boston?'
-    assert result_json[0]['responses'][0].find("```command") >= 0
-    assert result_json[0]['responses'][0].find("get_current_weather") >= 0
+    assert '```command' in result_json[0]['responses'][0]
+    assert 'get_current_weather' in result_json[0]['responses'][0]
 
 
 def test_prompt_log_compatibility():
@@ -166,8 +166,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
 
     content = get_content(result.output)
     assert result.exit_code == 0
-    assert content.find("finish_reason: stop") >= 0
-    assert "22 degrees Celsius and sunny" in content
+    assert '22 degrees Celsius and sunny' in content
 
     prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
@@ -176,7 +175,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
 
     content = get_content(result.output)
     assert result.exit_code == 0
-    assert content.find("get_current_weather") >= 0
+    assert 'get_current_weather' in content
 
 
 def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
