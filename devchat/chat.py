@@ -43,12 +43,12 @@ class Chat(ABC):
         """
 
     @abstractmethod
-    def stream_response(self, prompt: Prompt) -> Iterator[str]:
+    def stream_response(self, prompt: Prompt) -> Iterator:
         """
         Retrieve a streaming response as an iterator of JSON strings from the chat system.
 
         Args:
             prompt (Prompt): A prompt of messages representing the conversation.
         Returns:
-            Iterator[str]: An iterator over JSON strings representing the streaming response events.
+            Iterator: An iterator over JSON strings (to be converted to) representing the response.
         """
