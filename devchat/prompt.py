@@ -47,6 +47,7 @@ class Prompt(ABC):
     _timestamp: int = None
     _request_tokens: int = 0
     _response_tokens: int = 0
+    _response_reasons: List[str] = field(default_factory=list)
     _hash: str = None
 
     def _check_complete(self) -> bool:
@@ -56,14 +57,12 @@ class Prompt(ABC):
         Returns:
             bool: Whether the prompt is complete.
         """
-        if not self.request or not self.responses:
-            logger.warning("Incomplete prompt: request = %s, response = %s",
-                           self.request, self.responses)
+        if not self.request or not self._request_tokens or not self.responses:
+            logger.warning("Incomplete prompt: request = %s (%d), response = %s",
+                           self.request, self._request_tokens, self.responses)
             return False
 
-        if not self._request_tokens or not self._response_tokens:
-            logger.warning("Incomplete prompt: request_tokens = %d, response_tokens = %d",
-                           self._request_tokens, self._response_tokens)
+        if not self._response_tokens:
             return False
 
         return True
@@ -202,39 +201,56 @@ class Prompt(ABC):
         """Formatted string header of the prompt."""
         formatted_str = f"User: {user_id(self.user_name, self.user_email)[0]}\n"
 
+        if not self._timestamp:
+            raise ValueError(f"Prompt lacks timestamp for formatting header: {self.request}")
+
         local_time = unix_to_local_datetime(self._timestamp)
         formatted_str += f"Date: {local_time.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
 
         return formatted_str
 
-    def formatted_response(self, index: int) -> str:
+    def formatted_footer(self, index: int) -> str:
+        """Formatted string footer of the prompt."""
+        if not self.hash:
+            raise ValueError(f"Prompt lacks hash for formatting footer: {self.request}")
+
+        note = None
+        formatted_str = "\n\n"
+        reason = self._response_reasons[index]
+        if reason == 'length':
+            note = "Incomplete model output due to max_tokens parameter or token limit"
+        elif reason == 'function_call':
+            formatted_str += self.responses[index].function_call_to_json() + "\n\n"
+            note = "The model decided to call a function"
+        elif reason == 'content_filter':
+            note = "Omitted content due to a flag from our content filters"
+
+        if note:
+            formatted_str += f"Note: {note} (finish_reason: {reason})\n\n"
+
+        return formatted_str + f"prompt {self.hash}"
+
+    def formatted_full_response(self, index: int) -> str:
         """
-        Formatted response of the prompt.
+        Formatted full response of the prompt.
 
         Args:
             index (int): The index of the response to format.
 
         Returns:
-            str: The formatted response string. None if the response is incomplete.
+            str: The formatted response string. None if the response is invalid.
         """
-        formatted_str = self.formatted_header()
-
         if index >= len(self.responses) or not self.responses[index]:
-            logger.error("Response index %d is incomplete to format: request = %s, response = %s",
+            logger.error("Response index %d is invalid to format: request = %s, response = %s",
                          index, self.request, self.responses)
             return None
 
+        formatted_str = self.formatted_header()
+
         if self.responses[index].content:
             formatted_str += self.responses[index].content
-            formatted_str += "\n\n"
 
-        if self.responses[index].finish_reason == 'function_call':
-            formatted_str += self.responses[index].function_call_to_json()
-        formatted_str += f"\n\nfinish_reason: {self.responses[index].finish_reason}" + "\n\n"
-
-        formatted_str += f"prompt {self.hash}"
-
-        return formatted_str
+        return formatted_str + self.formatted_footer(index)
 
     def shortlog(self) -> List[dict]:
         """Generate a shortlog of the prompt."""

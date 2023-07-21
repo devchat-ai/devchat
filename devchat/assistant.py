@@ -89,16 +89,20 @@ class Assistant:
             Iterator[str]: An iterator over response strings from the chat API.
         """
         if self._chat.config.stream:
-            response_iterator = self._chat.stream_response(self._prompt)
-            for chunk in response_iterator:
-                yield self._prompt.append_response(str(chunk))
+            first_chunk = True
+            for chunk in self._chat.stream_response(self._prompt):
+                delta = self._prompt.append_response(str(chunk))
+                if first_chunk:
+                    first_chunk = False
+                    yield self._prompt.formatted_header()
+                yield delta
             self._store.store_prompt(self._prompt)
-            yield f'\n\nprompt {self._prompt.hash}\n'
+            yield self._prompt.formatted_footer(0) + '\n'
             for index in range(1, len(self._prompt.responses)):
-                yield self._prompt.formatted_response(index) + '\n'
+                yield self._prompt.formatted_full_response(index) + '\n'
         else:
-            response_str = str(self._chat.complete_response(self._prompt))
+            response_str = self._chat.complete_response(self._prompt)
             self._prompt.set_response(response_str)
             self._store.store_prompt(self._prompt)
             for index in range(len(self._prompt.responses)):
-                yield self._prompt.formatted_response(index) + '\n'
+                yield self._prompt.formatted_full_response(index) + '\n'

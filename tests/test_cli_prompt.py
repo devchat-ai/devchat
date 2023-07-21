@@ -110,9 +110,9 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   "What is the weather like in Boston?"])
-
-    content = get_content(result.output)
+    print(result.output)
     assert result.exit_code == 0
+    content = get_content(result.output)
     assert 'finish_reason: function_call' in content
     assert '```command' in content
     assert '"name": "get_current_weather"' in content
