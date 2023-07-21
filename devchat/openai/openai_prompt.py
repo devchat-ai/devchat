@@ -165,8 +165,10 @@ class OpenAIPrompt(Prompt):
             index = choice['index']
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
-            self.responses[index] = OpenAIMessage(**choice['message'],
-                                                  finish_reason=choice['finish_reason'])
+                self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
+            self.responses[index] = OpenAIMessage(**choice['message'])
+            if choice['finish_reason']:
+                self._response_reasons[index] = choice['finish_reason']
 
     def append_response(self, delta_str: str) -> str:
         """
@@ -191,12 +193,12 @@ class OpenAIPrompt(Prompt):
 
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
+                self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
 
             if not self.responses[index]:
                 self.responses[index] = OpenAIMessage(**delta)
                 if index == 0:
-                    delta_content = self.formatted_header()
-                    delta_content += self.responses[0].content if self.responses[0].content else ''
+                    delta_content = self.responses[0].content if self.responses[0].content else ''
             else:
                 if index == 0:
                     delta_content = self.responses[0].stream_from_dict(delta)
@@ -214,10 +216,7 @@ class OpenAIPrompt(Prompt):
                             delta['function_call']['arguments']
 
             if finish_reason:
-                if finish_reason == 'function_call':
-                    delta_content += self.responses[index].function_call_to_json()
-                delta_content += f"\n\nfinish_reason: {finish_reason}"
-
+                self._response_reasons[index] = finish_reason
         return delta_content
 
     def _count_response_tokens(self) -> int:

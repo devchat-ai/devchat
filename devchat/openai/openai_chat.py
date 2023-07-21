@@ -75,9 +75,9 @@ class OpenAIChat(Chat):
             messages=prompt.messages,
             **config_params
         )
-        return response
+        return str(response)
 
-    def stream_response(self, prompt: OpenAIPrompt) -> Iterator[str]:
+    def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
         # Filter the config parameters with non-None values
         config_params = {
             key: value
