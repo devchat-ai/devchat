@@ -14,7 +14,7 @@ from devchat.assistant import Assistant
 from devchat.utils import find_root_dir, git_ignore, parse_files
 from devchat.utils import setup_logger, get_logger
 
-
+logger = get_logger(__name__)
 click.rich_click.USE_MARKDOWN = True
 
 
@@ -31,7 +31,6 @@ def handle_errors():
     try:
         yield
     except Exception as error:
-        logger = get_logger(__name__)
         logger.exception(error)
         click.echo(f"Error: {error}", err=True)
         sys.exit(os.EX_SOFTWARE)
