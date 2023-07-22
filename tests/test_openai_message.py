@@ -49,7 +49,7 @@ def test_from_dict():
         "content": "Welcome to the chat.",
         "role": "system"
     }
-    message = OpenAIMessage(**message_data)
+    message = OpenAIMessage.from_dict(message_data)
     assert message.role == "system"
     assert message.content == "Welcome to the chat."
     assert message.name is None
@@ -61,7 +61,7 @@ def test_from_dict_with_name():
         "role": "user",
         "name": "JohnDoe"
     }
-    message = OpenAIMessage(**message_data)
+    message = OpenAIMessage.from_dict(message_data)
     assert message.role == "user"
     assert message.content == "Hello, Assistant!"
     assert message.name == "JohnDoe"

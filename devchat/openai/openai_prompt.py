@@ -50,7 +50,7 @@ class OpenAIPrompt(Prompt):
     def input_messages(self, messages: List[dict]):
         state = "new_instruct"
         for message_data in messages:
-            message = OpenAIMessage(**message_data)
+            message = OpenAIMessage.from_dict(message_data)
 
             if state == "new_instruct":
                 if message.role == "system" and not message.content.startswith("<context>"):
@@ -167,7 +167,7 @@ class OpenAIPrompt(Prompt):
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
                 self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
-            self.responses[index] = OpenAIMessage(**choice['message'])
+            self.responses[index] = OpenAIMessage.from_dict(choice['message'])
             if choice['finish_reason']:
                 self._response_reasons[index] = choice['finish_reason']
 
@@ -197,7 +197,7 @@ class OpenAIPrompt(Prompt):
                 self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
 
             if not self.responses[index]:
-                self.responses[index] = OpenAIMessage(**delta)
+                self.responses[index] = OpenAIMessage.from_dict(delta)
                 if index == 0:
                     delta_content = self.responses[0].content if self.responses[0].content else ''
             else:
