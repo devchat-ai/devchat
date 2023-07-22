@@ -227,7 +227,8 @@ def log(skip, max_count, topic_root, delete):
             for record in recent_prompts:
                 try:
                     logs.append(record.shortlog())
-                except Exception:
+                except Exception as exc:
+                    logger.exception(exc)
                     continue
             click.echo(json.dumps(logs, indent=2))
 
@@ -255,10 +256,10 @@ def topic(list_topics: bool, skip: int, max_count: int):
 
         if list_topics:
             topics = store.select_topics(skip, skip + max_count)
-            topic_logs = []
             for topic_data in topics:
                 try:
-                    topic_logs.append(topic_data['root_prompt'].shortlog())
-                except Exception:
+                    topic_data.update({'root_prompt': topic_data['root_prompt'].shortlog()})
+                except Exception as exc:
+                    logger.exception(exc)
                     continue
-            click.echo(json.dumps(topic_logs, indent=2))
+            click.echo(json.dumps(topics, indent=2))
