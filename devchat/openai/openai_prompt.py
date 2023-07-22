@@ -92,7 +92,7 @@ class OpenAIPrompt(Prompt):
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         # New instructions and context are of the system role
-        message = OpenAIMessage(content, 'system')
+        message = OpenAIMessage(content=content, role='system')
 
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
@@ -141,7 +141,8 @@ class OpenAIPrompt(Prompt):
     def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, role=('user' if not function_name else 'function'),
+        message = OpenAIMessage(content=content,
+                                role=('user' if not function_name else 'function'),
                                 name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
