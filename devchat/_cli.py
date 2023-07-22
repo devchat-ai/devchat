@@ -205,30 +205,32 @@ def log(skip, max_count, topic_root, delete):
         sys.exit(os.EX_USAGE)
 
     config, chat_dir = init_dir()
-    provider = config.get('provider')
-    if provider == 'OpenAI':
-        openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
-        chat = OpenAIChat(openai_config)
-        store = Store(chat_dir, chat)
-    else:
-        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-        sys.exit(os.EX_DATAERR)
 
-    if delete:
-        success = store.delete_prompt(delete)
-        if success:
-            click.echo(f"Prompt {delete} deleted successfully.")
+    with handle_errors():
+        provider = config.get('provider')
+        if provider == 'OpenAI':
+            openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
+            chat = OpenAIChat(openai_config)
+            store = Store(chat_dir, chat)
         else:
-            click.echo(f"Failed to delete prompt {delete}.")
-    else:
-        recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
-        logs = []
-        for record in recent_prompts:
-            try:
-                logs.append(record.shortlog())
-            except Exception:
-                continue
-        click.echo(json.dumps(logs, indent=2))
+            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+            sys.exit(os.EX_DATAERR)
+
+        if delete:
+            success = store.delete_prompt(delete)
+            if success:
+                click.echo(f"Prompt {delete} deleted successfully.")
+            else:
+                click.echo(f"Failed to delete prompt {delete}.")
+        else:
+            recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
+            logs = []
+            for record in recent_prompts:
+                try:
+                    logs.append(record.shortlog())
+                except Exception:
+                    continue
+            click.echo(json.dumps(logs, indent=2))
 
 
 @main.command()
@@ -241,21 +243,23 @@ def topic(list_topics: bool, skip: int, max_count: int):
     Manage topics.
     """
     config, chat_dir = init_dir()
-    provider = config.get('provider')
-    if provider == 'OpenAI':
-        openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
-        chat = OpenAIChat(openai_config)
-        store = Store(chat_dir, chat)
-    else:
-        click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-        sys.exit(os.EX_DATAERR)
 
-    if list_topics:
-        topics = store.select_topics(skip, skip + max_count)
-        topic_logs = []
-        for topic_data in topics:
-            try:
-                topic_logs.append(topic_data['root_prompt'].shortlog())
-            except Exception:
-                continue
-        click.echo(json.dumps(topic_logs, indent=2))
+    with handle_errors():
+        provider = config.get('provider')
+        if provider == 'OpenAI':
+            openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
+            chat = OpenAIChat(openai_config)
+            store = Store(chat_dir, chat)
+        else:
+            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
+            sys.exit(os.EX_DATAERR)
+
+        if list_topics:
+            topics = store.select_topics(skip, skip + max_count)
+            topic_logs = []
+            for topic_data in topics:
+                try:
+                    topic_logs.append(topic_data['root_prompt'].shortlog())
+                except Exception:
+                    continue
+            click.echo(json.dumps(topic_logs, indent=2))
