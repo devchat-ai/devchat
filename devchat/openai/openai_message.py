@@ -1,6 +1,6 @@
 import ast
 import json
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict, field, fields
 from typing import Dict, Optional
 
 from devchat.message import Message
@@ -26,8 +26,13 @@ class OpenAIMessage(Message):
             del state['name']
         if not state['function_call'] or len(state['function_call'].keys()) == 0:
             del state['function_call']
-
         return state
+
+    @classmethod
+    def from_dict(cls, message_data: dict) -> 'OpenAIMessage':
+        keys = {f.name for f in fields(cls)}
+        kwargs = {k: v for k, v in message_data.items() if k in keys}
+        return cls(**kwargs)
 
     def function_call_to_json(self):
         '''

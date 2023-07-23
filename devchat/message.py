@@ -20,6 +20,13 @@ class Message(ABC):
         Convert the message to a dictionary.
         """
 
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, message_data: dict) -> 'Message':
+        """
+        Convert the message from a dictionary.
+        """
+
     @abstractmethod
     def stream_from_dict(self, message_data: dict) -> str:
         """

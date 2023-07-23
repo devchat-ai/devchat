@@ -53,10 +53,11 @@ class OpenAIChat(Chat):
 
     def load_prompt(self, data: dict) -> OpenAIPrompt:
         data['_new_messages'] = {
-            k: [OpenAIMessage(**m) for m in v] if isinstance(v, list) else OpenAIMessage(**v)
+            k: [OpenAIMessage.from_dict(m) for m in v]
+            if isinstance(v, list) else OpenAIMessage.from_dict(v)
             for k, v in data['_new_messages'].items() if k != 'function'
         }
-        data['_history_messages'] = {k: [OpenAIMessage(**m) for m in v]
+        data['_history_messages'] = {k: [OpenAIMessage.from_dict(m) for m in v]
                                      for k, v in data['_history_messages'].items()}
         return OpenAIPrompt(**data)
 

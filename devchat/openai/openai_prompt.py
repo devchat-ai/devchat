@@ -50,7 +50,7 @@ class OpenAIPrompt(Prompt):
     def input_messages(self, messages: List[dict]):
         state = "new_instruct"
         for message_data in messages:
-            message = OpenAIMessage(**message_data)
+            message = OpenAIMessage.from_dict(message_data)
 
             if state == "new_instruct":
                 if message.role == "system" and not message.content.startswith("<context>"):
@@ -92,7 +92,7 @@ class OpenAIPrompt(Prompt):
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         # New instructions and context are of the system role
-        message = OpenAIMessage(content, 'system')
+        message = OpenAIMessage(content=content, role='system')
 
         num_tokens = message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
@@ -141,7 +141,8 @@ class OpenAIPrompt(Prompt):
     def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content, role=('user' if not function_name else 'function'),
+        message = OpenAIMessage(content=content,
+                                role=('user' if not function_name else 'function'),
                                 name=function_name)
         self._new_messages['request'] = message
         self._request_tokens += message_tokens(message.to_dict(), self.model)
@@ -166,7 +167,7 @@ class OpenAIPrompt(Prompt):
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
                 self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
-            self.responses[index] = OpenAIMessage(**choice['message'])
+            self.responses[index] = OpenAIMessage.from_dict(choice['message'])
             if choice['finish_reason']:
                 self._response_reasons[index] = choice['finish_reason']
 
@@ -196,7 +197,7 @@ class OpenAIPrompt(Prompt):
                 self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
 
             if not self.responses[index]:
-                self.responses[index] = OpenAIMessage(**delta)
+                self.responses[index] = OpenAIMessage.from_dict(delta)
                 if index == 0:
                     delta_content = self.responses[0].content if self.responses[0].content else ''
             else:

@@ -116,14 +116,14 @@ def test_messages_empty():
 
 def test_messages_instruct():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    instruct_message = OpenAIMessage('Instructions', 'system')
+    instruct_message = OpenAIMessage(content='Instructions', role='system')
     prompt.append_new(Message.INSTRUCT, 'Instructions')
     assert prompt.messages == [instruct_message.to_dict()]
 
 
 def test_messages_context():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    context_message = OpenAIMessage('Context', 'system')
+    context_message = OpenAIMessage(content='Context', role='system')
     prompt.append_new(Message.CONTEXT, 'Context')
     expected_message = context_message.to_dict()
     expected_message["content"] = "<context>\n" + context_message.content + "\n</context>"
@@ -138,7 +138,7 @@ def test_messages_record():
 
 def test_messages_request():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    request_message = OpenAIMessage('Request', 'user')
+    request_message = OpenAIMessage(content='Request', role='user')
     prompt.set_request('Request')
     expected_message = request_message.to_dict()
     assert prompt.messages == [expected_message]
@@ -146,9 +146,9 @@ def test_messages_request():
 
 def test_messages_combined():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    instruct_message = OpenAIMessage('Instructions', 'system')
-    context_message = OpenAIMessage('Context', 'system')
-    request_message = OpenAIMessage('Request', 'user')
+    instruct_message = OpenAIMessage(content='Instructions', role='system')
+    context_message = OpenAIMessage(content='Context', role='system')
+    request_message = OpenAIMessage(content='Request', role='user')
 
     prompt.append_new(Message.INSTRUCT, 'Instructions')
     prompt.append_new(Message.CONTEXT, 'Context')
