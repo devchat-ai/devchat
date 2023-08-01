@@ -3,7 +3,7 @@ import json
 import pytest
 from click.testing import CliRunner
 from devchat._cli import main
-from devchat.utils import response_tokens
+from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
 
 runner = CliRunner()
@@ -24,7 +24,7 @@ def test_prompt_with_content(git_repo):  # pylint: disable=W0613
 
 def test_prompt_with_temp_config_file(git_repo):
     config_data = {
-        'model': 'gpt-3.5-turbo-0301',
+        'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',
         'tokens-per-prompt': 3000,
         'OpenAI': {
@@ -110,7 +110,8 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   "What is the weather like in Boston?"])
-    print(result.output)
+    if result.exit_code:
+        print(result.output)
     assert result.exit_code == 0
     content = get_content(result.output)
     assert 'finish_reason: function_call' in content
@@ -131,6 +132,8 @@ def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   'What is the weather like in Boston?'])
+    if result.exit_code:
+        print(result.output)
     assert result.exit_code == 0
     prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['log', '-t', prompt_hash])
@@ -197,7 +200,7 @@ def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W061
         json.dump(config_data, temp_config_file)
 
     content = ""
-    while response_tokens({"content": content}, config_data["model"]) \
+    while openai_response_tokens({"content": content}, config_data["model"]) \
             < config_data["tokens-per-prompt"]:
         content += "This is a test. Ignore what I say.\n"
     result = runner.invoke(main, ['prompt', content])
@@ -225,7 +228,7 @@ def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # py
 
     content_file = tmpdir.join("content.txt")
     content = ""
-    while response_tokens({"content": content}, config_data["model"]) < \
+    while openai_response_tokens({"content": content}, config_data["model"]) < \
             config_data["tokens-per-prompt"]:
         content += "This is a test. Ignore what I say.\n"
     content_file.write(content)

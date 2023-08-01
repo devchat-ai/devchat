@@ -178,8 +178,8 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             if functions is not None:
                 with open(functions, 'r', encoding="utf-8") as f_file:
                     functions_data = json.load(f_file)
-            assistant.make_prompt(content, instruct_contents, context_contents,
-                                  functions_data, parent, reference,
+            assistant.make_prompt(content, instruct_contents, context_contents, functions_data,
+                                  parent=parent, references=reference,
                                   function_name=function_name)
 
             for response in assistant.iterate_response():
