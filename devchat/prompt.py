@@ -50,16 +50,16 @@ class Prompt(ABC):
     _response_reasons: List[str] = field(default_factory=list)
     _hash: str = None
 
-    def _check_complete(self) -> bool:
+    def _complete_for_hash(self) -> bool:
         """
         Check if the prompt is complete for hashing.
 
         Returns:
             bool: Whether the prompt is complete.
         """
-        if not self.request or not self._request_tokens or not self.responses:
-            logger.warning("Incomplete prompt: request = %s (%d), response = %s",
-                           self.request, self._request_tokens, self.responses)
+        if not self.request or not self.responses:
+            logger.warning("Incomplete prompt: request = %s, response = %s",
+                           self.request, self.responses)
             return False
 
         if not self._response_tokens:
@@ -183,7 +183,7 @@ class Prompt(ABC):
         Returns:
             str: The hash of the prompt. None if the prompt is incomplete.
         """
-        if not self._check_complete():
+        if not self._complete_for_hash():
             self._hash = None
 
         if self._hash:

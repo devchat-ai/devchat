@@ -5,7 +5,7 @@ from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
 from devchat.utils import update_dict, get_logger
-from devchat.utils import message_tokens, response_tokens
+from devchat.utils import openai_message_tokens, openai_response_tokens
 from .openai_message import OpenAIMessage
 
 logger = get_logger(__name__)
@@ -94,7 +94,7 @@ class OpenAIPrompt(Prompt):
         # New instructions and context are of the system role
         message = OpenAIMessage(content=content, role='system')
 
-        num_tokens = message_tokens(message.to_dict(), self.model)
+        num_tokens = openai_message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
             return False
 
@@ -103,7 +103,7 @@ class OpenAIPrompt(Prompt):
         return True
 
     def set_functions(self, functions, available_tokens: int = math.inf):
-        num_tokens = message_tokens({"functions": json.dumps(functions)}, self.model)
+        num_tokens = openai_message_tokens({"functions": json.dumps(functions)}, self.model)
         if num_tokens > available_tokens:
             return False
 
@@ -118,7 +118,7 @@ class OpenAIPrompt(Prompt):
                          token_limit: int = math.inf) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
-        num_tokens = message_tokens(message.to_dict(), self.model)
+        num_tokens = openai_message_tokens(message.to_dict(), self.model)
         if num_tokens > token_limit - self._request_tokens:
             return False
         self._history_messages[message_type].insert(0, message)
@@ -145,7 +145,7 @@ class OpenAIPrompt(Prompt):
                                 role=('user' if not function_name else 'function'),
                                 name=function_name)
         self._new_messages['request'] = message
-        self._request_tokens += message_tokens(message.to_dict(), self.model)
+        self._request_tokens += openai_message_tokens(message.to_dict(), self.model)
 
     def set_response(self, response_str: str):
         """
@@ -224,9 +224,7 @@ class OpenAIPrompt(Prompt):
         if self._response_tokens:
             return self._response_tokens
 
-        total = 0
-        for response_message in self.responses:
-            total += response_tokens(response_message.to_dict(), self.model)
+        total = sum(openai_response_tokens(resp.to_dict(), self.model) for resp in self.responses)
         self._response_tokens = total
         return total
 

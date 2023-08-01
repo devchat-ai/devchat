@@ -173,7 +173,7 @@ def update_dict(dict_to_update, key, value) -> dict:
     return dict_to_update
 
 
-def message_tokens(message: dict, model: str) -> int:
+def openai_message_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -197,6 +197,6 @@ def message_tokens(message: dict, model: str) -> int:
     return num_tokens
 
 
-def response_tokens(message: dict, model: str) -> int:
+def openai_response_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a response."""
-    return message_tokens(message, model)
+    return openai_message_tokens(message, model)

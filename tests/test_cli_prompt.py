@@ -3,7 +3,7 @@ import json
 import pytest
 from click.testing import CliRunner
 from devchat._cli import main
-from devchat.utils import response_tokens
+from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
 
 runner = CliRunner()
@@ -197,7 +197,7 @@ def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W061
         json.dump(config_data, temp_config_file)
 
     content = ""
-    while response_tokens({"content": content}, config_data["model"]) \
+    while openai_response_tokens({"content": content}, config_data["model"]) \
             < config_data["tokens-per-prompt"]:
         content += "This is a test. Ignore what I say.\n"
     result = runner.invoke(main, ['prompt', content])
@@ -225,7 +225,7 @@ def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # py
 
     content_file = tmpdir.join("content.txt")
     content = ""
-    while response_tokens({"content": content}, config_data["model"]) < \
+    while openai_response_tokens({"content": content}, config_data["model"]) < \
             config_data["tokens-per-prompt"]:
         content += "This is a test. Ignore what I say.\n"
     content_file.write(content)
