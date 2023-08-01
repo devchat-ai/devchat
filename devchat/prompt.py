@@ -89,6 +89,8 @@ class Prompt(ABC):
 
     @property
     def response_tokens(self) -> int:
+        if not self._response_tokens:
+            self._response_tokens = self._count_response_tokens()
         return self._response_tokens
 
     @abstractmethod
@@ -189,7 +191,7 @@ class Prompt(ABC):
         if self._hash:
             return self._hash
 
-        self._count_response_tokens()
+        self._response_tokens = self._count_response_tokens()
 
         data = asdict(self)
         data.pop('_hash')

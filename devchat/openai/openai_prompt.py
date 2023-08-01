@@ -221,12 +221,7 @@ class OpenAIPrompt(Prompt):
         return delta_content
 
     def _count_response_tokens(self) -> int:
-        if self._response_tokens:
-            return self._response_tokens
-
-        total = sum(openai_response_tokens(resp.to_dict(), self.model) for resp in self.responses)
-        self._response_tokens = total
-        return total
+        return sum(openai_response_tokens(resp.to_dict(), self.model) for resp in self.responses)
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):

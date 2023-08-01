@@ -191,7 +191,8 @@ def openai_message_tokens(message: dict, model: str) -> int:
     for key, value in message.items():
         if key == 'function_call':
             value = json.dumps(value)
-        num_tokens += len(encoding.encode(value))
+        if value:
+            num_tokens += len(encoding.encode(value))
         if key == "name":
             num_tokens += tokens_per_name
     return num_tokens
