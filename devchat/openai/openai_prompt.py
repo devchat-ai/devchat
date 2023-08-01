@@ -48,8 +48,11 @@ class OpenAIPrompt(Prompt):
         return combined
 
     def input_messages(self, messages: List[dict]):
+        self._request_tokens = 0
         state = "new_instruct"
         for message_data in messages:
+            self._request_tokens += openai_message_tokens(message_data, self.model)
+
             message = OpenAIMessage.from_dict(message_data)
 
             if state == "new_instruct":
