@@ -1,6 +1,7 @@
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field
 import openai
+from litellm import completion
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
@@ -66,7 +67,7 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
-        response = openai.ChatCompletion.create(
+        response = completion(
             messages=prompt.messages,
             **config_params
         )
@@ -80,7 +81,7 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
-        response = openai.ChatCompletion.create(
+        response = completion(
             messages=prompt.messages,
             **config_params
         )
