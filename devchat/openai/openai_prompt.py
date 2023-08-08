@@ -70,7 +70,7 @@ class OpenAIPrompt(Prompt):
                     state = "history_chat"
 
             if state == "history_chat":
-                if message.role in ("user", "assistant", "function"):
+                if message.role in ("user", "assistant"):
                     self._history_messages[Message.CHAT].append(message)
                 else:
                     state = "new_context"
@@ -85,7 +85,7 @@ class OpenAIPrompt(Prompt):
 
         if not self.request:
             last_user_message = self._history_messages[Message.CHAT].pop()
-            if last_user_message.role in ("user", "function"):
+            if last_user_message.role == "user":
                 self._new_messages["request"] = last_user_message
             else:
                 logger.warning("Invalid user request: %s", last_user_message)
