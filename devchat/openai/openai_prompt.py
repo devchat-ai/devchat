@@ -85,7 +85,7 @@ class OpenAIPrompt(Prompt):
 
         if not self.request:
             last_user_message = self._history_messages[Message.CHAT].pop()
-            if last_user_message.role == "user" or last_user_message.role == "function":
+            if last_user_message.role in ("user", "function"):
                 self._new_messages["request"] = last_user_message
             else:
                 logger.warning("Invalid user request: %s", last_user_message)
