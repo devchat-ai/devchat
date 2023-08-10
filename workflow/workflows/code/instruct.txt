@@ -22,6 +22,7 @@ If you are still uncertain about the file path of the code, feel free to omit it
 6. You may not receive all the direct information needed for your task.
 Analyze the given <context> to understand how existing code was written, and use this knowledge for your task.
 7. Note that not all previous messages or contexts are necessarily relevant.
+8. Respond in the language of the request.
 You may encounter duplicate or conflicting messages or contexts, and the later ones should be considered as the most accurate.
 
 If you need more information, ask for it.
