@@ -1,7 +1,7 @@
 import json
 from click.testing import CliRunner
 from devchat.utils import get_prompt_hash
-from devchat._cli import main
+from devchat._cli.main import main
 
 runner = CliRunner()
 

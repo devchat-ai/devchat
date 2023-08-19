@@ -4,9 +4,9 @@ This module contains the main function for the DevChat CLI.
 import importlib.metadata
 import rich_click as click
 from devchat.utils import get_logger
-from devchat._cli_log import log
-from devchat._cli_prompt import prompt
-from devchat._cli_topic import topic
+from devchat._cli import log
+from devchat._cli import prompt
+from devchat._cli import topic
 
 logger = get_logger(__name__)
 click.rich_click.USE_MARKDOWN = True

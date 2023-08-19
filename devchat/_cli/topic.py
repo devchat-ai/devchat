@@ -4,7 +4,7 @@ import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.utils import get_logger
-from devchat._cli_utils import init_dir, handle_errors
+from devchat._cli.utils import init_dir, handle_errors
 
 logger = get_logger(__name__)
 
