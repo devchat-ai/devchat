@@ -1,18 +1,18 @@
 """
 This module contains the main function for the DevChat CLI.
 """
-from contextlib import contextmanager
 import json
-import os
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import importlib.metadata
 import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.assistant import Assistant
-from devchat.utils import find_root_dir, git_ignore, parse_files
-from devchat.utils import setup_logger, get_logger
+from devchat.utils import parse_files
+from devchat.utils import get_logger
+from devchat._cli_topic import topic
+from devchat._cli_utils import handle_errors, init_dir
 
 logger = get_logger(__name__)
 click.rich_click.USE_MARKDOWN = True
@@ -23,47 +23,6 @@ click.rich_click.USE_MARKDOWN = True
                       message='DevChat %(version)s')
 def main():
     """DevChat CLI: A command-line interface for DevChat."""
-
-
-@contextmanager
-def handle_errors():
-    """Handle errors in the CLI."""
-    try:
-        yield
-    except Exception as error:
-        logger.exception(error)
-        click.echo(f"Error: {error}", err=True)
-        sys.exit(1)
-
-
-def init_dir() -> Tuple[dict, str]:
-    root_dir = find_root_dir()
-    if not root_dir:
-        click.echo("Error: Failed to find home to store .chat", err=True)
-        sys.exit(1)
-    chat_dir = os.path.join(root_dir, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
-
-    default_config_data = {
-        "model": "gpt-4",
-        "tokens-per-prompt": 6000,
-        "provider": "OpenAI",
-        "OpenAI": {
-            "temperature": 0,
-            "stream": True
-        }
-    }
-
-    try:
-        with open(os.path.join(chat_dir, 'config.json'), 'r', encoding='utf-8') as file:
-            config_data = json.load(file)
-    except Exception:
-        config_data = default_config_data
-
-    setup_logger(os.path.join(chat_dir, 'error.log'))
-    git_ignore(chat_dir, '*')
-    return config_data, chat_dir
 
 
 @main.command()
@@ -221,33 +180,4 @@ def log(skip, max_count, topic_root, delete):
             click.echo(json.dumps(logs, indent=2))
 
 
-@main.command()
-@click.option('--list', '-l', 'list_topics', is_flag=True,
-              help='List topics in reverse chronological order.')
-@click.option('--skip', default=0, help='Skip number of topics before showing the list.')
-@click.option('-n', '--max-count', default=100, help='Limit the number of topics to output.')
-def topic(list_topics: bool, skip: int, max_count: int):
-    """
-    Manage topics.
-    """
-    config, chat_dir = init_dir()
-
-    with handle_errors():
-        provider = config.get('provider')
-        if provider == 'OpenAI':
-            openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
-            chat = OpenAIChat(openai_config)
-            store = Store(chat_dir, chat)
-        else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(1)
-
-        if list_topics:
-            topics = store.select_topics(skip, skip + max_count)
-            for topic_data in topics:
-                try:
-                    topic_data.update({'root_prompt': topic_data['root_prompt'].shortlog()})
-                except Exception as exc:
-                    logger.exception(exc)
-                    continue
-            click.echo(json.dumps(topics, indent=2))
+main.add_command(topic)
