@@ -33,14 +33,14 @@ def handle_errors():
     except Exception as error:
         logger.exception(error)
         click.echo(f"Error: {error}", err=True)
-        sys.exit(os.EX_SOFTWARE)
+        sys.exit(1)
 
 
 def init_dir() -> Tuple[dict, str]:
     root_dir = find_root_dir()
     if not root_dir:
         click.echo("Error: Failed to find home to store .chat", err=True)
-        sys.exit(os.EX_DATAERR)
+        sys.exit(1)
     chat_dir = os.path.join(root_dir, ".chat")
     if not os.path.exists(chat_dir):
         os.makedirs(chat_dir)
@@ -88,19 +88,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
            model: Optional[str], config_str: Optional[str] = None,
            functions: Optional[str] = None, function_name: Optional[str] = None):
     """
-    Main function to run the chat application.
-
-    This function initializes the chat system based on the specified large language model (LLM),
-    and performs interactions with the LLM by sending prompts and retrieving responses.
+    This command performs interactions with the specified large language model (LLM)
+    by sending prompts and receiving responses.
 
     Examples
     --------
-
-    To send a single-line message to the LLM, provide the content as an argument:
-
-    ```bash
-    devchat prompt "What is the capital of France?"
-    ```
 
     To send a multi-line message to the LLM, use the here-doc syntax:
 
@@ -130,10 +122,6 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         }
     }
     ```
-
-    To customize the configuration, create `.chat/config.json`
-    in your current Git or SVN root directory
-    and modify the settings as needed.
 
     Note: To use OpenAI's APIs, you must have an API key to run the CLI.
     Run the following command line with your API key:
@@ -186,7 +174,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
                 click.echo(response, nl=False)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(os.EX_DATAERR)
+            sys.exit(1)
 
 
 @main.command()
@@ -201,7 +189,7 @@ def log(skip, max_count, topic_root, delete):
     """
     if delete and (skip != 0 or max_count != 1 or topic_root is not None):
         click.echo("Error: The --delete option cannot be used with other options.", err=True)
-        sys.exit(os.EX_USAGE)
+        sys.exit(1)
 
     config, chat_dir = init_dir()
 
@@ -213,7 +201,7 @@ def log(skip, max_count, topic_root, delete):
             store = Store(chat_dir, chat)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(os.EX_DATAERR)
+            sys.exit(1)
 
         if delete:
             success = store.delete_prompt(delete)
@@ -252,7 +240,7 @@ def topic(list_topics: bool, skip: int, max_count: int):
             store = Store(chat_dir, chat)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(os.EX_DATAERR)
+            sys.exit(1)
 
         if list_topics:
             topics = store.select_topics(skip, skip + max_count)
