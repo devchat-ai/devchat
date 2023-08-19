@@ -3,11 +3,10 @@ import sys
 from typing import List, Optional
 import rich_click as click
 from devchat.assistant import Assistant
-
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
-from devchat._cli_utils import handle_errors, init_dir
 from devchat.utils import parse_files
+from devchat._cli_utils import handle_errors, init_dir
 
 
 @click.command()
