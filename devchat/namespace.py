@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+import re
 
 
 class Namespace:
@@ -12,6 +13,22 @@ class Namespace:
         self.root_path = root_path
         self.branches = branches if branches else ['usr', 'org', 'sys']
 
+    @staticmethod
+    def is_valid_name(name: str) -> bool:
+        """
+        Check if a name is valid.
+
+        A valid name is either an empty string or
+        a sequence of one or more alphanumeric characters, hyphens, or underscores,
+        separated by single dots. Each component cannot contain a dot.
+
+        :param name: The name to check.
+        :return: True if the name is valid, False otherwise.
+        """
+        # The regular expression pattern for a valid name
+        pattern = r'^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$'
+        return bool(re.match(pattern, name))
+
     def get_path(self, name: str) -> Optional[str]:
         """
         :param name: The command name in the namespace.
@@ -21,7 +38,6 @@ class Namespace:
             return None
         # Convert the dot-separated name to a path
         path = os.path.join(*name.split('.'))
-
         for branch in self.branches:
             full_path = os.path.join(self.root_path, branch, path)
             if os.path.exists(full_path):
@@ -29,3 +45,40 @@ class Namespace:
                 return os.path.join(branch, path)
         # If no existing path is found, return None
         return None
+
+    def list_names(self, name: str = '', recursive: bool = False) -> Optional[List[str]]:
+        """
+        :param name: The command name in the namespace. Defaults to the root.
+        :param recursive: Whether to list all descendant names or only child names.
+        :return: A list of all names under the given name, or None if the name is invalid.
+        """
+        if not self.is_valid_name(name):
+            return None
+        commands = set()
+        path = os.path.join(*name.split('.'))
+        found = False
+        for branch in self.branches:
+            full_path = os.path.join(self.root_path, branch, path)
+            if os.path.exists(full_path):
+                found = True
+                if os.path.isdir(full_path):
+                    self._add_dirnames_to_commands(full_path, name, commands)
+                if recursive:
+                    self._add_recursive_dirnames_to_commands(full_path, name, commands)
+        return sorted(commands) if found else None
+
+    def _add_dirnames_to_commands(self, full_path: str, name: str, commands: set):
+        for dirname in os.listdir(full_path):
+            command_name = '.'.join([name, dirname]) if name else dirname
+            commands.add(command_name)
+
+    def _add_recursive_dirnames_to_commands(self, full_path: str, name: str, commands: set):
+        for dirpath, dirnames, _ in os.walk(full_path):
+            for dirname in dirnames:
+                relative_path = os.path.relpath(dirpath, full_path).replace(os.sep, '.')
+                if relative_path != '.':
+                    command_name = ('.'.join([name, relative_path, dirname])
+                                    if name else '.'.join([relative_path, dirname]))
+                else:
+                    command_name = '.'.join([name, dirname]) if name else dirname
+                commands.add(command_name)
