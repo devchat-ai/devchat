@@ -8,10 +8,10 @@ class Namespace:
                  branches: List[str] = None):
         """
         :param root_path: The root path of the namespace.
-        :param branches: The hidden branches with descending order of priority.
+        :param branches: The hidden branches with ascending order of priority.
         """
         self.root_path = root_path
-        self.branches = branches if branches else ['usr', 'org', 'sys']
+        self.branches = branches if branches else ['sys', 'org', 'usr']
 
     @staticmethod
     def is_valid_name(name: str) -> bool:
@@ -26,25 +26,35 @@ class Namespace:
         :return: True if the name is valid, False otherwise.
         """
         # The regular expression pattern for a valid name
+        if name is None:
+            return False
         pattern = r'^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$'
         return bool(re.match(pattern, name))
 
-    def get_path(self, name: str) -> Optional[str]:
+    def get_files(self, name: str) -> Optional[List[str]]:
         """
         :param name: The command name in the namespace.
-        :return: The relative path of the command directory.
+        :return: The full paths of the files in the command directory.
         """
-        if not name:
+        if not self.is_valid_name(name):
             return None
         # Convert the dot-separated name to a path
         path = os.path.join(*name.split('.'))
+        files = {}
+        path_found = False
         for branch in self.branches:
             full_path = os.path.join(self.root_path, branch, path)
-            if os.path.exists(full_path):
-                # If it exists, return the branch/path part
-                return os.path.join(branch, path)
+            if os.path.isdir(full_path):
+                # If it exists and is a directory, get the files
+                path_found = True
+                for file in os.listdir(full_path):
+                    files[file] = os.path.join(full_path, file)
         # If no existing path is found, return None
-        return None
+        if not path_found:
+            return None
+        # If path is found but no files exist, return an empty list
+        # Sort the files in alphabetical order before returning
+        return sorted(files.values()) if files else []
 
     def list_names(self, name: str = '', recursive: bool = False) -> Optional[List[str]]:
         """
@@ -59,10 +69,9 @@ class Namespace:
         found = False
         for branch in self.branches:
             full_path = os.path.join(self.root_path, branch, path)
-            if os.path.exists(full_path):
+            if os.path.isdir(full_path):
                 found = True
-                if os.path.isdir(full_path):
-                    self._add_dirnames_to_commands(full_path, name, commands)
+                self._add_dirnames_to_commands(full_path, name, commands)
                 if recursive:
                     self._add_recursive_dirnames_to_commands(full_path, name, commands)
         return sorted(commands) if found else None
