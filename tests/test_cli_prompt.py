@@ -2,7 +2,7 @@ import os
 import json
 import pytest
 from click.testing import CliRunner
-from devchat._cli import main
+from devchat._cli.main import main
 from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
 
