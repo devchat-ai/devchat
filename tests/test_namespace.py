@@ -29,7 +29,44 @@ def test_is_valid_name():
     assert Namespace.is_valid_name('a>b') is False
 
 
-def test_get_files(tmp_path):
+def test_get_file(tmp_path):
+    # Create a Namespace instance with the temporary directory as the root path
+    namespace = Namespace(str(tmp_path))
+
+    # Test case 1: a file that exists
+    # Create a file in the 'usr' branch
+    os.makedirs(os.path.join(tmp_path, 'usr', 'a', 'b', 'c'), exist_ok=True)
+    file_path = os.path.join(tmp_path, 'usr', 'a', 'b', 'c', 'file1.txt')
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write('test')
+    assert namespace.get_file('a.b.c', 'file1.txt') == file_path
+
+    # Test case 2: a file that doesn't exist
+    assert namespace.get_file('d.e.f', 'file2.txt') is None
+
+    # Test case 3: a file that exists in a later branch
+    # Create a file in the 'sys' branch
+    os.makedirs(os.path.join(tmp_path, 'usr', 'g', 'h', 'i'), exist_ok=True)
+    os.makedirs(os.path.join(tmp_path, 'sys', 'g', 'h', 'i'), exist_ok=True)
+    file_path = os.path.join(tmp_path, 'sys', 'g', 'h', 'i', 'file3.txt')
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write('test')
+    assert namespace.get_file('g.h.i', 'file3.txt') == file_path
+
+    # Test case 4: a file in 'usr' overwrites the same in 'sys'
+    # Create the same file in the 'usr' and 'sys' branches
+    os.makedirs(os.path.join(tmp_path, 'usr', 'j', 'k', 'l'), exist_ok=True)
+    usr_file_path = os.path.join(tmp_path, 'usr', 'j', 'k', 'l', 'file4.txt')
+    os.makedirs(os.path.join(tmp_path, 'sys', 'j', 'k', 'l'), exist_ok=True)
+    sys_file_path = os.path.join(tmp_path, 'sys', 'j', 'k', 'l', 'file4.txt')
+    with open(usr_file_path, 'w', encoding='utf-8') as file:
+        file.write('test')
+    with open(sys_file_path, 'w', encoding='utf-8') as file:
+        file.write('test')
+    assert namespace.get_file('j.k.l', 'file4.txt') == usr_file_path
+
+
+def test_list_files(tmp_path):
     # Create a Namespace instance with the temporary directory as the root path
     namespace = Namespace(str(tmp_path))
 

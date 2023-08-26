@@ -31,6 +31,27 @@ class Namespace:
         pattern = r'^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$'
         return bool(re.match(pattern, name))
 
+    def get_file(self, name: str, file: str) -> Optional[str]:
+        """
+        :param name: The command name in the namespace.
+        :param file: The target file name.
+        :return: The full path of the target file in the command directory.
+        """
+        if not self.is_valid_name(name):
+            return None
+        # Convert the dot-separated name to a path
+        path = os.path.join(*name.split('.'))
+        for branch in reversed(self.branches):
+            full_path = os.path.join(self.root_path, branch, path)
+            if os.path.isdir(full_path):
+                # If it exists and is a directory, check for the file
+                file_path = os.path.join(full_path, file)
+                if os.path.isfile(file_path):
+                    # If the file exists, return its path
+                    return file_path
+        # If no file is found, return None
+        return None
+
     def list_files(self, name: str) -> Optional[List[str]]:
         """
         :param name: The command name in the namespace.
