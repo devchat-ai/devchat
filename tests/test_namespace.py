@@ -39,14 +39,14 @@ def test_get_files(tmp_path):
     file_path = os.path.join(tmp_path, 'usr', 'a', 'b', 'c', 'file1.txt')
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write('test')
-    assert namespace.get_files('a.b.c') == [file_path]
+    assert namespace.list_files('a.b.c') == [file_path]
 
     # Test case 2: a path that doesn't exist
-    assert namespace.get_files('d.e.f') is None
+    assert namespace.list_files('d.e.f') is None
 
     # Test case 3: a path exists but has no files
     os.makedirs(os.path.join(tmp_path, 'org', 'd', 'e', 'f'), exist_ok=True)
-    assert namespace.get_files('d.e.f') == []
+    assert namespace.list_files('d.e.f') == []
 
     # Test case 4: a path that exists in a later branch
     # Create a file in the 'sys' branch
@@ -55,7 +55,7 @@ def test_get_files(tmp_path):
     file_path = os.path.join(tmp_path, 'sys', 'g', 'h', 'i', 'file2.txt')
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write('test')
-    assert namespace.get_files('g.h.i') == [file_path]
+    assert namespace.list_files('g.h.i') == [file_path]
 
     # Test case 5: a path in 'usr' overwrites the same in 'sys'
     # Create the same file in the 'usr' and 'sys' branches
@@ -67,7 +67,7 @@ def test_get_files(tmp_path):
         file.write('test')
     with open(sys_file_path, 'w', encoding='utf-8') as file:
         file.write('test')
-    assert namespace.get_files('j.k.l') == [usr_file_path]
+    assert namespace.list_files('j.k.l') == [usr_file_path]
 
 
 def test_list_names(tmp_path):

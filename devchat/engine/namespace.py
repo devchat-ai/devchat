@@ -31,7 +31,7 @@ class Namespace:
         pattern = r'^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$'
         return bool(re.match(pattern, name))
 
-    def get_files(self, name: str) -> Optional[List[str]]:
+    def list_files(self, name: str) -> Optional[List[str]]:
         """
         :param name: The command name in the namespace.
         :return: The full paths of the files in the command directory.
