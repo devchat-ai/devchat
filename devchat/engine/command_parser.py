@@ -1,6 +1,7 @@
 from typing import List, Dict, Optional
 import yaml
 from pydantic import BaseModel
+from .namespace import Namespace
 
 
 class Parameter(BaseModel):
@@ -14,6 +15,23 @@ class Command(BaseModel):
     description: str
     parameters: Optional[Dict[str, Parameter]]
     steps: Optional[List[Dict[str, str]]]
+
+
+class CommandParser:
+    def __init__(self, namespace: Namespace):
+        self.namespace = namespace
+
+    def parse_json(self, name: str) -> str:
+        """
+        Parse a command configuration file to JSON.
+
+        :param name: The command name in the namespace.
+        :return: The JSON representation of the command.
+        """
+        file_path = self.namespace.get_file(name, 'command.yml')
+        if not file_path:
+            return None
+        return parse_command(file_path).json()
 
 
 def parse_command(file_path: str) -> Command:
