@@ -1,5 +1,5 @@
 import os
-from devchat.engine.namespace import Namespace
+from devchat.engine import Namespace
 
 
 def test_is_valid_name():
