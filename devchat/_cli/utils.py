@@ -4,7 +4,7 @@ import os
 import sys
 from typing import Tuple
 import rich_click as click
-from devchat.utils import find_root_dir, git_ignore, setup_logger, get_logger
+from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
 logger = get_logger(__name__)
 
@@ -36,29 +36,31 @@ def init_dir() -> Tuple[dict, str, str]:
         click.echo(f"Error: Failed to find home for .chat: {repo_dir}, {user_dir}", err=True)
         sys.exit(1)
 
+    if not repo_dir:
+        repo_dir = user_dir
+    elif not user_dir:
+        user_dir = repo_dir
+
     try:
         repo_chat_dir = os.path.join(repo_dir, ".chat")
         if not os.path.exists(repo_chat_dir):
             os.makedirs(repo_chat_dir)
     except Exception:
-        click.echo(f"Error: Failed to create {repo_chat_dir}", err=True)
+        pass
 
     try:
         user_chat_dir = os.path.join(user_dir, ".chat")
         if not os.path.exists(user_chat_dir):
             os.makedirs(user_chat_dir)
     except Exception:
-        click.echo(f"Error: Failed to create {user_chat_dir}", err=True)
+        pass
 
     if not os.path.isdir(repo_chat_dir):
         repo_chat_dir = user_chat_dir
     if not os.path.isdir(user_chat_dir):
         user_chat_dir = repo_chat_dir
-    if not os.path.isdir(repo_chat_dir):
-        click.echo(f"Error: Failed to create {repo_chat_dir}", err=True)
-        sys.exit(1)
-    if not os.path.isdir(user_chat_dir):
-        click.echo(f"Error: Failed to create {user_chat_dir}", err=True)
+    if not os.path.isdir(repo_chat_dir) or not os.path.isdir(user_chat_dir):
+        click.echo(f"Error: Failed to create {repo_chat_dir} and {user_chat_dir}", err=True)
         sys.exit(1)
 
     default_config_data = {
@@ -88,8 +90,8 @@ def init_dir() -> Tuple[dict, str, str]:
 
     try:
         setup_logger(os.path.join(repo_chat_dir, 'error.log'))
-        git_ignore(repo_chat_dir, '*')
+        add_gitignore(repo_chat_dir, '*')
     except Exception as exc:
-        click.echo(f"Error: Failed to setup logger or .gitignore: {exc}", err=True)
+        logger.error("Failed to setup logger or add .gitignore: %s", exc)
 
     return config_data, repo_chat_dir, user_chat_dir

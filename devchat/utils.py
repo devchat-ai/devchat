@@ -79,7 +79,7 @@ def find_root_dir() -> Tuple[Optional[str], Optional[str]]:
     return repo_dir, user_dir
 
 
-def git_ignore(target_dir: str, *ignore_entries: str) -> None:
+def add_gitignore(target_dir: str, *ignore_entries: str) -> None:
     gitignore_path = os.path.join(target_dir, '.gitignore')
 
     if os.path.exists(gitignore_path):

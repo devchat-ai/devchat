@@ -181,6 +181,14 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
     assert 'get_current_weather' in content
 
 
+def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
+    content = "What is the capital of France?"
+    result = runner.invoke(main, ['prompt', content])
+    assert result.exit_code == 0
+    assert check_format(result.output)
+    assert "Paris" in result.output
+
+
 def test_prompt_response_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     config_data = {
         'model': 'gpt-3.5-turbo',
