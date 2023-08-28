@@ -83,7 +83,7 @@ def test_list_files(tmp_path):
 
     # Test case 3: a path exists but has no files
     os.makedirs(os.path.join(tmp_path, 'org', 'd', 'e', 'f'), exist_ok=True)
-    assert namespace.list_files('d.e.f') == []
+    assert not namespace.list_files('d.e.f')
 
     # Test case 4: a path that exists in a later branch
     # Create a file in the 'sys' branch

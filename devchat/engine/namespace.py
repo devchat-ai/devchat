@@ -52,13 +52,13 @@ class Namespace:
         # If no file is found, return None
         return None
 
-    def list_files(self, name: str) -> Optional[List[str]]:
+    def list_files(self, name: str) -> List[str]:
         """
         :param name: The command name in the namespace.
         :return: The full paths of the files in the command directory.
         """
         if not self.is_valid_name(name):
-            return None
+            raise ValueError(f"Invalid name to list files: {name}")
         # Convert the dot-separated name to a path
         path = os.path.join(*name.split('.'))
         files = {}
@@ -70,21 +70,21 @@ class Namespace:
                 path_found = True
                 for file in os.listdir(full_path):
                     files[file] = os.path.join(full_path, file)
-        # If no existing path is found, return None
+        # If no existing path is found, raise an error
         if not path_found:
-            return None
+            raise ValueError(f"Path not found to list files: {name}")
         # If path is found but no files exist, return an empty list
         # Sort the files in alphabetical order before returning
         return sorted(files.values()) if files else []
 
-    def list_names(self, name: str = '', recursive: bool = False) -> Optional[List[str]]:
+    def list_names(self, name: str = '', recursive: bool = False) -> List[str]:
         """
         :param name: The command name in the namespace. Defaults to the root.
         :param recursive: Whether to list all descendant names or only child names.
-        :return: A list of all names under the given name, or None if the name is invalid.
+        :return: A list of all names under the given name.
         """
         if not self.is_valid_name(name):
-            return None
+            raise ValueError(f"Invalid name to list names: {name}")
         commands = set()
         path = os.path.join(*name.split('.'))
         found = False
@@ -95,7 +95,9 @@ class Namespace:
                 self._add_dirnames_to_commands(full_path, name, commands)
                 if recursive:
                     self._add_recursive_dirnames_to_commands(full_path, name, commands)
-        return sorted(commands) if found else None
+        if not found:
+            raise ValueError(f"Path not found to list names: {name}")
+        return sorted(commands)
 
     def _add_dirnames_to_commands(self, full_path: str, name: str, commands: set):
         for dirname in os.listdir(full_path):

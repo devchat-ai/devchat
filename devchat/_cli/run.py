@@ -16,9 +16,9 @@ logger = get_logger(__name__)
               help='List all commands in JSON format.')
 @click.option('--recursive', '-r', 'recursive_flag', is_flag=True, default=True,
               help='List all commands recursively.')
-def run(command: str, list_flag: bool, recursive_flag: bool):  
+def run(command: str, list_flag: bool, recursive_flag: bool):
     """
-    Operate workflow engine of DevChat.
+    Operate the workflow engine of DevChat.
     """
     _, _, user_chat_dir = init_dir()
     with handle_errors():
@@ -33,9 +33,8 @@ def run(command: str, list_flag: bool, recursive_flag: bool):
         commander = CommandParser(namespace)
 
         if list_flag:
-            names = namespace.list_names(command, recursive_flag)
             commands = []
-            for name in names:
+            for name in namespace.list_names(command, recursive_flag):
                 cmd = commander.parse(name)
                 if not cmd:
                     logger.warning("Existing command directory failed to parse: %s", name)
