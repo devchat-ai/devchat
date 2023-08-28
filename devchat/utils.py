@@ -41,25 +41,45 @@ def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Log
     return local_logger
 
 
-def find_root_dir() -> Optional[str]:
+def find_root_dir() -> Tuple[Optional[str], Optional[str]]:
+    """
+    Find the root directory of the repository and the user's home directory
+    """
     try:
-        result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                                capture_output=True, text=True, check=True, encoding='utf-8')
-        return result.stdout.strip()
+        user_dir = os.path.expanduser("~")
+        if not os.path.isdir(user_dir):
+            user_dir = None
     except Exception:
-        try:
-            result = subprocess.run(["svn", "info"],
-                                    capture_output=True, text=True, check=True, encoding='utf-8')
-            if result.returncode == 0:
-                for line in result.stdout.splitlines():
-                    if line.startswith("Working Copy Root Path: "):
-                        return line.split("Working Copy Root Path: ", 1)[1].strip()
-        except Exception:
-            return os.path.expanduser("~")
-    return None
+        user_dir = None
+
+    repo_dir = None
+    try:
+        repo_dir = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                                  capture_output=True, text=True, check=True,
+                                  encoding='utf-8').stdout.strip()
+        if not os.path.isdir(repo_dir):
+            repo_dir = None
+        else:
+            return repo_dir, user_dir
+    except Exception:
+        repo_dir = None
+
+    try:
+        result = subprocess.run(["svn", "info"],
+                                capture_output=True, text=True, check=True, encoding='utf-8')
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if line.startswith("Working Copy Root Path: "):
+                    repo_dir = line.split("Working Copy Root Path: ", 1)[1].strip()
+                    if os.path.isdir(repo_dir):
+                        return repo_dir, user_dir
+    except Exception:
+        repo_dir = None
+
+    return repo_dir, user_dir
 
 
-def git_ignore(target_dir: str, *ignore_entries: str) -> None:
+def add_gitignore(target_dir: str, *ignore_entries: str) -> None:
     gitignore_path = os.path.join(target_dir, '.gitignore')
 
     if os.path.exists(gitignore_path):

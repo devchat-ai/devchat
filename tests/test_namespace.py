@@ -1,4 +1,5 @@
 import os
+import pytest
 from devchat.engine import Namespace
 
 
@@ -79,11 +80,12 @@ def test_list_files(tmp_path):
     assert namespace.list_files('a.b.c') == [file_path]
 
     # Test case 2: a path that doesn't exist
-    assert namespace.list_files('d.e.f') is None
+    with pytest.raises(ValueError):
+        namespace.list_files('d.e.f')
 
     # Test case 3: a path exists but has no files
     os.makedirs(os.path.join(tmp_path, 'org', 'd', 'e', 'f'), exist_ok=True)
-    assert namespace.list_files('d.e.f') == []
+    assert not namespace.list_files('d.e.f')
 
     # Test case 4: a path that exists in a later branch
     # Create a file in the 'sys' branch
@@ -123,8 +125,8 @@ def test_list_names(tmp_path):
     assert commands == ['a.b', 'a.b.c', 'a.b.d', 'a.e']
 
     # Test listing commands of an invalid name
-    commands = namespace.list_names('b')
-    assert commands is None
+    with pytest.raises(ValueError):
+        namespace.list_names('b')
 
     # Test listing commands when there are no commands
     commands = namespace.list_names('a.e')

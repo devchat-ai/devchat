@@ -18,8 +18,7 @@ from devchat._cli.utils import handle_errors, init_dir
               help='Add one or more files to the prompt as instructions.')
 @click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@click.option('-m', '--model', help='Specify the model to temporarily use for the prompt '
-              '(prefer to modify .chat/config.json).')
+@click.option('-m', '--model', help='Specify the model to temporarily use for the prompt.')
 @click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the configuration for this prompt.')
 @click.option('-f', '--functions', type=click.Path(exists=True),
@@ -51,9 +50,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     Configuration
     -------------
 
-    DevChat CLI reads its configuration from `.chat/config.json`
-    in your current Git or SVN root directory.
-    If the file is not found, it uses the following default configuration:
+    DevChat CLI reads configuration from `~/.chat/config.json`
+    (if `~/.chat` is not accessible, it will try `.chat` in your current Git or SVN root directory).
+    Otherwise, it uses the following default configuration:
     ```json
     {
         "model": "gpt-4",
@@ -74,7 +73,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```
 
     """
-    config, chat_dir = init_dir()
+    config, repo_chat_dir, _ = init_dir()
 
     with handle_errors():
         if content is None:
@@ -99,7 +98,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
                                              **config['OpenAI'])
 
             chat = OpenAIChat(openai_config)
-            store = Store(chat_dir, chat)
+            store = Store(repo_chat_dir, chat)
 
             assistant = Assistant(chat, store)
             if 'tokens-per-prompt' in config:
