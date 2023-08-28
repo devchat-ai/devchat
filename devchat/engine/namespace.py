@@ -108,14 +108,14 @@ class Namespace:
                 commands.add(command_name)
 
     def _add_recursive_dirnames_to_commands(self, full_path: str, name: str, commands: set):
-        for dirpath, dirnames, _ in os.walk(full_path):
-            for dirname in dirnames:
-                if dirname.startswith('.'):
-                    continue
-                relative_path = os.path.relpath(dirpath, full_path).replace(os.sep, '.')
-                if relative_path != '.':
-                    command_name = ('.'.join([name, relative_path, dirname])
-                                    if name else '.'.join([relative_path, dirname]))
-                else:
-                    command_name = '.'.join([name, dirname]) if name else dirname
+        self._recursive_dir_walk(full_path, name, commands)
+
+    def _recursive_dir_walk(self, full_path: str, name: str, commands: set):
+        for dirname in os.listdir(full_path):
+            if dirname.startswith('.'):
+                continue
+            dir_path = os.path.join(full_path, dirname)
+            if os.path.isdir(dir_path):
+                command_name = '.'.join([name, dirname]) if name else dirname
                 commands.add(command_name)
+                self._recursive_dir_walk(dir_path, command_name, commands)
