@@ -13,9 +13,9 @@ logger = get_logger(__name__)
     help="The 'command' argument is the name of the command to run or get information about.")
 @click.argument('command', required=False, default='')
 @click.option('--list', 'list_flag', is_flag=True, default=False,
-              help='List all commands in JSON format.')
+              help='List all specified commands in JSON format.')
 @click.option('--recursive', '-r', 'recursive_flag', is_flag=True, default=True,
-              help='List all commands recursively.')
+              help='List commands recursively.')
 def run(command: str, list_flag: bool, recursive_flag: bool):
     """
     Operate the workflow engine of DevChat.
