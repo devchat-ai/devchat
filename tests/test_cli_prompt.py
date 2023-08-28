@@ -155,7 +155,7 @@ def test_prompt_log_compatibility():
     # uninstall old devchat
     # install new devchat
     # run topic -l, expect topic list
-    # run prompt -f ./.chat/functions.json "list files in porject", expect function call return
+    # run prompt -f ~/.chat/functions.json "list files in porject", expect function call return
     # run topic -l, expect function call in topic list
     assert True
 
@@ -181,7 +181,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
     assert 'get_current_weather' in content
 
 
-def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W0613
+def test_prompt_response_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     config_data = {
         'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',
@@ -191,9 +191,8 @@ def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W061
         }
     }
 
-    chat_dir = os.path.join(git_repo, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
+    chat_dir = os.path.join(mock_home_dir, ".chat")
+    os.makedirs(chat_dir)
     temp_config_path = os.path.join(chat_dir, "config.json")
 
     with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
@@ -208,7 +207,7 @@ def test_prompt_response_tokens_exceed_config(git_repo):  # pylint: disable=W061
     assert "beyond limit" in result.output
 
 
-def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # pylint: disable=W0613
+def test_prompt_response_tokens_exceed_config_with_file(mock_home_dir, tmpdir):  # pylint: disable=W0613
     config_data = {
         'model': 'gpt-3.5-turbo',
         'provider': 'OpenAI',
@@ -218,9 +217,8 @@ def test_prompt_response_tokens_exceed_config_with_file(git_repo, tmpdir):  # py
         }
     }
 
-    chat_dir = os.path.join(git_repo, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
+    chat_dir = os.path.join(mock_home_dir, ".chat")
+    os.makedirs(chat_dir)
     temp_config_path = os.path.join(chat_dir, "config.json")
 
     with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:

@@ -18,14 +18,14 @@ def topic(list_topics: bool, skip: int, max_count: int):
     """
     Manage topics.
     """
-    config, chat_dir = init_dir()
+    config, repo_chat_dir, _ = init_dir()
 
     with handle_errors():
         provider = config.get('provider')
         if provider == 'OpenAI':
             openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
             chat = OpenAIChat(openai_config)
-            store = Store(chat_dir, chat)
+            store = Store(repo_chat_dir, chat)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
             sys.exit(1)

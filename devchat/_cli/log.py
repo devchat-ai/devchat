@@ -23,14 +23,14 @@ def log(skip, max_count, topic_root, delete):
         click.echo("Error: The --delete option cannot be used with other options.", err=True)
         sys.exit(1)
 
-    config, chat_dir = init_dir()
+    config, repo_chat_dir, _ = init_dir()
 
     with handle_errors():
         provider = config.get('provider')
         if provider == 'OpenAI':
             openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
             chat = OpenAIChat(openai_config)
-            store = Store(chat_dir, chat)
+            store = Store(repo_chat_dir, chat)
         else:
             click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
             sys.exit(1)
