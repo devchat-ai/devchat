@@ -21,6 +21,18 @@ class CommandParser:
     def __init__(self, namespace: Namespace):
         self.namespace = namespace
 
+    def parse(self, name: str) -> Command:
+        """
+        Parse a command configuration file to JSON.
+
+        :param name: The command name in the namespace.
+        :return: The JSON representation of the command.
+        """
+        file_path = self.namespace.get_file(name, 'command.yml')
+        if not file_path:
+            return None
+        return parse_command(file_path)
+
     def parse_json(self, name: str) -> str:
         """
         Parse a command configuration file to JSON.

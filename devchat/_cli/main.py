@@ -6,6 +6,7 @@ import rich_click as click
 from devchat.utils import get_logger
 from devchat._cli import log
 from devchat._cli import prompt
+from devchat._cli import run
 from devchat._cli import topic
 
 logger = get_logger(__name__)
@@ -21,4 +22,5 @@ def main():
 
 main.add_command(prompt)
 main.add_command(log)
+main.add_command(run)
 main.add_command(topic)

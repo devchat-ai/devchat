@@ -80,15 +80,6 @@ def init_dir() -> Tuple[dict, str, str]:
         config_data = default_config_data
 
     try:
-        workflows_dir = os.path.join(user_chat_dir, 'workflows')
-        if not os.path.exists(workflows_dir):
-            os.makedirs(workflows_dir)
-    except Exception:
-        click.echo(f"Error: Failed to create {workflows_dir}", err=True)
-    if not os.path.isdir(workflows_dir):
-        sys.exit(1)
-
-    try:
         setup_logger(os.path.join(repo_chat_dir, 'error.log'))
         add_gitignore(repo_chat_dir, '*')
     except Exception as exc:
