@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "devchat"
-version = "0.2.2"
+version = "0.2.3"
 description = "DevChat is an open-source tool that helps developers write prompts to generate code and documentation."
 authors = ["DevChat Team <hello@devchat.ai>"]
 license = "Apache License 2.0"

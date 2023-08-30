@@ -193,6 +193,18 @@ def update_dict(dict_to_update, key, value) -> dict:
     return dict_to_update
 
 
+def _count_tokens(encoding: tiktoken.Encoding, string: str) -> int:
+    """
+    Count the number of tokens in a string.
+    """
+    try:
+        return len(encoding.encode(string))
+    except Exception:
+        word_count = len(re.findall(r'\w+', string))
+        # Note: This is a rough estimate and may not be accurate
+        return int(word_count / 0.75)
+
+
 def openai_message_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
     try:
@@ -212,7 +224,7 @@ def openai_message_tokens(message: dict, model: str) -> int:
         if key == 'function_call':
             value = json.dumps(value)
         if value:
-            num_tokens += len(encoding.encode(value))
+            num_tokens += _count_tokens(encoding, value)
         if key == "name":
             num_tokens += tokens_per_name
     return num_tokens
