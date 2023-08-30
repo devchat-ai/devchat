@@ -96,7 +96,7 @@ class Namespace:
                 if recursive:
                     self._add_recursive_dirnames_to_commands(full_path, name, commands)
         if not found:
-            raise ValueError(f"Path not found to list names: {name}")
+            raise ValueError(f"Path not found to list names: '{name}'")
         return sorted(commands)
 
     def _add_dirnames_to_commands(self, full_path: str, name: str, commands: set):

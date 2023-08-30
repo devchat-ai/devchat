@@ -2,7 +2,8 @@ from contextlib import contextmanager
 import json
 import os
 import sys
-from typing import Tuple
+from typing import Tuple, List
+from git import Repo, InvalidGitRepositoryError, GitCommandError
 import rich_click as click
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
@@ -86,3 +87,39 @@ def init_dir() -> Tuple[dict, str, str]:
         logger.error("Failed to setup logger or add .gitignore: %s", exc)
 
     return config_data, repo_chat_dir, user_chat_dir
+
+
+def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:
+    """
+    Check if a directory is a valid Git repository and if its URL is in a list of valid URLs.
+
+    :param target_dir: The path of the directory to check.
+    :param valid_urls: A list of valid Git repository URLs.
+    :return: True if the directory is a valid Git repository with a valid URL, False otherwise.
+    """
+    try:
+        repo = Repo(target_dir)
+        repo_url = next(repo.remote().urls)
+        return repo_url in valid_urls
+    except InvalidGitRepositoryError:
+        logger.exception("Not a valid Git repository: %s", target_dir)
+        return False
+
+
+def clone_git_repo(target_dir: str, repo_urls: List[str]):
+    """
+    Clone a Git repository from a list of possible URLs.
+
+    :param target_dir: The path where the repository should be cloned.
+    :param repo_urls: A list of possible Git repository URLs.
+    """
+    for url in repo_urls:
+        try:
+            click.echo(f"Cloning repository {url} to {target_dir}")
+            Repo.clone_from(url, target_dir)
+            click.echo("Cloned successfully")
+            return
+        except GitCommandError:
+            logger.exception("Failed to clone repository %s to %s", url, target_dir)
+            continue
+    raise GitCommandError(f"Failed to clone repository to {target_dir}")
