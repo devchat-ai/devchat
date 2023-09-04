@@ -2,13 +2,13 @@ import os
 from typing import List, Optional
 from pydantic import BaseModel
 import yaml
-from devchat.openai import OpenAIChatConfig
+from devchat.openai import OpenAIChatParameters
 
 
 class ModelConfig(BaseModel):
     id: str
     max_input_tokens: Optional[int]
-    parameters: Optional[OpenAIChatConfig]
+    parameters: Optional[OpenAIChatParameters]
 
 
 class ChatConfig(BaseModel):
@@ -27,17 +27,17 @@ class ConfigManager:
             ModelConfig(
                 id="gpt-4",
                 max_input_tokens=6000,
-                parameters=OpenAIChatConfig(model="TO_REMOVE", temperature=0, stream=True)
+                parameters=OpenAIChatParameters(temperature=0, stream=True)
             ),
             ModelConfig(
                 id="gpt-3.5-turbo-16k",
                 max_input_tokens=12000,
-                parameters=OpenAIChatConfig(model="TO_REMOVE", temperature=0, stream=True)
+                parameters=OpenAIChatParameters(temperature=0, stream=True)
             ),
             ModelConfig(
                 id="gpt-3.5-turbo",
                 max_input_tokens=3000,
-                parameters=OpenAIChatConfig(model="TO_REMOVE", temperature=0, stream=True)
+                parameters=OpenAIChatParameters(temperature=0, stream=True)
             )
         ])
         with open(self.config_path, 'w', encoding='utf-8') as file:
@@ -68,5 +68,5 @@ class ConfigManager:
             updated_parameters = model.parameters.dict()
             updated_parameters.update(
                 {k: v for k, v in model_config.parameters.dict().items() if v is not None})
-            model.parameters = OpenAIChatConfig(**updated_parameters)
+            model.parameters = OpenAIChatParameters(**updated_parameters)
         return model

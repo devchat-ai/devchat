@@ -7,11 +7,7 @@ from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
 
-class OpenAIChatConfig(BaseModel):
-    """
-    Configuration object for the OpenAIChat class.
-    """
-    model: str
+class OpenAIChatParameters(BaseModel):
     temperature: Optional[float] = Field(0, ge=0, le=2)
     top_p: Optional[float] = Field(None, ge=0, le=1)
     n: Optional[int] = Field(None, ge=1)
@@ -29,6 +25,13 @@ class OpenAIChatConfig(BaseModel):
         Configuration class to forbid extra fields in the model.
         """
         extra = Extra.forbid
+
+
+class OpenAIChatConfig(OpenAIChatParameters):
+    """
+    Configuration object for the OpenAIChat APIs.
+    """
+    model: str
 
 
 class OpenAIChat(Chat):
