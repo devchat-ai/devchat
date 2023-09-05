@@ -66,10 +66,7 @@ class OpenAIChat(Chat):
 
     def complete_response(self, prompt: OpenAIPrompt) -> str:
         # Filter the config parameters with non-None values
-        config_params = {
-            key: value
-            for key, value in self.config.dict().items() if value is not None
-        }
+        config_params = self.config.dict(exclude_none=True).items()
         if prompt.get_functions():
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
@@ -83,10 +80,7 @@ class OpenAIChat(Chat):
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
         # Filter the config parameters with non-None values
-        config_params = {
-            key: value
-            for key, value in self.config.dict().items() if value is not None
-        }
+        config_params = self.config.dict(exclude_none=True)
         if prompt.get_functions():
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'

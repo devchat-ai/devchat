@@ -61,7 +61,7 @@ def test_parse_command():
 
 def test_command_parser(tmp_path):
     # Create a Namespace instance with the temporary directory as the root path
-    namespace = Namespace(str(tmp_path))
+    namespace = Namespace(tmp_path)
     command_parser = CommandParser(namespace)
 
     # Test with a valid configuration file with most fields filled

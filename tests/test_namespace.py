@@ -32,7 +32,7 @@ def test_is_valid_name():
 
 def test_get_file(tmp_path):
     # Create a Namespace instance with the temporary directory as the root path
-    namespace = Namespace(str(tmp_path))
+    namespace = Namespace(tmp_path)
 
     # Test case 1: a file that exists
     # Create a file in the 'usr' branch
@@ -69,7 +69,7 @@ def test_get_file(tmp_path):
 
 def test_list_files(tmp_path):
     # Create a Namespace instance with the temporary directory as the root path
-    namespace = Namespace(str(tmp_path))
+    namespace = Namespace(tmp_path)
 
     # Test case 1: a path that exists
     # Create a file in the 'usr' branch
@@ -114,7 +114,7 @@ def test_list_names(tmp_path):
     os.makedirs(os.path.join(tmp_path, 'org', 'a', 'b', 'd'))
     os.makedirs(os.path.join(tmp_path, 'sys', 'a', 'e'))
 
-    namespace = Namespace(str(tmp_path))
+    namespace = Namespace(tmp_path)
 
     # Test listing child commands
     commands = namespace.list_names('a')

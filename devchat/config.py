@@ -41,7 +41,7 @@ class ConfigManager:
             )
         ])
         with open(self.config_path, 'w', encoding='utf-8') as file:
-            yaml.dump(sample_config.dict(), file)
+            yaml.dump(sample_config.dict(exclude_none=True), file)
 
     def _load_and_validate_config(self) -> ChatConfig:
         with open(self.config_path, 'r', encoding='utf-8') as file:
@@ -65,8 +65,7 @@ class ConfigManager:
         if model_config.max_input_tokens is not None:
             model.max_input_tokens = model_config.max_input_tokens
         if model_config.parameters is not None:
-            updated_parameters = model.parameters.dict()
-            updated_parameters.update(
-                {k: v for k, v in model_config.parameters.dict().items() if v is not None})
+            updated_parameters = model.parameters.dict(exclude_none=True)
+            updated_parameters.update(model_config.parameters.dict(exclude_none=True))
             model.parameters = OpenAIChatParameters(**updated_parameters)
         return model
