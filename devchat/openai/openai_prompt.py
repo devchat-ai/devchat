@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-import math
+import sys
 from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
@@ -91,7 +91,7 @@ class OpenAIPrompt(Prompt):
                 logger.warning("Invalid user request: %s", last_user_message)
 
     def append_new(self, message_type: str, content: str,
-                   available_tokens: int = math.inf) -> bool:
+                   available_tokens: int = sys.maxsize) -> bool:
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         # New instructions and context are of the system role
@@ -105,7 +105,7 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def set_functions(self, functions, available_tokens: int = math.inf):
+    def set_functions(self, functions, available_tokens: int = sys.maxsize):
         num_tokens = openai_message_tokens({"functions": json.dumps(functions)}, self.model)
         if num_tokens > available_tokens:
             return False
@@ -118,7 +118,7 @@ class OpenAIPrompt(Prompt):
         return self._new_messages.get(Message.FUNCTION, None)
 
     def _prepend_history(self, message_type: str, message: Message,
-                         token_limit: int = math.inf) -> bool:
+                         token_limit: int = sys.maxsize) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
         num_tokens = openai_message_tokens(message.to_dict(), self.model)
@@ -128,7 +128,7 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def prepend_history(self, prompt: 'OpenAIPrompt', token_limit: int = math.inf) -> bool:
+    def prepend_history(self, prompt: 'OpenAIPrompt', token_limit: int = sys.maxsize) -> bool:
         # Prepend the first response and the request of the prompt
         if not self._prepend_history(Message.CHAT, prompt.responses[0], token_limit):
             return False
