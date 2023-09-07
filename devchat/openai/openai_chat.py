@@ -1,5 +1,5 @@
 from typing import Optional, Union, List, Dict, Iterator
-from pydantic import BaseModel, Field, Extra
+from pydantic import BaseModel, Field
 import openai
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
@@ -7,7 +7,7 @@ from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
 
-class OpenAIChatParameters(BaseModel):
+class OpenAIChatParameters(BaseModel, extra='forbid'):
     temperature: Optional[float] = Field(0, ge=0, le=2)
     top_p: Optional[float] = Field(None, ge=0, le=1)
     n: Optional[int] = Field(None, ge=1)
@@ -19,12 +19,6 @@ class OpenAIChatParameters(BaseModel):
     logit_bias: Optional[Dict[int, float]] = Field(None)
     user: Optional[str] = Field(None)
     request_timeout: Optional[int] = Field(32, ge=3)
-
-    class Config:
-        """
-        Configuration class to forbid extra fields in the model.
-        """
-        extra = Extra.forbid
 
 
 class OpenAIChatConfig(OpenAIChatParameters):
