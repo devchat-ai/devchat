@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 import hashlib
-import math
+import sys
 from typing import Dict, List
 from devchat.message import Message
 from devchat.utils import unix_to_local_datetime, get_logger, user_id
@@ -122,7 +122,7 @@ class Prompt(ABC):
 
     @abstractmethod
     def append_new(self, message_type: str, content: str,
-                   available_tokens: int = math.inf) -> bool:
+                   available_tokens: int = sys.maxsize) -> bool:
         """
         Append a new message provided by the user to this prompt.
 
@@ -136,7 +136,7 @@ class Prompt(ABC):
         """
 
     @abstractmethod
-    def prepend_history(self, prompt: "Prompt", token_limit: int = math.inf) -> bool:
+    def prepend_history(self, prompt: "Prompt", token_limit: int = sys.maxsize) -> bool:
         """
         Add the prompt to the beginning of the history messages.
 

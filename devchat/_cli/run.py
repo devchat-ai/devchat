@@ -25,7 +25,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
     """
     Operate the workflow engine of DevChat.
     """
-    _, _, user_chat_dir = init_dir()
+    _, user_chat_dir = init_dir()
     with handle_errors():
         workflows_dir = os.path.join(user_chat_dir, 'workflows')
         if not os.path.exists(workflows_dir):

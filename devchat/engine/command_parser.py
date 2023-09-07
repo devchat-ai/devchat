@@ -4,14 +4,14 @@ from pydantic import BaseModel
 from .namespace import Namespace
 
 
-class Parameter(BaseModel):
+class Parameter(BaseModel, extra='forbid'):
     type: str
     description: Optional[str]
     enum: Optional[List[str]]
     default: Optional[str]
 
 
-class Command(BaseModel):
+class Command(BaseModel, extra='forbid'):
     description: str
     parameters: Optional[Dict[str, Parameter]]
     steps: Optional[List[Dict[str, str]]]

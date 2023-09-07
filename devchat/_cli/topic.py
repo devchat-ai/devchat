@@ -1,10 +1,9 @@
 import json
-import sys
 import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.utils import get_logger
-from devchat._cli.utils import init_dir, handle_errors
+from devchat._cli.utils import init_dir, handle_errors, model_config
 
 logger = get_logger(__name__)
 
@@ -18,17 +17,15 @@ def topic(list_topics: bool, skip: int, max_count: int):
     """
     Manage topics.
     """
-    config, repo_chat_dir, _ = init_dir()
+    repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
-        provider = config.get('provider')
-        if provider == 'OpenAI':
-            openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
-            chat = OpenAIChat(openai_config)
-            store = Store(repo_chat_dir, chat)
-        else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(1)
+        config = model_config(repo_chat_dir, user_chat_dir)
+
+        openai_config = OpenAIChatConfig(model=config.id,
+                                         **config.parameters.dict(exclude_unset=True))
+        chat = OpenAIChat(openai_config)
+        store = Store(repo_chat_dir, chat)
 
         if list_topics:
             topics = store.select_topics(skip, skip + max_count)

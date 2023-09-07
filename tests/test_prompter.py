@@ -3,7 +3,7 @@ from devchat.engine import Namespace, RecursivePrompter
 
 
 def test_prompter(tmp_path):
-    namespace = Namespace(str(tmp_path))
+    namespace = Namespace(tmp_path)
     prompter = RecursivePrompter(namespace)
 
     # Test when there are no 'prompt.txt' files

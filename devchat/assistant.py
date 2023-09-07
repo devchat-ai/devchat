@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 
 class Assistant:
-    def __init__(self, chat: Chat, store: Store):
+    def __init__(self, chat: Chat, store: Store, max_prompt_tokens: int):
         """
         Initializes an Assistant object.
 
@@ -19,7 +19,7 @@ class Assistant:
         self._chat = chat
         self._store = store
         self._prompt = None
-        self.token_limit = 3000
+        self.token_limit = max_prompt_tokens
 
     @property
     def available_tokens(self) -> int:
