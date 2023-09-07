@@ -4,7 +4,7 @@ import rich_click as click
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 from devchat.utils import get_logger
-from devchat._cli.utils import handle_errors, init_dir
+from devchat._cli.utils import handle_errors, init_dir, model_config
 
 logger = get_logger(__name__)
 
@@ -23,17 +23,14 @@ def log(skip, max_count, topic_root, delete):
         click.echo("Error: The --delete option cannot be used with other options.", err=True)
         sys.exit(1)
 
-    config, repo_chat_dir, _ = init_dir()
+    repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
-        provider = config.get('provider')
-        if provider == 'OpenAI':
-            openai_config = OpenAIChatConfig(model=config['model'], **config['OpenAI'])
-            chat = OpenAIChat(openai_config)
-            store = Store(repo_chat_dir, chat)
-        else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(1)
+        config = model_config(repo_chat_dir, user_chat_dir)
+        openai_config = OpenAIChatConfig(model=config.id,
+                                         **config.parameters.dict(exclude_unset=True))
+        chat = OpenAIChat(openai_config)
+        store = Store(repo_chat_dir, chat)
 
         if delete:
             success = store.delete_prompt(delete)

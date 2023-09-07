@@ -1,10 +1,10 @@
 from contextlib import contextmanager
-import json
 import os
 import sys
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import rich_click as click
+from devchat.config import ConfigManager, ModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
 logger = get_logger(__name__)
@@ -23,12 +23,11 @@ def handle_errors():
         sys.exit(1)
 
 
-def init_dir() -> Tuple[dict, str, str]:
+def init_dir() -> Tuple[str, str]:
     """
-    Initialize the chat directory.
+    Initialize the chat directories.
 
     Returns:
-        config_data: The configuration data.
         repo_chat_dir: The chat directory in the repository.
         user_chat_dir: The chat directory in the user's home.
     """
@@ -64,29 +63,13 @@ def init_dir() -> Tuple[dict, str, str]:
         click.echo(f"Error: Failed to create {repo_chat_dir} and {user_chat_dir}", err=True)
         sys.exit(1)
 
-    default_config_data = {
-        "model": "gpt-4",
-        "tokens-per-prompt": 6000,
-        "provider": "OpenAI",
-        "OpenAI": {
-            "temperature": 0,
-            "stream": True
-        }
-    }
-
-    try:
-        with open(os.path.join(user_chat_dir, 'config.json'), 'r', encoding='utf-8') as file:
-            config_data = json.load(file)
-    except Exception:
-        config_data = default_config_data
-
     try:
         setup_logger(os.path.join(repo_chat_dir, 'error.log'))
         add_gitignore(repo_chat_dir, '*')
     except Exception as exc:
         logger.error("Failed to setup logger or add .gitignore: %s", exc)
 
-    return config_data, repo_chat_dir, user_chat_dir
+    return repo_chat_dir, user_chat_dir
 
 
 def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:
@@ -123,3 +106,13 @@ def clone_git_repo(target_dir: str, repo_urls: List[str]):
             logger.exception("Failed to clone repository %s to %s", url, target_dir)
             continue
     raise GitCommandError(f"Failed to clone repository to {target_dir}")
+
+
+def model_config(repo_chat_dir: str, user_chat_dir: str,
+                 model: Optional[str] = None) -> ModelConfig:
+    legacy_path = os.path.join(repo_chat_dir, 'config.json')
+    if os.path.exists(legacy_path):
+        os.rename(legacy_path, legacy_path + '.old')
+
+    config = ConfigManager(user_chat_dir)
+    return config.get_model_config(model)

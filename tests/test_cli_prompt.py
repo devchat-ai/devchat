@@ -17,28 +17,27 @@ def test_prompt_no_args(git_repo):  # pylint: disable=W0613
 def test_prompt_with_content(git_repo):  # pylint: disable=W0613
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
+    print(result.output)
     assert result.exit_code == 0
     assert check_format(result.output)
     assert "Paris" in result.output
 
 
-def test_prompt_with_temp_config_file(git_repo):
-    config_data = {
-        'model': 'gpt-3.5-turbo',
-        'provider': 'OpenAI',
-        'tokens-per-prompt': 3000,
-        'OpenAI': {
-            'temperature': 0
-        }
-    }
+def test_prompt_with_temp_config_file(mock_home_dir):
+    config_data = """
+    models:
+      - id: gpt-3.5-turbo
+        max_input_tokens: 3000
+        parameters:
+          temperature: 0
+    """
 
-    chat_dir = os.path.join(git_repo, ".chat")
-    if not os.path.exists(chat_dir):
-        os.makedirs(chat_dir)
-    temp_config_path = os.path.join(chat_dir, "config.json")
+    chat_dir = os.path.join(mock_home_dir, ".chat")
+    os.makedirs(chat_dir)
+    config_path = os.path.join(chat_dir, "config.yml")
 
-    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
-        json.dump(config_data, temp_config_file)
+    with open(config_path, "w", encoding='utf-8') as config_file:
+        config_file.write(config_data)
 
     content = "What is the capital of Spain?"
     result = runner.invoke(main, ['prompt', content])
@@ -189,53 +188,54 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
     assert "Paris" in result.output
 
 
-def test_prompt_response_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
-    config_data = {
-        'model': 'gpt-3.5-turbo',
-        'provider': 'OpenAI',
-        'tokens-per-prompt': 2000,
-        'OpenAI': {
-            'temperature': 0
-        }
-    }
+def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
+    model = "gpt-3.5-turbo"
+    max_input_tokens = 2000
+    config_data = f"""
+    models:
+      - id: {model}
+        max_input_tokens: {max_input_tokens}
+        parameters:
+          temperature: 0
+    """
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
-    temp_config_path = os.path.join(chat_dir, "config.json")
+    config_path = os.path.join(chat_dir, "config.yml")
 
-    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
-        json.dump(config_data, temp_config_file)
+    with open(config_path, "w", encoding='utf-8') as config_file:
+        config_file.write(config_data)
 
     content = ""
-    while openai_response_tokens({"content": content}, config_data["model"]) \
-            < config_data["tokens-per-prompt"]:
+    while openai_response_tokens({"content": content}, model) < max_input_tokens:
         content += "This is a test. Ignore what I say.\n"
     result = runner.invoke(main, ['prompt', content])
+    print(result.output)
     assert result.exit_code != 0
     assert "beyond limit" in result.output
 
 
-def test_prompt_response_tokens_exceed_config_with_file(mock_home_dir, tmpdir):  # pylint: disable=W0613
-    config_data = {
-        'model': 'gpt-3.5-turbo',
-        'provider': 'OpenAI',
-        'tokens-per-prompt': 2000,
-        'OpenAI': {
-            'temperature': 0
-        }
-    }
+def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
+    model = "gpt-3.5-turbo"
+    max_input_tokens = 2000
+    config_data = f"""
+    models:
+      - id: {model}
+        max_input_tokens: {max_input_tokens}
+        parameters:
+          temperature: 0
+    """
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
-    temp_config_path = os.path.join(chat_dir, "config.json")
+    config_path = os.path.join(chat_dir, "config.yml")
 
-    with open(temp_config_path, "w", encoding='utf-8') as temp_config_file:
-        json.dump(config_data, temp_config_file)
+    with open(config_path, "w", encoding='utf-8') as config_file:
+        config_file.write(config_data)
 
     content_file = tmpdir.join("content.txt")
     content = ""
-    while openai_response_tokens({"content": content}, config_data["model"]) < \
-            config_data["tokens-per-prompt"]:
+    while openai_response_tokens({"content": content}, model) < max_input_tokens:
         content += "This is a test. Ignore what I say.\n"
     content_file.write(content)
 

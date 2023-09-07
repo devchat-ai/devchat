@@ -1,12 +1,11 @@
 import json
-import sys
 from typing import List, Optional
 import rich_click as click
 from devchat.assistant import Assistant
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 from devchat.utils import parse_files
-from devchat._cli.utils import handle_errors, init_dir
+from devchat._cli.utils import handle_errors, init_dir, model_config
 
 
 @click.command()
@@ -18,9 +17,9 @@ from devchat._cli.utils import handle_errors, init_dir
               help='Add one or more files to the prompt as instructions.')
 @click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@click.option('-m', '--model', help='Specify the model to temporarily use for the prompt.')
+@click.option('-m', '--model', help='Specify the model to use for the prompt.')
 @click.option('--config', 'config_str',
-              help='Specify a JSON string to overwrite the configuration for this prompt.')
+              help='Specify a JSON string to overwrite the default configuration for this prompt.')
 @click.option('-f', '--functions', type=click.Path(exists=True),
               help='Path to a JSON file with functions for the prompt.')
 @click.option('-n', '--function-name',
@@ -53,16 +52,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     DevChat CLI reads configuration from `~/.chat/config.json`
     (if `~/.chat` is not accessible, it will try `.chat` in your current Git or SVN root directory).
     Otherwise, it uses the following default configuration:
-    ```json
-    {
-        "model": "gpt-4",
-        "tokens-per-prompt": 6000,
-        "provider": "OpenAI",
-        "OpenAI": {
-            "temperature": 0,
-            "stream": true
-        }
-    }
+    ```yaml
+    model: gpt-4
+    max_input_tokens: 6000
+    parameters:
+      temperature: 0
     ```
 
     Note: To use OpenAI's APIs, you must have an API key to run the CLI.
@@ -73,7 +67,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```
 
     """
-    config, repo_chat_dir, _ = init_dir()
+    repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
         if content is None:
@@ -85,35 +79,30 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        provider = config.get('provider')
-        if provider == 'OpenAI':
-            if model is None:
-                model = config['model']
+        config = model_config(repo_chat_dir, user_chat_dir, model)
+        if not model:
+            model = config.id
 
-            if config_str is not None:
-                config_json = json.loads(config_str)
-                config['OpenAI'].update(config_json)
+        parameters_data = config.parameters.dict(exclude_unset=True)
+        if config_str:
+            config_data = json.loads(config_str)
+            parameters_data.update(config_data)
 
-            openai_config = OpenAIChatConfig(model=model,
-                                             **config['OpenAI'])
+        openai_config = OpenAIChatConfig(model=model,
+                                         **parameters_data)
 
-            chat = OpenAIChat(openai_config)
-            store = Store(repo_chat_dir, chat)
+        chat = OpenAIChat(openai_config)
+        store = Store(repo_chat_dir, chat)
 
-            assistant = Assistant(chat, store)
-            if 'tokens-per-prompt' in config:
-                assistant.token_limit = config['tokens-per-prompt']
+        assistant = Assistant(chat, store, config.max_input_tokens)
 
-            functions_data = None
-            if functions is not None:
-                with open(functions, 'r', encoding="utf-8") as f_file:
-                    functions_data = json.load(f_file)
-            assistant.make_prompt(content, instruct_contents, context_contents, functions_data,
-                                  parent=parent, references=reference,
-                                  function_name=function_name)
+        functions_data = None
+        if functions is not None:
+            with open(functions, 'r', encoding="utf-8") as f_file:
+                functions_data = json.load(f_file)
+        assistant.make_prompt(content, instruct_contents, context_contents, functions_data,
+                              parent=parent, references=reference,
+                              function_name=function_name)
 
-            for response in assistant.iterate_response():
-                click.echo(response, nl=False)
-        else:
-            click.echo(f"Error: Invalid LLM in configuration '{provider}'", err=True)
-            sys.exit(1)
+        for response in assistant.iterate_response():
+            click.echo(response, nl=False)

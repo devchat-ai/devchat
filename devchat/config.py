@@ -1,18 +1,19 @@
 import os
+import sys
 from typing import List, Optional
 from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
 
 
-class ModelConfig(BaseModel):
+class ModelConfig(BaseModel, extra='forbid'):
     id: str
-    max_input_tokens: Optional[int]
-    parameters: Optional[OpenAIChatParameters]
+    max_input_tokens: Optional[int] = sys.maxsize
+    parameters: Optional[OpenAIChatParameters] = OpenAIChatParameters()
 
 
-class ChatConfig(BaseModel):
-    models: Optional[List[ModelConfig]]
+class ChatConfig(BaseModel, extra='forbid'):
+    models: Optional[List[ModelConfig]] = []
 
 
 class ConfigManager:
