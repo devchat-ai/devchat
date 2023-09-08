@@ -29,6 +29,11 @@ def test_update_model_config(tmp_path):
         parameters=OpenAIChatParameters(temperature=0.5)
     )
     updated_model_config = config_manager.update_model_config(new_model_config)
+    assert updated_model_config == config_manager.get_model_config('gpt-4')
     assert updated_model_config.max_input_tokens == 7000
     assert updated_model_config.parameters.temperature == 0.5
     assert updated_model_config.parameters.stream is True
+
+    config_manager.sync()
+    fresh_config_manager = ConfigManager(tmp_path)
+    assert config_manager.config == fresh_config_manager.config
