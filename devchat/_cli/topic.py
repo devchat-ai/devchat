@@ -21,9 +21,8 @@ def topic(list_topics: bool, skip: int, max_count: int):
 
     with handle_errors():
         config = model_config(repo_chat_dir, user_chat_dir)
-
-        openai_config = OpenAIChatConfig(model=config.id,
-                                         **config.parameters.dict(exclude_unset=True))
+        parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
+        openai_config = OpenAIChatConfig(model=config.id, **parameters_data)
         chat = OpenAIChat(openai_config)
         store = Store(repo_chat_dir, chat)
 
