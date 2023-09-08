@@ -83,7 +83,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         if not model:
             model = config.id
 
-        parameters_data = config.parameters.dict(exclude_unset=True)
+        parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
         if config_str:
             config_data = json.loads(config_str)
             parameters_data.update(config_data)
