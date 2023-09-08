@@ -19,7 +19,7 @@ def handle_errors():
         # import traceback
         # traceback.print_exc()
         logger.exception(error)
-        click.echo(f"Error: {error}", err=True)
+        click.echo(f"{type(error).__name__}: {error}", err=True)
         sys.exit(1)
 
 
