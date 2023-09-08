@@ -2,6 +2,7 @@ import os
 import json
 import pytest
 from click.testing import CliRunner
+from devchat.config import ConfigManager, ModelConfig, OpenAIChatParameters
 from devchat._cli.main import main
 from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
@@ -24,12 +25,18 @@ def test_prompt_with_content(git_repo):  # pylint: disable=W0613
 
 
 def test_prompt_with_temp_config_file(mock_home_dir):
-    config_data = """
+    config_data = f"""
+    providers:
+      - id: openai
+        client_type: openai
+        client_config:
+          api_key: {os.environ['OPENAI_API_KEY']}
     models:
       - id: gpt-3.5-turbo
         max_input_tokens: 3000
         parameters:
           temperature: 0
+        provider_id: openai
     """
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
@@ -41,6 +48,7 @@ def test_prompt_with_temp_config_file(mock_home_dir):
 
     content = "What is the capital of Spain?"
     result = runner.invoke(main, ['prompt', content])
+    print(result.output)
     assert result.exit_code == 0
     assert check_format(result.output)
     assert "Madrid" in result.output
@@ -191,20 +199,18 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
 def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config_data = f"""
-    models:
-      - id: {model}
-        max_input_tokens: {max_input_tokens}
-        parameters:
-          temperature: 0
-    """
+    model_config = ModelConfig(
+        id=model,
+        max_input_tokens=max_input_tokens,
+        parameters=OpenAIChatParameters(temperature=0)
+    )
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
-    config_path = os.path.join(chat_dir, "config.yml")
-
-    with open(config_path, "w", encoding='utf-8') as config_file:
-        config_file.write(config_data)
+    config_manager = ConfigManager(chat_dir)
+    config_manager.update_model_config(model_config)
+    config_manager.config.default_model = model
+    config_manager.sync()
 
     content = ""
     while openai_response_tokens({"content": content}, model) < max_input_tokens:
@@ -218,20 +224,18 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
 def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config_data = f"""
-    models:
-      - id: {model}
-        max_input_tokens: {max_input_tokens}
-        parameters:
-          temperature: 0
-    """
+    model_config = ModelConfig(
+        id=model,
+        max_input_tokens=max_input_tokens,
+        parameters=OpenAIChatParameters(temperature=0)
+    )
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
-    config_path = os.path.join(chat_dir, "config.yml")
-
-    with open(config_path, "w", encoding='utf-8') as config_file:
-        config_file.write(config_data)
+    config_manager = ConfigManager(chat_dir)
+    config_manager.update_model_config(model_config)
+    config_manager.config.default_model = model
+    config_manager.sync()
 
     content_file = tmpdir.join("content.txt")
     content = ""
