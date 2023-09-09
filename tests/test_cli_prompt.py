@@ -27,7 +27,7 @@ def test_prompt_with_content(git_repo):  # pylint: disable=W0613
 def test_prompt_with_temp_config_file(mock_home_dir):
     config_data = f"""
     providers:
-      - id: openai
+      openai:
         client: openai
         client_config:
           api_key: {os.environ['OPENAI_API_KEY']}
