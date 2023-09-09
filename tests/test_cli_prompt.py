@@ -28,7 +28,7 @@ def test_prompt_with_temp_config_file(mock_home_dir):
     config_data = f"""
     providers:
       - id: openai
-        client_type: openai
+        client: openai
         client_config:
           api_key: {os.environ['OPENAI_API_KEY']}
     models:
@@ -36,7 +36,7 @@ def test_prompt_with_temp_config_file(mock_home_dir):
         max_input_tokens: 3000
         parameters:
           temperature: 0
-        provider_id: openai
+        provider: openai
     """
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
