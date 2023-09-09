@@ -27,16 +27,15 @@ def test_prompt_with_content(git_repo):  # pylint: disable=W0613
 def test_prompt_with_temp_config_file(mock_home_dir):
     config_data = f"""
     providers:
-      openai:
+      openai.com:
         client: openai
-        client_config:
-          api_key: {os.environ['OPENAI_API_KEY']}
+        api_key: {os.environ['OPENAI_API_KEY']}
     models:
       - id: gpt-3.5-turbo
         max_input_tokens: 3000
         parameters:
           temperature: 0
-        provider: openai
+        provider: openai.com
     """
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
