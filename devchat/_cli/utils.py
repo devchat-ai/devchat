@@ -115,4 +115,4 @@ def model_config(repo_chat_dir: str, user_chat_dir: str,
         os.rename(legacy_path, legacy_path + '.old')
 
     config = ConfigManager(user_chat_dir)
-    return config.get_model_config(model)
+    return config.model_config(model)
