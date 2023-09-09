@@ -14,7 +14,7 @@ def test_load_and_validate_config(tmp_path):
 
 def test_get_model_config(tmp_path):
     config_manager = ConfigManager(tmp_path)
-    model_config = config_manager.get_model_config('gpt-4')
+    model_config = config_manager.model_config('gpt-4')
     assert model_config.id == 'gpt-4'
     assert model_config.max_input_tokens == 6000
     assert model_config.parameters.temperature == 0
@@ -29,7 +29,7 @@ def test_update_model_config(tmp_path):
         parameters=OpenAIChatParameters(temperature=0.5)
     )
     updated_model_config = config_manager.update_model_config(new_model_config)
-    assert updated_model_config == config_manager.get_model_config('gpt-4')
+    assert updated_model_config == config_manager.model_config('gpt-4')
     assert updated_model_config.max_input_tokens == 7000
     assert updated_model_config.parameters.temperature == 0.5
     assert updated_model_config.parameters.stream is True
