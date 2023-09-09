@@ -2,7 +2,7 @@ from enum import Enum
 import os
 import sys
 from typing import Dict, List, Union, Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
 from devchat.anthropic import AnthropicChatParameters
@@ -13,7 +13,11 @@ class Client(str, Enum):
     ANTHROPIC = "anthropic"
 
 
-class OpenAIClientConfig(BaseModel, extra='forbid'):
+class ProviderConfig(BaseModel, use_enum_values=True):
+    client: Client
+
+
+class OpenAIProviderConfig(ProviderConfig, extra='forbid'):
     api_key: str
     api_base: Optional[str]
     api_type: Optional[str]
@@ -21,26 +25,10 @@ class OpenAIClientConfig(BaseModel, extra='forbid'):
     deployment_name: Optional[str]
 
 
-class AnthropicClientConfig(BaseModel, extra='forbid'):
+class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
     api_key: str
     api_base: Optional[str]
     timeout: Optional[float]
-
-
-class ProviderConfig(BaseModel, extra='forbid', use_enum_values=True):
-    client: Client
-    client_config: Union[OpenAIClientConfig, AnthropicClientConfig]
-
-    @validator('client_config', pre=True)
-    def create_client_config(cls, config, values):  # pylint: disable=E0213
-        if not isinstance(config, dict):
-            return config
-        if 'client' in values:
-            if values['client'] == Client.OPENAI:
-                return OpenAIClientConfig(**config)
-            if values['client'] == Client.ANTHROPIC:
-                return AnthropicClientConfig(**config)
-        raise ValueError(f"Invalid client in {values}")
 
 
 class ModelConfig(BaseModel, extra='forbid'):
@@ -67,7 +55,13 @@ class ConfigManager:
         with open(self.config_path, 'r', encoding='utf-8') as file:
             config_data = yaml.safe_load(file)
         for provider, config in config_data['providers'].items():
-            config_data['providers'][provider] = ProviderConfig(**config)
+            if config['client'] == Client.OPENAI:
+                config_data['providers'][provider] = OpenAIProviderConfig(**config)
+            elif config['client'] == Client.ANTHROPIC:
+                config_data['providers'][provider] = AnthropicProviderConfig(**config)
+            else:
+                raise ValueError(f"Provider {provider} in {self.config_path} has invalid client: "
+                                 f"{config.client}")
         for model in config_data['models']:
             if 'provider' not in model:
                 raise ValueError(f"Model in {self.config_path} is missing provider")
@@ -119,26 +113,25 @@ class ConfigManager:
     def _create_sample_config(self):
         sample_config = ChatConfig(
             providers={
-                "devchat": ProviderConfig(
+                "devchat.ai": OpenAIProviderConfig(
                     client=Client.OPENAI,
-                    client_config=OpenAIClientConfig(api_key="DC....SET.THIS")
+                    api_key="DC....SET.THIS"
                 ),
-                "openai": ProviderConfig(
+                "openai.com": OpenAIProviderConfig(
                     client=Client.OPENAI,
-                    client_config=OpenAIClientConfig(api_key="sk-...SET-THIS")
+                    api_key="sk-...SET-THIS"
                 ),
-                "azure-openai": ProviderConfig(
+                "openai.azure.com": OpenAIProviderConfig(
                     client=Client.OPENAI,
-                    client_config=OpenAIClientConfig(
-                        api_key="YOUR_AZURE_OPENAI_KEY",
-                        api_base="YOUR_AZURE_OPENAI_ENDPOINT",
-                        api_version='2023-05-15',
-                        deployment_name='YOUR_AZURE_DEPLOYMENT_NAME'
-                    )
+                    api_key="YOUR_AZURE_OPENAI_KEY",
+                    api_base="YOUR_AZURE_OPENAI_ENDPOINT",
+                    api_version='2023-05-15',
+                    deployment_name='YOUR_AZURE_DEPLOYMENT_NAME'
                 ),
-                "anthropic": ProviderConfig(
+                "anthropic.com": AnthropicProviderConfig(
                     client=Client.ANTHROPIC,
-                    client_config=AnthropicClientConfig(api_key="sk-ant-...SET-THIS", timeout=30)
+                    api_key="sk-ant-...SET-THIS",
+                    timeout=30
                 )
             },
             models=[
@@ -146,24 +139,24 @@ class ConfigManager:
                     id="gpt-4",
                     max_input_tokens=6000,
                     parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat'
+                    provider='devchat.ai'
                 ),
                 ModelConfig(
                     id="gpt-3.5-turbo-16k",
                     max_input_tokens=12000,
                     parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat'
+                    provider='devchat.ai'
                 ),
                 ModelConfig(
                     id="gpt-3.5-turbo",
                     max_input_tokens=3000,
                     parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat'
+                    provider='devchat.ai'
                 ),
                 ModelConfig(
                     id="claude-2",
                     parameters=AnthropicChatParameters(max_tokens_to_sample=20000),
-                    provider='anthropic'
+                    provider='anthropic.com'
                 )
             ]
         )
