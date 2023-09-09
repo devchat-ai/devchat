@@ -1,7 +1,7 @@
 from enum import Enum
 import os
 import sys
-from typing import List, Union, Optional
+from typing import Dict, List, Union, Optional
 from pydantic import BaseModel, validator
 import yaml
 from devchat.openai import OpenAIChatParameters
@@ -28,7 +28,6 @@ class AnthropicClientConfig(BaseModel, extra='forbid'):
 
 
 class ProviderConfig(BaseModel, extra='forbid', use_enum_values=True):
-    id: str
     client: Client
     client_config: Union[OpenAIClientConfig, AnthropicClientConfig]
 
@@ -52,7 +51,7 @@ class ModelConfig(BaseModel, extra='forbid'):
 
 
 class ChatConfig(BaseModel, extra='forbid'):
-    providers: List[ProviderConfig]
+    providers: Dict[str, ProviderConfig]
     models: List[ModelConfig]
     default_model: Optional[str]
 
@@ -67,23 +66,20 @@ class ConfigManager:
     def _load_and_validate_config(self) -> ChatConfig:
         with open(self.config_path, 'r', encoding='utf-8') as file:
             config_data = yaml.safe_load(file)
-        for index, provider in enumerate(config_data['providers']):
-            config_data['providers'][index] = ProviderConfig(**provider)
+        for provider, config in config_data['providers'].items():
+            config_data['providers'][provider] = ProviderConfig(**config)
         for model in config_data['models']:
             if 'provider' not in model:
                 raise ValueError(f"Model in {self.config_path} is missing provider")
             if 'parameters' in model:
-                providers = [p for p in config_data['providers'] if p.id == model['provider']]
-                if len(providers) < 1:
-                    raise ValueError(f"Model in {self.config_path} has invalid provider: "
-                                     f"{model['provider']}")
-                if providers[0].client == Client.OPENAI:
+                provider_config = config_data['providers'][model['provider']]
+                if provider_config.client == Client.OPENAI:
                     model['parameters'] = OpenAIChatParameters(**model['parameters'])
-                elif providers[0].client == Client.ANTHROPIC:
+                elif provider_config.client == Client.ANTHROPIC:
                     model['parameters'] = AnthropicChatParameters(**model['parameters'])
                 else:
                     raise ValueError(f"Model in {self.config_path} has invalid client: "
-                                     f"{providers[0].client}")
+                                     f"{provider_config.client}")
         return ChatConfig(**config_data)
 
     def model_config(self, model_id: Optional[str] = None) -> ModelConfig:
@@ -122,19 +118,16 @@ class ConfigManager:
 
     def _create_sample_config(self):
         sample_config = ChatConfig(
-            providers=[
-                ProviderConfig(
-                    id="devchat",
+            providers={
+                "devchat": ProviderConfig(
                     client=Client.OPENAI,
                     client_config=OpenAIClientConfig(api_key="DC....SET.THIS")
                 ),
-                ProviderConfig(
-                    id="openai",
+                "openai": ProviderConfig(
                     client=Client.OPENAI,
                     client_config=OpenAIClientConfig(api_key="sk-...SET-THIS")
                 ),
-                ProviderConfig(
-                    id="azure-openai",
+                "azure-openai": ProviderConfig(
                     client=Client.OPENAI,
                     client_config=OpenAIClientConfig(
                         api_key="YOUR_AZURE_OPENAI_KEY",
@@ -143,12 +136,11 @@ class ConfigManager:
                         deployment_name='YOUR_AZURE_DEPLOYMENT_NAME'
                     )
                 ),
-                ProviderConfig(
-                    id="anthropic",
+                "anthropic": ProviderConfig(
                     client=Client.ANTHROPIC,
                     client_config=AnthropicClientConfig(api_key="sk-ant-...SET-THIS", timeout=30)
                 )
-            ],
+            },
             models=[
                 ModelConfig(
                     id="gpt-4",
