@@ -31,7 +31,7 @@ def test_prompt_with_temp_config_file(mock_home_dir):
         client: openai
         api_key: {os.environ['OPENAI_API_KEY']}
     models:
-      - id: gpt-3.5-turbo
+      gpt-3.5-turbo:
         max_input_tokens: 3000
         parameters:
           temperature: 0
@@ -198,8 +198,7 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
 def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    model_config = ModelConfig(
-        id=model,
+    config = ModelConfig(
         max_input_tokens=max_input_tokens,
         parameters=OpenAIChatParameters(temperature=0)
     )
@@ -207,7 +206,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
     config_manager = ConfigManager(chat_dir)
-    config_manager.update_model_config(model_config)
+    config_manager.update_model_config(model, config)
     config_manager.config.default_model = model
     config_manager.sync()
 
@@ -223,8 +222,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
 def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    model_config = ModelConfig(
-        id=model,
+    config = ModelConfig(
         max_input_tokens=max_input_tokens,
         parameters=OpenAIChatParameters(temperature=0)
     )
@@ -232,7 +230,7 @@ def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0
     chat_dir = os.path.join(mock_home_dir, ".chat")
     os.makedirs(chat_dir)
     config_manager = ConfigManager(chat_dir)
-    config_manager.update_model_config(model_config)
+    config_manager.update_model_config(model, config)
     config_manager.config.default_model = model
     config_manager.sync()
 

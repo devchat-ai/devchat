@@ -5,7 +5,7 @@ from devchat.assistant import Assistant
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 from devchat.utils import parse_files
-from devchat._cli.utils import handle_errors, init_dir, model_config
+from devchat._cli.utils import handle_errors, init_dir, get_model_config
 
 
 @click.command()
@@ -79,17 +79,13 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         instruct_contents = parse_files(instruct)
         context_contents = parse_files(context)
 
-        config = model_config(repo_chat_dir, user_chat_dir, model)
-        if not model:
-            model = config.id
+        model, config = get_model_config(repo_chat_dir, user_chat_dir, model)
 
         parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
         if config_str:
             config_data = json.loads(config_str)
             parameters_data.update(config_data)
-
-        openai_config = OpenAIChatConfig(model=model,
-                                         **parameters_data)
+        openai_config = OpenAIChatConfig(model=model, **parameters_data)
 
         chat = OpenAIChat(openai_config)
         store = Store(repo_chat_dir, chat)
