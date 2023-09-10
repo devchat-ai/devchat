@@ -4,7 +4,7 @@ import rich_click as click
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 from devchat.utils import get_logger
-from devchat._cli.utils import handle_errors, init_dir, model_config
+from devchat._cli.utils import handle_errors, init_dir, get_model_config
 
 logger = get_logger(__name__)
 
@@ -26,9 +26,10 @@ def log(skip, max_count, topic_root, delete):
     repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
-        config = model_config(repo_chat_dir, user_chat_dir)
+        model, config = get_model_config(repo_chat_dir, user_chat_dir)
         parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
-        openai_config = OpenAIChatConfig(model=config.id, **parameters_data)
+        openai_config = OpenAIChatConfig(model=model, **parameters_data)
+
         chat = OpenAIChat(openai_config)
         store = Store(repo_chat_dir, chat)
 

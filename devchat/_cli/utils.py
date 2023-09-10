@@ -108,11 +108,11 @@ def clone_git_repo(target_dir: str, repo_urls: List[str]):
     raise GitCommandError(f"Failed to clone repository to {target_dir}")
 
 
-def model_config(repo_chat_dir: str, user_chat_dir: str,
-                 model: Optional[str] = None) -> ModelConfig:
+def get_model_config(repo_chat_dir: str, user_chat_dir: str,
+                     model: Optional[str] = None) -> Tuple[str, ModelConfig]:
     legacy_path = os.path.join(repo_chat_dir, 'config.json')
     if os.path.exists(legacy_path):
         os.rename(legacy_path, legacy_path + '.old')
 
-    config = ConfigManager(user_chat_dir)
-    return config.model_config(model)
+    config_manager = ConfigManager(user_chat_dir)
+    return config_manager.model_config(model)
