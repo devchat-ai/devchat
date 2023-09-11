@@ -54,7 +54,9 @@ class OtherModelConfig(ModelConfig, OtherChatParameters):
 
 
 class ChatConfig(BaseModel, extra='forbid'):
-    providers: Optional[Dict[str, Union[OpenAIProviderConfig, AnthropicProviderConfig, OtherProviderConfig]]]
+    providers: Optional[Dict[str, Union[OpenAIProviderConfig,
+                                        AnthropicProviderConfig,
+                                        OtherProviderConfig]]]
     models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, OtherModelConfig]]
     default_model: Optional[str]
 
@@ -69,7 +71,7 @@ class ConfigManager:
     def _load_and_validate_config(self) -> ChatConfig:
         with open(self.config_path, 'r', encoding='utf-8') as file:
             data = yaml.safe_load(file)
-        
+
         if 'providers' in data:
             for provider, config in data['providers'].items():
                 if config['client'] == "openai":
@@ -89,7 +91,7 @@ class ConfigManager:
                     data['models'][model] = AnthropicModelConfig(**config)
                 else:
                     data['models'][model] = OtherModelConfig(**config)
-                    
+
         return ChatConfig(**data)
 
     def model_config(self, model_id: Optional[str] = None) -> Tuple[str, ModelConfig]:
