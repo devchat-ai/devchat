@@ -1,0 +1,3 @@
+[submodule "data/workflows"]
+	path = data/workflows
+	url = https://github.com/devchat-ai/workflows.git
