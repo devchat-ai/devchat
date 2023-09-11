@@ -27,8 +27,7 @@ def log(skip, max_count, topic_root, delete):
 
     with handle_errors():
         model, config = get_model_config(repo_chat_dir, user_chat_dir)
-        parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
-        openai_config = OpenAIChatConfig(model=model, **parameters_data)
+        openai_config = OpenAIChatConfig(model=model, **config.dict(exclude_unset=True))
 
         chat = OpenAIChat(openai_config)
         store = Store(repo_chat_dir, chat)

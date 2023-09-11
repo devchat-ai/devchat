@@ -7,7 +7,7 @@ from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
 
-class OpenAIChatParameters(BaseModel, extra='forbid'):
+class OpenAIChatParameters(BaseModel, extra='ignore'):
     temperature: Optional[float] = Field(0, ge=0, le=2)
     top_p: Optional[float] = Field(None, ge=0, le=1)
     n: Optional[int] = Field(None, ge=1)
