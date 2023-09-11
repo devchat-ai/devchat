@@ -2,12 +2,13 @@ from contextlib import contextmanager
 import os
 import sys
 import json
-import yaml
 from typing import Tuple, List, Optional
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import rich_click as click
 from devchat.config import ConfigManager, ModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
+import yaml
+
 
 logger = get_logger(__name__)
 
@@ -109,9 +110,10 @@ def clone_git_repo(target_dir: str, repo_urls: List[str]):
             continue
     raise GitCommandError(f"Failed to clone repository to {target_dir}")
 
+
 def convert_yml(config_json_file, config_yml_file):
-    with open(config_json_file, 'r', encoding='utf-8') as fp:
-        config_value = json.load(fp)
+    with open(config_json_file, 'r', encoding='utf-8') as ofile:
+        config_value = json.load(ofile)
         new_config_value = {"default_model": "gpt-3.5-turbo"}
         new_config_value["models"] = {}
         new_config_value["models"][config_value["model"]] = {
@@ -121,8 +123,7 @@ def convert_yml(config_json_file, config_yml_file):
 
         with open(config_yml_file, 'w', encoding='utf-8') as file:
             yaml.dump(new_config_value, file)
-        
-        
+
 
 def get_model_config(repo_chat_dir: str, user_chat_dir: str,
                      model: Optional[str] = None) -> Tuple[str, ModelConfig]:
