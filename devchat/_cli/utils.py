@@ -5,9 +5,9 @@ import json
 from typing import Tuple, List, Optional
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import rich_click as click
+import yaml
 from devchat.config import ConfigManager, ModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
-import yaml
 
 
 logger = get_logger(__name__)
