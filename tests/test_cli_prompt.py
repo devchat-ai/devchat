@@ -2,7 +2,7 @@ import os
 import json
 import pytest
 from click.testing import CliRunner
-from devchat.config import ConfigManager, ModelConfig, OpenAIChatParameters
+from devchat.config import ConfigManager, OpenAIModelConfig
 from devchat._cli.main import main
 from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
@@ -33,8 +33,7 @@ def test_prompt_with_temp_config_file(mock_home_dir):
     models:
       gpt-3.5-turbo:
         max_input_tokens: 3000
-        parameters:
-          temperature: 0
+        temperature: 0
         provider: openai.com
     """
 
@@ -198,9 +197,9 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
 def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config = ModelConfig(
+    config = OpenAIModelConfig(
         max_input_tokens=max_input_tokens,
-        parameters=OpenAIChatParameters(temperature=0)
+        temperature=0
     )
 
     chat_dir = os.path.join(mock_home_dir, ".chat")
@@ -222,9 +221,9 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
 def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config = ModelConfig(
+    config = OpenAIModelConfig(
         max_input_tokens=max_input_tokens,
-        parameters=OpenAIChatParameters(temperature=0)
+        temperature=0
     )
 
     chat_dir = os.path.join(mock_home_dir, ".chat")

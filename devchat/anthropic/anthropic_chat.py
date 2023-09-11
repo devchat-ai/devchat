@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
-class AnthropicChatParameters(BaseModel, extra='forbid'):
+class AnthropicChatParameters(BaseModel, extra='ignore'):
     max_tokens_to_sample: int = Field(1024, ge=1)
     stop_sequences: Optional[List[str]]
     temperature: Optional[float] = Field(0.2, ge=0, le=1)

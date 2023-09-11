@@ -33,13 +33,20 @@ class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
 
 class ModelConfig(BaseModel, extra='forbid'):
     max_input_tokens: Optional[int] = sys.maxsize
-    parameters: Optional[Union[OpenAIChatParameters, AnthropicChatParameters]]
     provider: Optional[str]
 
 
+class OpenAIModelConfig(ModelConfig, OpenAIChatParameters):
+    pass
+
+
+class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
+    pass
+
+
 class ChatConfig(BaseModel, extra='forbid'):
-    providers: Dict[str, ProviderConfig]
-    models: Dict[str, ModelConfig]
+    providers: Dict[str, Union[OpenAIProviderConfig, AnthropicProviderConfig]]
+    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig]]
     default_model: Optional[str]
 
 
@@ -67,9 +74,9 @@ class ConfigManager:
             if 'parameters' in config:
                 provider = data['providers'][config['provider']]
                 if provider.client == Client.OPENAI:
-                    config['parameters'] = OpenAIChatParameters(**config['parameters'])
+                    data['models'][model] = OpenAIModelConfig(**config)
                 elif provider.client == Client.ANTHROPIC:
-                    config['parameters'] = AnthropicChatParameters(**config['parameters'])
+                    data['models'][model] = AnthropicModelConfig(**config)
                 else:
                     raise ValueError(f"Model '{model}' in {self.config_path} has invalid provider")
         return ChatConfig(**data)
@@ -85,15 +92,18 @@ class ConfigManager:
             raise ValueError(f"Model '{model_id}' not found in {self.config_path}")
         return model_id, self.config.models[model_id]
 
-    def update_model_config(self, model_id: str, new_config: ModelConfig) -> ModelConfig:
+    def update_model_config(
+        self,
+        model_id: str,
+        new_config: Union[OpenAIModelConfig, AnthropicModelConfig]
+    ) -> Union[OpenAIModelConfig, AnthropicModelConfig]:
         _, old_config = self.model_config(model_id)
         if new_config.max_input_tokens is not None:
             old_config.max_input_tokens = new_config.max_input_tokens
-        if new_config.parameters is not None:
-            updated_parameters = old_config.parameters.dict(exclude_unset=True)
-            updated_parameters.update(new_config.parameters.dict(exclude_unset=True))
-            old_config.parameters = type(new_config.parameters)(**updated_parameters)
-        return old_config
+        updated_parameters = old_config.dict(exclude_unset=True)
+        updated_parameters.update(new_config.dict(exclude_unset=True))
+        self.config.models[model_id] = type(new_config)(**updated_parameters)
+        return self.config.models[model_id]
 
     def sync(self):
         with open(self.config_path, 'w', encoding='utf-8') as file:
@@ -124,24 +134,27 @@ class ConfigManager:
                 )
             },
             models={
-                "gpt-4": ModelConfig(
+                "gpt-4": OpenAIModelConfig(
                     max_input_tokens=6000,
-                    parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat.ai'
+                    provider='devchat.ai',
+                    temperature=0,
+                    stream=True
                 ),
-                "gpt-3.5-turbo-16k": ModelConfig(
+                "gpt-3.5-turbo-16k": OpenAIModelConfig(
                     max_input_tokens=12000,
-                    parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat.ai'
+                    provider='devchat.ai',
+                    temperature=0,
+                    stream=True
                 ),
-                "gpt-3.5-turbo": ModelConfig(
+                "gpt-3.5-turbo": OpenAIModelConfig(
                     max_input_tokens=3000,
-                    parameters=OpenAIChatParameters(temperature=0, stream=True),
-                    provider='devchat.ai'
+                    provider='devchat.ai',
+                    temperature=0,
+                    stream=True
                 ),
-                "claude-2": ModelConfig(
-                    parameters=AnthropicChatParameters(max_tokens_to_sample=20000),
-                    provider='anthropic.com'
+                "claude-2": AnthropicModelConfig(
+                    provider='anthropic.com',
+                    max_tokens_to_sample=20000
                 )
             },
             default_model="gpt-3.5-turbo"

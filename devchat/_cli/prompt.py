@@ -53,10 +53,10 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     (if `~/.chat` is not accessible, it will try `.chat` in your current Git or SVN root directory).
     Otherwise, it uses the following default configuration:
     ```yaml
-    model: gpt-4
-    max_input_tokens: 6000
-    parameters:
+    gpt-4:
+      max_input_tokens: 6000
       temperature: 0
+      provider: openai.com
     ```
 
     Note: To use OpenAI's APIs, you must have an API key to run the CLI.
@@ -81,7 +81,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
 
         model, config = get_model_config(repo_chat_dir, user_chat_dir, model)
 
-        parameters_data = config.parameters.dict(exclude_unset=True) if config.parameters else {}
+        parameters_data = config.dict(exclude_unset=True)
         if config_str:
             config_data = json.loads(config_str)
             parameters_data.update(config_data)
