@@ -38,6 +38,9 @@ pylint = "^2.17.4"
 pytest = "^7.4.0"
 gitpython = "^3.1.32"
 
+[tool.poetry.package]
+include = ["devchat/data/workflows/**/*"]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
