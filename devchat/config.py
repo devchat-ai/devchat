@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
 from devchat.anthropic import AnthropicChatParameters
+from devchat.others import OtherChatParameters
 
 
 class Client(str, Enum):
@@ -13,12 +14,12 @@ class Client(str, Enum):
     ANTHROPIC = "anthropic"
 
 
-class ProviderConfig(BaseModel, use_enum_values=True):
-    client: Client
+class ProviderConfig(BaseModel):
+    client: Optional[str]
 
 
 class OpenAIProviderConfig(ProviderConfig, extra='forbid'):
-    api_key: str
+    api_key: Optional[str]
     api_base: Optional[str]
     api_type: Optional[str]
     api_version: Optional[str]
@@ -26,9 +27,13 @@ class OpenAIProviderConfig(ProviderConfig, extra='forbid'):
 
 
 class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
-    api_key: str
+    api_key: Optional[str]
     api_base: Optional[str]
     timeout: Optional[float]
+
+
+class OtherProviderConfig(ProviderConfig):
+    api_key: Optional[str]
 
 
 class ModelConfig(BaseModel, extra='forbid'):
@@ -44,9 +49,13 @@ class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
     pass
 
 
+class OtherModelConfig(ModelConfig, OtherChatParameters):
+    pass
+
+
 class ChatConfig(BaseModel, extra='forbid'):
-    providers: Dict[str, Union[OpenAIProviderConfig, AnthropicProviderConfig]]
-    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig]]
+    providers: Optional[Dict[str, Union[OpenAIProviderConfig, AnthropicProviderConfig, OtherProviderConfig]]]
+    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, OtherModelConfig]]
     default_model: Optional[str]
 
 
@@ -60,25 +69,27 @@ class ConfigManager:
     def _load_and_validate_config(self) -> ChatConfig:
         with open(self.config_path, 'r', encoding='utf-8') as file:
             data = yaml.safe_load(file)
-        for provider, config in data['providers'].items():
-            if config['client'] == Client.OPENAI:
-                data['providers'][provider] = OpenAIProviderConfig(**config)
-            elif config['client'] == Client.ANTHROPIC:
-                data['providers'][provider] = AnthropicProviderConfig(**config)
-            else:
-                raise ValueError(f"Provider '{provider}' in {self.config_path} has invalid client: "
-                                 f"{config.client}")
+        
+        if 'providers' in data:
+            for provider, config in data['providers'].items():
+                if config['client'] == "openai":
+                    data['providers'][provider] = OpenAIProviderConfig(**config)
+                elif config['client'] == "anthropic":
+                    data['providers'][provider] = AnthropicProviderConfig(**config)
+                else:
+                    data['providers'][provider] = OtherProviderConfig(**config)
         for model, config in data['models'].items():
             if 'provider' not in config:
-                raise ValueError(f"Model '{model}' in {self.config_path} is missing provider")
-            if 'parameters' in config:
+                data['models'][model] = OtherModelConfig(**config)
+            elif 'parameters' in config:
                 provider = data['providers'][config['provider']]
                 if provider.client == Client.OPENAI:
                     data['models'][model] = OpenAIModelConfig(**config)
                 elif provider.client == Client.ANTHROPIC:
                     data['models'][model] = AnthropicModelConfig(**config)
                 else:
-                    raise ValueError(f"Model '{model}' in {self.config_path} has invalid provider")
+                    data['models'][model] = OtherModelConfig(**config)
+                    
         return ChatConfig(**data)
 
     def model_config(self, model_id: Optional[str] = None) -> Tuple[str, ModelConfig]:
