@@ -2,11 +2,10 @@ from contextlib import contextmanager
 import os
 import sys
 import json
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Any
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import rich_click as click
-import yaml
-from devchat.config import ConfigManager, ModelConfig
+from devchat.config import ConfigManager, OpenAIModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
 
@@ -111,30 +110,37 @@ def clone_git_repo(target_dir: str, repo_urls: List[str]):
     raise GitCommandError(f"Failed to clone repository to {target_dir}")
 
 
-def convert_yml(config_json_file, config_yml_file):
-    with open(config_json_file, 'r', encoding='utf-8') as ofile:
-        config_value = json.load(ofile)
-        new_config_value = {"default_model": "gpt-3.5-turbo"}
-        new_config_value["models"] = {}
-        new_config_value["models"][config_value["model"]] = {
-            "stream": config_value["OpenAI"]["stream"],
-            "temperature": config_value["OpenAI"]["temperature"]
-		}
+def parse_legacy_config(config_json_file) -> Tuple[str, OpenAIModelConfig]:
+    with open(config_json_file, 'r', encoding='utf-8') as file:
+        legacy_data = json.load(file)
+        if 'model' not in legacy_data:
+            return None, None
 
-        with open(config_yml_file, 'w', encoding='utf-8') as file:
-            yaml.dump(new_config_value, file)
+        model = legacy_data['model']
+        config = OpenAIModelConfig()
+        if 'tokens-per-prompt' in legacy_data:
+            config.max_input_tokens = legacy_data['tokens-per-prompt']
+        if 'OpenAI' in legacy_data:
+            if 'temperature' in legacy_data['OpenAI']:
+                config.temperature = legacy_data['OpenAI']['temperature']
+            if 'stream' in legacy_data['OpenAI']:
+                config.stream = legacy_data['OpenAI']['stream']
+        return model, config
 
 
 def get_model_config(repo_chat_dir: str, user_chat_dir: str,
-                     model: Optional[str] = None) -> Tuple[str, ModelConfig]:
-    legacy_path = os.path.join(repo_chat_dir, 'config.json')
-    yml_config = os.path.join(user_chat_dir, 'config.yml')
-    if os.path.exists(legacy_path):
-        if not os.path.exists(yml_config) or\
-            os.path.getmtime(yml_config) < os.path.getatime(legacy_path):
-            # convert config.json to config.yml
-            convert_yml(legacy_path, yml_config)
-        os.rename(legacy_path, legacy_path + '.old')
+                     model: Optional[str] = None) -> Tuple[str, Any]:
+    manager = ConfigManager(user_chat_dir)
 
-    config_manager = ConfigManager(user_chat_dir)
-    return config_manager.model_config(model)
+    legacy_path = os.path.join(repo_chat_dir, 'config.json')
+    if os.path.isfile(legacy_path):
+        if manager.file_is_new or os.path.getmtime(legacy_path) > manager.file_last_modified:
+            model, config = parse_legacy_config(legacy_path)
+            if model:
+                manager.config.default_model = model
+            if config:
+                manager.update_model_config(model, config)
+            manager.sync()
+            os.rename(legacy_path, legacy_path + '.old')
+
+    return manager.model_config(model)

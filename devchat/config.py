@@ -65,8 +65,19 @@ class ConfigManager:
     def __init__(self, dir_path: str):
         self.config_path = os.path.join(dir_path, 'config.yml')
         if not os.path.exists(self.config_path):
-            self._create_sample_config()
+            self._create_sample_file()
+            self._file_is_new = True
+        else:
+            self._file_is_new = False
         self.config = self._load_and_validate_config()
+
+    @property
+    def file_is_new(self) -> bool:
+        return self._file_is_new
+
+    @property
+    def file_last_modified(self) -> float:
+        return os.path.getmtime(self.config_path)
 
     def _load_and_validate_config(self) -> ChatConfig:
         with open(self.config_path, 'r', encoding='utf-8') as file:
@@ -122,7 +133,7 @@ class ConfigManager:
         with open(self.config_path, 'w', encoding='utf-8') as file:
             yaml.dump(self.config.dict(exclude_unset=True), file)
 
-    def _create_sample_config(self):
+    def _create_sample_file(self):
         sample_config = ChatConfig(
             providers={
                 "devchat.ai": OpenAIProviderConfig(
