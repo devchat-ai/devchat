@@ -1,6 +1,8 @@
 from typing import Optional, Union, List, Dict, Iterator
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Extra
+import os
 import openai
+from litellm import completion
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
@@ -65,11 +67,17 @@ class OpenAIChat(Chat):
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
+        
+        api_key = os.environ.get("OPENAI_API_KEY")
 
-        response = openai.ChatCompletion.create(
-            messages=prompt.messages,
-            **config_params
-        )
+        if api_key.startswith("DC."):
+            response = openai.ChatCompletion.create(
+                messages=prompt.messages,
+                **config_params
+            )
+        else:
+            response = completion(messages=prompt.messages, **config_params, api_key=api_key)
+        
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
@@ -79,9 +87,16 @@ class OpenAIChat(Chat):
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
+        
+        # read environment variable
+        api_key = os.environ.get("OPENAI_API_KEY")
 
-        response = openai.ChatCompletion.create(
-            messages=prompt.messages,
-            **config_params
-        )
+        if api_key.startswith("DC."):
+            response = openai.ChatCompletion.create(
+                messages=prompt.messages,
+                **config_params
+            )
+        else:
+            response = completion(**config_params, messages=prompt.messages, api_key=api_key)
+        
         return response

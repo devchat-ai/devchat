@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import json
 import sys
+import math
+import time
 from typing import List, Optional
 from devchat.prompt import Prompt
 from devchat.message import Message
@@ -227,20 +229,16 @@ class OpenAIPrompt(Prompt):
         return sum(openai_response_tokens(resp.to_dict(), self.model) for resp in self.responses)
 
     def _validate_model(self, response_data: dict):
-        if not response_data['model'].startswith(self.model):
-            raise ValueError(f"Model mismatch: expected '{self.model}', "
-                             f"got '{response_data['model']}'")
+        return
 
     def _timestamp_from_dict(self, response_data: dict):
         if self._timestamp is None:
-            self._timestamp = response_data['created']
-        elif self._timestamp != response_data['created']:
-            raise ValueError(f"Time mismatch: expected {self._timestamp}, "
-                             f"got {response_data['created']}")
+            self._timestamp = int(time.time())
 
     def _id_from_dict(self, response_data: dict):
         if self._id is None:
-            self._id = response_data['id']
+            if "id" in response_data:
+                self._id = response_data['id']
         elif self._id != response_data['id']:
             raise ValueError(f"ID mismatch: expected {self._id}, "
                              f"got {response_data['id']}")
