@@ -76,7 +76,14 @@ class OpenAIChat(Chat):
                 **config_params
             )
         else:
-            response = completion(messages=prompt.messages, **config_params, api_key=api_key)
+            if config_params["model"].startswith("gpt-"):
+                # call gpt- model by openai api and openai api key
+                response = openai.ChatCompletion.create(
+                    messages=prompt.messages,
+                    **config_params
+                )
+            else:
+                response = completion(messages=prompt.messages, **config_params, api_key=api_key)
         
         return str(response)
 
@@ -97,6 +104,13 @@ class OpenAIChat(Chat):
                 **config_params
             )
         else:
-            response = completion(**config_params, messages=prompt.messages, api_key=api_key)
+            if config_params["model"].startswith("gpt-"):
+                # call gpt- model by openai api and openai api key
+                response = openai.ChatCompletion.create(
+                    messages=prompt.messages,
+                    **config_params
+                )
+            else:
+                response = completion(**config_params, messages=prompt.messages, api_key=api_key)
         
         return response
