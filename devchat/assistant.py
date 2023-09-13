@@ -97,16 +97,16 @@ class Assistant:
             chunks = list(self._chat.stream_response(self._prompt))
             for index, chunk in enumerate(chunks):
                 if "index" not in chunk["choices"][0]:
-                            chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
-                            chunk["object"] = "chat.completion.chunk"
-                            chunk["created"] = created_time
-                            chunk["model"] = config_params["model"]
-                            chunk["choices"][0]["index"] = 0
-                            stop_reason = "null"
-                            if index + 1 == len(chunks):
-                                stop_reason = "stop"
-                            chunk["choices"][0]["finish_reason"] = stop_reason
-                               
+                    chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
+                    chunk["object"] = "chat.completion.chunk"
+                    chunk["created"] = created_time
+                    chunk["model"] = config_params["model"]
+                    chunk["choices"][0]["index"] = 0
+                    stop_reason = "null"
+                    if index + 1 == len(chunks):
+                        stop_reason = "stop"
+                    chunk["choices"][0]["finish_reason"] = stop_reason
+
                 delta = self._prompt.append_response(json.dumps(chunk))
                 if first_chunk:
                     first_chunk = False

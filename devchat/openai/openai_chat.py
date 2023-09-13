@@ -1,6 +1,6 @@
 from typing import Optional, Union, List, Dict, Iterator
-from pydantic import BaseModel, Field, Extra
 import os
+from pydantic import BaseModel, Field
 import openai
 from litellm import completion
 from devchat.chat import Chat
@@ -67,7 +67,7 @@ class OpenAIChat(Chat):
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
-        
+
         api_key = os.environ.get("OPENAI_API_KEY")
 
         if api_key.startswith("DC."):
@@ -84,7 +84,7 @@ class OpenAIChat(Chat):
                 )
             else:
                 response = completion(messages=prompt.messages, **config_params, api_key=api_key)
-        
+
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
@@ -94,7 +94,7 @@ class OpenAIChat(Chat):
             config_params['functions'] = prompt.get_functions()
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
-        
+
         # read environment variable
         api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -112,5 +112,5 @@ class OpenAIChat(Chat):
                 )
             else:
                 response = completion(**config_params, messages=prompt.messages, api_key=api_key)
-        
+
         return response
