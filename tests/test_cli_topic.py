@@ -26,7 +26,7 @@ def test_topic_list(git_repo):  # pylint: disable=W0613
     assert result.exit_code == 0
     topics = json.loads(result.output)
     assert len(topics) == 2
-    assert topics[0]['root_prompt']['hash'] == topic2
     assert topics[0]['root_prompt']['responses'][0] == "15"
-    assert topics[1]['root_prompt']['hash'] == topic1
     assert topics[1]['root_prompt']['responses'][0] == "17"
+    assert topics[0]['root_prompt']['hash'] == topic2
+    assert topics[1]['root_prompt']['hash'] == topic1
