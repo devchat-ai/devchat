@@ -84,7 +84,6 @@ class OpenAIChat(Chat):
                 )
             else:
                 response = completion(messages=prompt.messages, **config_params, api_key=api_key)
-
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
@@ -112,5 +111,4 @@ class OpenAIChat(Chat):
                 )
             else:
                 response = completion(**config_params, messages=prompt.messages, api_key=api_key)
-
         return response

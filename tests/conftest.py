@@ -33,18 +33,14 @@ def mock_home_dir(tmp_path, request):
     home_dir.mkdir()
 
     original_home = os.environ.get('HOME')
-    original_cwd = os.getcwd()
-
     os.environ['HOME'] = str(home_dir)
-    os.chdir(tmp_path)
 
     def cleanup():
         if original_home is not None:
             os.environ['HOME'] = original_home
         else:
             del os.environ['HOME']
-
-        os.chdir(original_cwd)
+        shutil.rmtree(home_dir)
 
     request.addfinalizer(cleanup)
     return home_dir
