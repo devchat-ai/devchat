@@ -102,10 +102,7 @@ class Assistant:
                     chunk["created"] = created_time
                     chunk["model"] = config_params["model"]
                     chunk["choices"][0]["index"] = 0
-                    stop_reason = "null"
-                    if index + 1 == len(chunks):
-                        stop_reason = "stop"
-                    chunk["choices"][0]["finish_reason"] = stop_reason
+                    chunk["choices"][0]["finish_reason"] = "stop"
 
                 delta = self._prompt.append_response(json.dumps(chunk))
                 if first_chunk:
