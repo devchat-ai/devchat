@@ -1,12 +1,11 @@
 from enum import Enum
 import os
 import sys
-from typing import Dict, Tuple, Union, Optional
+from typing import List, Dict, Tuple, Union, Optional
 from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
 from devchat.anthropic import AnthropicChatParameters
-from devchat.others import OtherChatParameters
 
 
 class Client(str, Enum):
@@ -32,7 +31,7 @@ class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
     timeout: Optional[float]
 
 
-class OtherProviderConfig(ProviderConfig):
+class GeneralProviderConfig(ProviderConfig):
     api_key: Optional[str]
 
 
@@ -49,15 +48,19 @@ class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
     pass
 
 
-class OtherModelConfig(ModelConfig, OtherChatParameters):
-    pass
+class GeneralModelConfig(ModelConfig):
+    stop_sequences: Optional[List[str]]
+    temperature: Optional[float]
+    top_p: Optional[float]
+    top_k: Optional[int]
+    stream: Optional[bool]
 
 
 class ChatConfig(BaseModel, extra='forbid'):
     providers: Optional[Dict[str, Union[OpenAIProviderConfig,
                                         AnthropicProviderConfig,
-                                        OtherProviderConfig]]]
-    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, OtherModelConfig]]
+                                        GeneralProviderConfig]]]
+    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, GeneralModelConfig]]
     default_model: Optional[str]
 
 
@@ -90,10 +93,10 @@ class ConfigManager:
                 elif config['client'] == "anthropic":
                     data['providers'][provider] = AnthropicProviderConfig(**config)
                 else:
-                    data['providers'][provider] = OtherProviderConfig(**config)
+                    data['providers'][provider] = GeneralProviderConfig(**config)
         for model, config in data['models'].items():
             if 'provider' not in config:
-                data['models'][model] = OtherModelConfig(**config)
+                data['models'][model] = GeneralModelConfig(**config)
             elif 'parameters' in config:
                 provider = data['providers'][config['provider']]
                 if provider.client == Client.OPENAI:
@@ -101,7 +104,7 @@ class ConfigManager:
                 elif provider.client == Client.ANTHROPIC:
                     data['models'][model] = AnthropicModelConfig(**config)
                 else:
-                    data['models'][model] = OtherModelConfig(**config)
+                    data['models'][model] = GeneralModelConfig(**config)
 
         return ChatConfig(**data)
 
