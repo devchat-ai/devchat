@@ -9,6 +9,8 @@ from typing import List, Tuple, Optional
 import datetime
 import hashlib
 import tiktoken
+from litellm import token_counter
+
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -207,27 +209,7 @@ def _count_tokens(encoding: tiktoken.Encoding, string: str) -> int:
 
 def openai_message_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
-    try:
-        encoding = tiktoken.encoding_for_model(model)
-    except KeyError as err:
-        raise ValueError(f"Invalid model {model} for tiktoken.") from err
-
-    num_tokens = 0
-    if model == "gpt-3.5-turbo-0301":
-        num_tokens += 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
-        tokens_per_name = -1  # if there's a name, the role is omitted
-    else:
-        num_tokens += 3
-        tokens_per_name = 1
-
-    for key, value in message.items():
-        if key == 'function_call':
-            value = json.dumps(value)
-        if value:
-            num_tokens += _count_tokens(encoding, value)
-        if key == "name":
-            num_tokens += tokens_per_name
-    return num_tokens
+    return token_counter(model=model, text=str(message))
 
 
 def openai_response_tokens(message: dict, model: str) -> int:

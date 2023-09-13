@@ -1,3 +1,4 @@
+import json
 from typing import Optional, List, Iterator
 from devchat.message import Message
 from devchat.chat import Chat
@@ -91,7 +92,13 @@ class Assistant:
         if self._chat.config.stream:
             first_chunk = True
             for chunk in self._chat.stream_response(self._prompt):
-                delta = self._prompt.append_response(str(chunk))
+                chunk_str = str(chunk)
+                if "index" not in chunk["choices"][0]:
+                    chunk["choices"][0]["index"] = 0
+                    chunk["choices"][0]["finish_reason"] = "stop"
+                    chunk_str = json.dumps(chunk)
+                               
+                delta = self._prompt.append_response(chunk_str)
                 if first_chunk:
                     first_chunk = False
                     yield self._prompt.formatted_header()
