@@ -1,3 +1,5 @@
+import json
+import time
 from typing import Optional, List, Iterator
 from devchat.message import Message
 from devchat.chat import Chat
@@ -90,8 +92,22 @@ class Assistant:
         """
         if self._chat.config.stream:
             first_chunk = True
-            for chunk in self._chat.stream_response(self._prompt):
-                delta = self._prompt.append_response(str(chunk))
+            created_time = int(time.time())
+            config_params = self._chat.config.dict(exclude_unset=True)
+            chunks = list(self._chat.stream_response(self._prompt))
+            for index, chunk in enumerate(chunks):
+                if "index" not in chunk["choices"][0]:
+                    chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
+                    chunk["object"] = "chat.completion.chunk"
+                    chunk["created"] = created_time
+                    chunk["model"] = config_params["model"]
+                    chunk["choices"][0]["index"] = 0
+                    stop_reason = "null"
+                    if index + 1 == len(chunks):
+                        stop_reason = "stop"
+                    chunk["choices"][0]["finish_reason"] = stop_reason
+
+                delta = self._prompt.append_response(json.dumps(chunk))
                 if first_chunk:
                     first_chunk = False
                     yield self._prompt.formatted_header()
