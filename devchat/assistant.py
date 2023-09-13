@@ -94,8 +94,7 @@ class Assistant:
             first_chunk = True
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
-            chunks = list(self._chat.stream_response(self._prompt))
-            for index, chunk in enumerate(chunks):
+            for chunk in self._chat.stream_response(self._prompt):
                 if "index" not in chunk["choices"][0]:
                     chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
                     chunk["object"] = "chat.completion.chunk"
