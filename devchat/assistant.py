@@ -95,13 +95,15 @@ class Assistant:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
             for chunk in self._chat.stream_response(self._prompt):
-                if "index" not in chunk["choices"][0]:
+                if "id" not in chunk or "index" not in chunk["choices"][0]:
                     chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
                     chunk["object"] = "chat.completion.chunk"
                     chunk["created"] = created_time
                     chunk["model"] = config_params["model"]
                     chunk["choices"][0]["index"] = 0
                     chunk["choices"][0]["finish_reason"] = "stop"
+                if "role" not in chunk['choices'][0]['delta']:
+                    chunk['choices'][0]['delta']['role']='assistant'
 
                 delta = self._prompt.append_response(json.dumps(chunk))
                 if first_chunk:
