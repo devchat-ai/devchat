@@ -44,14 +44,18 @@ class OpenAIModelConfig(ModelConfig, OpenAIChatParameters):
 class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
     pass
 
-class GeneralModelConfig:
+class GeneralModelConfig(BaseModel, extra='allow'):
+    config: Optional[Any]
     def __init__(self, **attri):
-        self.config = attri
+        object.__setattr__(self, "config", attri)
         if "max_input_tokens" not in self.config:
             self.config["max_input_tokens"] = sys.maxsize
 
     def dict(self, **_):
         return self.config
+
+    def __setattr__(self, name, value):
+        self.config[name] = value
 
     def __getattr__(self, name):
         if name not in self.config:
@@ -59,11 +63,12 @@ class GeneralModelConfig:
         return self.config[name]
 
 
+
 class ChatConfig(BaseModel, extra='forbid'):
     providers: Optional[Dict[str, Union[OpenAIProviderConfig,
                                         AnthropicProviderConfig,
                                         ProviderConfig]]]
-    models: Dict[str, Any]
+    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, GeneralModelConfig]]
     default_model: Optional[str]
 
 
@@ -100,7 +105,7 @@ class ConfigManager:
         for model, config in data['models'].items():
             if 'provider' not in config:
                 data['models'][model] = GeneralModelConfig(**config)
-            elif 'parameters' in config:
+            elif 'providers' in data:
                 provider = data['providers'][config['provider']]
                 if provider.client == Client.OPENAI:
                     data['models'][model] = OpenAIModelConfig(**config)
@@ -150,10 +155,14 @@ class ConfigManager:
                     client=Client.OPENAI,
                     api_key=""
                 ),
-                "openai.com": OpenAIProviderConfig(
+                "openai": OpenAIProviderConfig(
                     client=Client.OPENAI,
                     api_key=""
                 ),
+                "anthropic": AnthropicProviderConfig(
+                    client=Client.ANTHROPIC,
+                    api_key=""
+				),
                 "general": ProviderConfig(
                     client=Client.LITELLM
                 )
@@ -161,24 +170,24 @@ class ConfigManager:
             models={
                 "gpt-4": OpenAIModelConfig(
                     max_input_tokens=6000,
-                    provider='devchat.ai',
+                    provider='openai',
                     temperature=0,
                     stream=True
                 ),
                 "gpt-3.5-turbo-16k": OpenAIModelConfig(
                     max_input_tokens=12000,
-                    provider='devchat.ai',
+                    provider='openai',
                     temperature=0,
                     stream=True
                 ),
                 "gpt-3.5-turbo": OpenAIModelConfig(
                     max_input_tokens=3000,
-                    provider='devchat.ai',
+                    provider='openai',
                     temperature=0,
                     stream=True
                 ),
-                "claude-2": GeneralModelConfig(
-                    provider='general',
+                "claude-2": AnthropicModelConfig(
+                    provider='anthropic',
                     max_tokens=20000
                 )
             },

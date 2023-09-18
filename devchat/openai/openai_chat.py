@@ -71,6 +71,8 @@ class OpenAIChat(Chat):
         config_params['stream'] = False
 
         api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("no valid api key")
 
         if api_key.startswith("DC."):
             response = openai.ChatCompletion.create(
@@ -103,6 +105,8 @@ class OpenAIChat(Chat):
 
         # read environment variable
         api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("no valid api key")
 
         if api_key.startswith("DC."):
             response = openai.ChatCompletion.create(

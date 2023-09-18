@@ -71,7 +71,7 @@ def on_open(ws_conn):
     thread.start_new_thread(run, (ws_conn,))
 
 
-def run(ws_conn, _):
+def run(ws_conn):
     data = json.dumps(
         gen_params(
             appid=ws_conn.appid,
