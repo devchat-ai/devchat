@@ -50,7 +50,7 @@ class GeneralModelConfig:
         if "max_input_tokens" not in self.config:
             self.config["max_input_tokens"] = sys.maxsize
 
-    def dict(self, **argv):
+    def dict(self, **_):
         return self.config
 
     def __getattr__(self, name):
