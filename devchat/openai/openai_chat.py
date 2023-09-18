@@ -1,6 +1,5 @@
 from typing import Any, Optional, Union, List, Dict, Iterator
 import os
-import json
 from pydantic import BaseModel, Field
 import openai
 from litellm import completion
@@ -36,7 +35,7 @@ class OpenAIChat(Chat):
     """
     OpenAIChat class that handles communication with the OpenAI Chat API.
     """
-    def __init__(self, config: Any, extraConfig: Any = None):
+    def __init__(self, config: Any, extra_config: Any = None):
         """
         Initialize the OpenAIChat class with a configuration object.
 
@@ -44,7 +43,7 @@ class OpenAIChat(Chat):
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
         self.config = config
-        self.extraConfig = extraConfig
+        self.extra_config = extra_config
 
     def init_prompt(self, request: str, function_name: Optional[str] = None) -> OpenAIPrompt:
         user, email = get_user_info()
@@ -86,7 +85,10 @@ class OpenAIChat(Chat):
                     **config_params
                 )
             elif is_general_model(config_params["model"]):
-                response = complete(messages=prompt.messages, openai_base_config_params=config_params, custom_config_params=self.extraConfig)
+                response = complete(
+                    messages=prompt.messages,
+                    openai_base_config_params=config_params,
+                    custom_config_params=self.extra_config)
             else:
                 response = completion(messages=prompt.messages, **config_params, api_key=api_key)
         return str(response)
@@ -115,7 +117,10 @@ class OpenAIChat(Chat):
                     **config_params
                 )
             elif is_general_model(config_params["model"]):
-                response = stream_complete(messages=prompt.messages, openai_base_config_params=config_params, custom_config_params=self.extraConfig)
+                response = stream_complete(
+                    messages=prompt.messages,
+                    openai_base_config_params=config_params,
+                    custom_config_params=self.extra_config)
             else:
                 response = completion(**config_params, messages=prompt.messages, api_key=api_key)
         return response

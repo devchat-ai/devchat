@@ -3,7 +3,7 @@ import os
 from .spark_api import SparkApi
 
 def to_spart_message(messages):
-    for index in range(len(messages)):
+    for index, _ in enumerate(messages):
         if messages[index]["role"] not in ["user", "assistant"]:
             messages[index]["role"] = "user"
     return messages
@@ -12,10 +12,10 @@ def to_spart_message(messages):
 def complete(messages, openai_base_config_params, custom_config_params):
     if openai_base_config_params["model"] == "xinghuo-1.5":
         domain = "general"
-        Spark_url = "ws://spark-api.xf-yun.com/v1.1/chat"
+        spark_url = "ws://spark-api.xf-yun.com/v1.1/chat"
     else:
         domain = "generalv2"
-        Spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"
+        spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"
 
     appid = None
     api_secret = None
@@ -40,7 +40,7 @@ def complete(messages, openai_base_config_params, custom_config_params):
     spark = SparkApi(appid,
                      api_key,
                      api_secret,
-                     Spark_url,
+                     spark_url,
                      domain,question,
                      user_id=userid,
                      temperature=temperature,
@@ -50,15 +50,15 @@ def complete(messages, openai_base_config_params, custom_config_params):
 def stream_complete(messages, openai_base_config_params, custom_config_params):
     if openai_base_config_params["model"] == "xinghuo-1.5":
         domain = "general"
-        Spark_url = "ws://spark-api.xf-yun.com/v1.1/chat"
+        spark_url = "ws://spark-api.xf-yun.com/v1.1/chat"
     else:
         domain = "generalv2"
-        Spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"
+        spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"
 
     appid = None
     api_secret = None
     api_key = os.environ.get("OPENAI_API_KEY")
-    
+
     if custom_config_params:
         if not custom_config_params.appid:
             raise ValueError("appid is required for xinghuo model")
@@ -70,7 +70,7 @@ def stream_complete(messages, openai_base_config_params, custom_config_params):
             api_key = custom_config_params.api_key
 
     question = to_spart_message(messages)
-    
+
     userid = openai_base_config_params.get("user", "1234")
     temperature = custom_config_params.temperature if custom_config_params.temperature else 0.2
     max_tokens = custom_config_params.max_tokens if custom_config_params.max_tokens else 4000
@@ -78,7 +78,7 @@ def stream_complete(messages, openai_base_config_params, custom_config_params):
     spark = SparkApi(appid,
                      api_key,
                      api_secret,
-                     Spark_url,
+                     spark_url,
                      domain,
                      question,
                      user_id=userid,

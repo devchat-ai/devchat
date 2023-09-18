@@ -6,26 +6,25 @@ import time
 import hmac
 import json
 import queue
+import websocket
 from urllib.parse import urlparse
+from urllib.parse import urlencode
 import ssl
 from datetime import datetime
 from time import mktime
-from urllib.parse import urlencode
 from wsgiref.handlers import format_date_time
 
-import websocket
-answer = ""
 
 create_time = int(time.time())
 
-class Ws_Param(object):
-    def __init__(self, APPID, APIKey, APISecret, Spark_url):
-        self.APPID = APPID
-        self.APIKey = APIKey
-        self.APISecret = APISecret
-        self.host = urlparse(Spark_url).netloc
-        self.path = urlparse(Spark_url).path
-        self.Spark_url = Spark_url
+class WsParam(object):
+    def __init__(self, appid, api_key, api_secret, spark_url):
+        self.appid = appid
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.host = urlparse(spark_url).netloc
+        self.path = urlparse(spark_url).path
+        self.spark_url = spark_url
 
     def create_url(self):
         now = datetime.now()
@@ -35,39 +34,52 @@ class Ws_Param(object):
         signature_origin += "date: " + date + "\n"
         signature_origin += "GET " + self.path + " HTTP/1.1"
 
-        signature_sha = hmac.new(self.APISecret.encode('utf-8'), signature_origin.encode('utf-8'),
+        signature_sha = hmac.new(self.api_secret.encode('utf-8'), 
+                                 signature_origin.encode('utf-8'),
                                  digestmod=hashlib.sha256).digest()
 
         signature_sha_base64 = base64.b64encode(signature_sha).decode(encoding='utf-8')
 
-        authorization_origin = f'api_key="{self.APIKey}", algorithm="hmac-sha256", headers="host date request-line", signature="{signature_sha_base64}"'
+        authorization_origin = \
+            f'api_key="{self.api_key}", ' + \
+            f'algorithm="hmac-sha256", ' + \
+            f'headers="host date request-line", ' + \
+            f'signature="{signature_sha_base64}"'
         
-        authorization = base64.b64encode(authorization_origin.encode('utf-8')).decode(encoding='utf-8')
-        
-        v = {
+        authorization = base64.b64encode(
+            authorization_origin.encode('utf-8')).decode(encoding='utf-8')
+
+        value = {
             "authorization": authorization,
             "date": date,
             "host": self.host
         }
-        url = self.Spark_url + '?' + urlencode(v)
+        url = self.spark_url + '?' + urlencode(value)
         return url
 
 
-def on_error(ws, error):
+def on_error(ws_conn, error):
     print("### error:", error)
 
 
-def on_close(ws,one,two):
+def on_close(ws_conn,one,two):
     print(" ")
 
 
-def on_open(ws):
-    thread.start_new_thread(run, (ws,))
+def on_open(ws_conn):
+    thread.start_new_thread(run, (ws_conn,))
 
 
-def run(ws, *args):
-    data = json.dumps(gen_params(appid=ws.appid, domain= ws.domain,question=ws.question, user_id=ws.user_id, temperature=ws.temperature, max_tokens=ws.max_tokens))
-    ws.send(data)
+def run(ws_conn, *args):
+    data = json.dumps(
+        gen_params(
+            appid=ws_conn.appid,
+            domain= ws_conn.domain,
+            question=ws_conn.question,
+            user_id=ws_conn.user_id,
+            temperature=ws_conn.temperature,
+            max_tokens=ws_conn.max_tokens))
+    ws_conn.send(data)
 
 
 def gen_params(appid, domain,question, user_id, temperature, max_tokens):
@@ -98,28 +110,30 @@ def gen_params(appid, domain,question, user_id, temperature, max_tokens):
 
 
 class SparkApi:
-    def __init__(self, appid, api_key, api_secret, Spark_url, domain, question, user_id="1234", temperature=0.5, max_tokens=4000):
+    def __init__(self, appid, api_key, api_secret,
+                 spark_url, domain, question, user_id="1234",
+                 temperature=0.5, max_tokens=4000):
         self.appid = appid
         self.api_key = api_key
         self.api_secret = api_secret
-        self.Spark_url = Spark_url
+        self.spark_url = spark_url
         self.domain = domain
         self.question = question
         self.user_id = user_id
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.error = False
-        self.wsParam = Ws_Param(appid, api_key, api_secret, Spark_url)
-        self.wsUrl = self.wsParam.create_url()
+        self.ws_param = WsParam(appid, api_key, api_secret, spark_url)
+        self.ws_url = self.ws_param.create_url()
         self.data_queue = queue.Queue()
 
-    def on_message(self, ws, message):
+    def on_message(self, ws_conn, message):
         data = json.loads(message)
         code = data['header']['code']
         if code != 0:
             print(f'请求错误: {code}, {data}')
             self.error = True
-            ws.close()
+            ws_conn.close()
         else:
             choices = data["payload"]["choices"]
             stream_response = {
@@ -131,39 +145,56 @@ class SparkApi:
                     {
                         'index': 0,
                         'finish_reason': 'stop' if choices["status"] == 2 else 'null',
-                        'delta': {'role': 'assistant', 'content': choices["text"][0]["content"]}
+                        'delta': {
+                            'role': 'assistant',
+                            'content': choices["text"][0]["content"]
+                        }
                     }
                 ],
                 'usage': {
-                    'prompt_tokens': 0 if 'usage' not in data else data['usage']['text']['prompt_tokens'],
-                    'completion_tokens': 0 if 'usage' not in data else data['usage']['text']['completion_tokens']
+                    'prompt_tokens': 0 \
+                        if 'usage' not in data \
+                        else data['usage']['text']['prompt_tokens'],
+                    'completion_tokens': 0 \
+                        if 'usage' not in data \
+                        else data['usage']['text']['completion_tokens']
                 }
             }
-            
+
             self.data_queue.put(stream_response)
             if choices["status"] == 2:
-                ws.close()
+                ws_conn.close()
 
     def run(self):
-        ws = websocket.WebSocketApp(self.wsUrl, on_message=self.on_message, on_error=on_error, on_close=on_close, on_open=on_open)
-        ws.appid = self.appid
-        ws.question = self.question
-        ws.domain = self.domain
-        ws.user_id = self.user_id
-        ws.temperature = self.temperature
-        ws.max_tokens = self.max_tokens
-        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-    
+        ws_conn = websocket.WebSocketApp(
+            self.ws_url,
+            on_message=self.on_message,
+            on_error=on_error,
+            on_close=on_close,
+            on_open=on_open)
+        ws_conn.appid = self.appid
+        ws_conn.question = self.question
+        ws_conn.domain = self.domain
+        ws_conn.user_id = self.user_id
+        ws_conn.temperature = self.temperature
+        ws_conn.max_tokens = self.max_tokens
+        ws_conn.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+
     def run_nostream(self):
-        ws = websocket.WebSocketApp(self.wsUrl, on_message=self.on_message, on_error=on_error, on_close=on_close, on_open=on_open)
-        ws.appid = self.appid
-        ws.question = self.question
-        ws.domain = self.domain
-        ws.user_id = self.user_id
-        ws.temperature = self.temperature
-        ws.max_tokens = self.max_tokens
-        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-        
+        ws_conn = websocket.WebSocketApp(
+            self.ws_url,
+            on_message=self.on_message,
+            on_error=on_error,
+            on_close=on_close,
+            on_open=on_open)
+        ws_conn.appid = self.appid
+        ws_conn.question = self.question
+        ws_conn.domain = self.domain
+        ws_conn.user_id = self.user_id
+        ws_conn.temperature = self.temperature
+        ws_conn.max_tokens = self.max_tokens
+        ws_conn.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+
         responses = {}
         for response in self.get_responses():
             responses['id'] = response['id']
@@ -178,8 +209,9 @@ class SparkApi:
                         'message': { 'role': 'assistant', 'content': ''}
                     }
                 ]
-            responses['choices'][0]['message']['content'] += response['choices'][0]['delta']['content']
-        
+            responses['choices'][0]['message']['content'] += \
+            	response['choices'][0]['delta']['content']
+
             if 'usage' not in responses:
                 responses['usage'] = {
                     'prompt_tokens': 0,
@@ -187,14 +219,13 @@ class SparkApi:
                 }
             responses['usage']['prompt_tokens'] += response['usage']['prompt_tokens']
             responses['usage']['completion_tokens'] += response['usage']['completion_tokens']
-            
+
         return responses
 
     def get_responses(self):
-        while True and not self.error:
+        while not self.error:
             response = self.data_queue.get()
             if response and response['choices'][0]['finish_reason'] == 'stop':
                 yield response
                 break
-            else:
-                yield response
+            yield response

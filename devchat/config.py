@@ -1,7 +1,7 @@
 from enum import Enum
 import os
 import sys
-from typing import Any, List, Dict, Tuple, Union, Optional
+from typing import Any, Dict, Tuple, Union, Optional
 from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
@@ -48,11 +48,11 @@ class GeneralModelConfig:
     def __init__(self, **attri):
         self.config = attri
         if "max_input_tokens" not in self.config:
-            self.config["max_input_tokens"] = sys.maxsize 
+            self.config["max_input_tokens"] = sys.maxsize
 
-    def dict(self, exclude_unset=True):
+    def dict(self, **argv):
         return self.config
-    
+
     def __getattr__(self, name):
         if name not in self.config:
             return None
