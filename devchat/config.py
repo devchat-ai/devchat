@@ -1,7 +1,7 @@
 from enum import Enum
 import os
 import sys
-from typing import List, Dict, Tuple, Union, Optional
+from typing import Any, List, Dict, Tuple, Union, Optional
 from pydantic import BaseModel
 import yaml
 from devchat.openai import OpenAIChatParameters
@@ -32,7 +32,7 @@ class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
     timeout: Optional[float]
 
 
-class ModelConfig(BaseModel, extra='forbid'):
+class ModelConfig(BaseModel):
     max_input_tokens: Optional[int] = sys.maxsize
     provider: Optional[str]
 
@@ -44,21 +44,26 @@ class OpenAIModelConfig(ModelConfig, OpenAIChatParameters):
 class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
     pass
 
+class GeneralModelConfig:
+    def __init__(self, **attri):
+        self.config = attri
+        if "max_input_tokens" not in self.config:
+            self.config["max_input_tokens"] = sys.maxsize 
 
-class GeneralModelConfig(ModelConfig):
-    max_tokens: Optional[int]
-    stop_sequences: Optional[List[str]]
-    temperature: Optional[float]
-    top_p: Optional[float]
-    top_k: Optional[int]
-    stream: Optional[bool]
+    def dict(self, exclude_unset=True):
+        return self.config
+    
+    def __getattr__(self, name):
+        if name not in self.config:
+            return None
+        return self.config[name]
 
 
 class ChatConfig(BaseModel, extra='forbid'):
     providers: Optional[Dict[str, Union[OpenAIProviderConfig,
                                         AnthropicProviderConfig,
                                         ProviderConfig]]]
-    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, GeneralModelConfig]]
+    models: Dict[str, Any]
     default_model: Optional[str]
 
 
@@ -103,6 +108,10 @@ class ConfigManager:
                     data['models'][model] = AnthropicModelConfig(**config)
                 elif provider.client == Client.LITELLM:
                     data['models'][model] = GeneralModelConfig(**config)
+                else:
+                    data['models'][model] = GeneralModelConfig(**config)
+            else:
+                data['models'][model] = GeneralModelConfig(**config)
 
         return ChatConfig(**data)
 
