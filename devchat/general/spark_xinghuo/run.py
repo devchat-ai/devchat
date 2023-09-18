@@ -20,7 +20,7 @@ def complete(messages, openai_base_config_params, custom_config_params):
     appid = None
     api_secret = None
     api_key = os.environ.get("OPENAI_API_KEY")
-    
+
     if custom_config_params:
         if not custom_config_params.appid:
             raise ValueError("appid is required for xinghuo model")

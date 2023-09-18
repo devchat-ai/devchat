@@ -6,7 +6,6 @@ import time
 import hmac
 import json
 import queue
-import websocket
 from urllib.parse import urlparse
 from urllib.parse import urlencode
 import ssl
@@ -14,10 +13,12 @@ from datetime import datetime
 from time import mktime
 from wsgiref.handlers import format_date_time
 
+import websocket
+
 
 create_time = int(time.time())
 
-class WsParam(object):
+class WsParam:
     def __init__(self, appid, api_key, api_secret, spark_url):
         self.appid = appid
         self.api_key = api_key
@@ -34,7 +35,7 @@ class WsParam(object):
         signature_origin += "date: " + date + "\n"
         signature_origin += "GET " + self.path + " HTTP/1.1"
 
-        signature_sha = hmac.new(self.api_secret.encode('utf-8'), 
+        signature_sha = hmac.new(self.api_secret.encode('utf-8'),
                                  signature_origin.encode('utf-8'),
                                  digestmod=hashlib.sha256).digest()
 
@@ -42,10 +43,10 @@ class WsParam(object):
 
         authorization_origin = \
             f'api_key="{self.api_key}", ' + \
-            f'algorithm="hmac-sha256", ' + \
-            f'headers="host date request-line", ' + \
+            'algorithm="hmac-sha256", ' + \
+            'headers="host date request-line", ' + \
             f'signature="{signature_sha_base64}"'
-        
+
         authorization = base64.b64encode(
             authorization_origin.encode('utf-8')).decode(encoding='utf-8')
 
@@ -58,11 +59,11 @@ class WsParam(object):
         return url
 
 
-def on_error(ws_conn, error):
+def on_error(_1, error):
     print("### error:", error)
 
 
-def on_close(ws_conn,one,two):
+def on_close(_,_2,_3):
     print(" ")
 
 
@@ -70,7 +71,7 @@ def on_open(ws_conn):
     thread.start_new_thread(run, (ws_conn,))
 
 
-def run(ws_conn, *args):
+def run(ws_conn, _):
     data = json.dumps(
         gen_params(
             appid=ws_conn.appid,
