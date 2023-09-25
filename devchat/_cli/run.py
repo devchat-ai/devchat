@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 import shutil
 import sys
 from typing import List
@@ -13,18 +14,26 @@ logger = get_logger(__name__)
 
 
 @click.command(
+    context_settings={
+        "ignore_unknown_options": True,
+        "allow_interspersed_args": False
+    },
     help="The 'command' argument is the name of the command to run or get information about.")
 @click.argument('command', required=False, default='')
+@click.argument('args', required=False, nargs=-1)
 @click.option('--list', 'list_flag', is_flag=True, default=False,
               help='List all specified commands in JSON format.')
 @click.option('--recursive', '-r', 'recursive_flag', is_flag=True, default=True,
               help='List commands recursively.')
 @click.option('--update-sys', 'update_sys_flag', is_flag=True, default=False,
               help='Pull the `sys` command directory from the DevChat repository.')
-def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool):
+def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool, args: tuple):
     """
     Operate the workflow engine of DevChat.
     """
+    # Prepare args as a single string for substitution
+    args_str = shlex.join(args)
+
     _, user_chat_dir = init_dir()
     with handle_errors():
         workflows_dir = os.path.join(user_chat_dir, 'workflows')
@@ -68,6 +77,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
                 sys.exit(1)
             if not cmd.steps:
                 prompter = RecursivePrompter(namespace)
+                print(args_str)  # TODO: pass args to prompter
                 click.echo(prompter.run(command))
             return
 
