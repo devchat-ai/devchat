@@ -87,7 +87,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
             parameters_data.update(config_data)
         openai_config = OpenAIChatConfig(model=model, **parameters_data)
 
-        chat = OpenAIChat(openai_config)
+        chat = OpenAIChat(openai_config, config)
         store = Store(repo_chat_dir, chat)
 
         assistant = Assistant(chat, store, config.max_input_tokens)

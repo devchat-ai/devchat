@@ -1,10 +1,11 @@
-from typing import Optional, Union, List, Dict, Iterator
+from typing import Any, Optional, Union, List, Dict, Iterator
 import os
 from pydantic import BaseModel, Field
 import openai
 from litellm import completion
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
+from devchat.general import complete, stream_complete, is_general_model
 from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
 
@@ -34,7 +35,7 @@ class OpenAIChat(Chat):
     """
     OpenAIChat class that handles communication with the OpenAI Chat API.
     """
-    def __init__(self, config: OpenAIChatConfig):
+    def __init__(self, config: Any, extra_config: Any = None):
         """
         Initialize the OpenAIChat class with a configuration object.
 
@@ -42,6 +43,7 @@ class OpenAIChat(Chat):
             config (OpenAIChatConfig): Configuration object with parameters for the OpenAI Chat API.
         """
         self.config = config
+        self.extra_config = extra_config
 
     def init_prompt(self, request: str, function_name: Optional[str] = None) -> OpenAIPrompt:
         user, email = get_user_info()
@@ -69,6 +71,8 @@ class OpenAIChat(Chat):
         config_params['stream'] = False
 
         api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("no valid api key")
 
         if api_key.startswith("DC."):
             response = openai.ChatCompletion.create(
@@ -82,6 +86,11 @@ class OpenAIChat(Chat):
                     messages=prompt.messages,
                     **config_params
                 )
+            elif is_general_model(config_params["model"]):
+                response = complete(
+                    messages=prompt.messages,
+                    openai_base_config_params=config_params,
+                    custom_config_params=self.extra_config)
             else:
                 response = completion(messages=prompt.messages, **config_params, api_key=api_key)
         return str(response)
@@ -96,6 +105,8 @@ class OpenAIChat(Chat):
 
         # read environment variable
         api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("no valid api key")
 
         if api_key.startswith("DC."):
             response = openai.ChatCompletion.create(
@@ -109,6 +120,11 @@ class OpenAIChat(Chat):
                     messages=prompt.messages,
                     **config_params
                 )
+            elif is_general_model(config_params["model"]):
+                response = stream_complete(
+                    messages=prompt.messages,
+                    openai_base_config_params=config_params,
+                    custom_config_params=self.extra_config)
             else:
                 response = completion(**config_params, messages=prompt.messages, api_key=api_key)
         return response
