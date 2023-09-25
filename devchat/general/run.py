@@ -2,6 +2,10 @@ from .spark_xinghuo import (
     complete as spark_complete,
     stream_complete as spark_stream_complete,
     supported_models as spark_supported_models)
+from .glm import (
+    complete as glm_complete,
+    stream_complete as glm_stream_complete,
+    supported_models as glm_supported_models)
 
 
 general_modes = {
@@ -9,6 +13,11 @@ general_modes = {
         "complete": spark_complete,
         "stream_complete": spark_stream_complete,
         "supported_models": spark_supported_models
+    },
+    "glm": {
+        "complete": glm_complete,
+        "stream_complete": glm_stream_complete,
+        "supported_models": glm_supported_models
     }
 }
 
