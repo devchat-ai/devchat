@@ -6,6 +6,10 @@ from .glm import (
     complete as glm_complete,
     stream_complete as glm_stream_complete,
     supported_models as glm_supported_models)
+from .baidu import (
+    complete as baidu_complete,
+    stream_complete as baidu_stream_complete,
+    supported_models as baidu_supported_models)
 
 
 general_modes = {
@@ -18,6 +22,11 @@ general_modes = {
         "complete": glm_complete,
         "stream_complete": glm_stream_complete,
         "supported_models": glm_supported_models
+    },
+    "baidu": {
+        "complete": baidu_complete,
+        "stream_complete": baidu_stream_complete,
+        "supported_models": baidu_supported_models
     }
 }
 
