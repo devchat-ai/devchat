@@ -1,5 +1,4 @@
 from typing import Optional, Union, List, Dict, Iterator
-import os
 from pydantic import BaseModel, Field
 import openai
 from devchat.chat import Chat
