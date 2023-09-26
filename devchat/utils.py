@@ -11,6 +11,7 @@ import tiktoken
 from litellm import token_counter
 
 
+encoding = tiktoken.get_encoding("cl100k_base")
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
@@ -208,7 +209,10 @@ def _count_tokens(encoding: tiktoken.Encoding, string: str) -> int:
 
 def openai_message_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
-    return token_counter(model=model, text=str(message))
+    if "claude" in model:
+        return token_counter(model=model, text=str(message))
+    else:
+        return len(encoding.encode(str(message)))
 
 
 def openai_response_tokens(message: dict, model: str) -> int:
