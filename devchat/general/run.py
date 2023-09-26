@@ -10,6 +10,10 @@ from .baidu import (
     complete as baidu_complete,
     stream_complete as baidu_stream_complete,
     supported_models as baidu_supported_models)
+from .anthropic import (
+    complete as anthropic_complete,
+    stream_complete as anthropic_stream_complete,
+    supported_models as anthropic_supported_models)
 
 
 general_modes = {
@@ -27,7 +31,12 @@ general_modes = {
         "complete": baidu_complete,
         "stream_complete": baidu_stream_complete,
         "supported_models": baidu_supported_models
-    }
+    },
+    "anthropic": {
+        "complete": anthropic_complete,
+        "stream_complete": anthropic_stream_complete,
+        "supported_models": anthropic_supported_models
+	}
 }
 
 
