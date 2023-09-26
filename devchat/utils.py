@@ -11,6 +11,7 @@ import tiktoken
 from litellm import token_counter
 
 
+encoding = tiktoken.get_encoding("cl100k_base")
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
@@ -194,12 +195,12 @@ def update_dict(dict_to_update, key, value) -> dict:
     return dict_to_update
 
 
-def _count_tokens(encoding: tiktoken.Encoding, string: str) -> int:
+def _count_tokens(encoding_tik: tiktoken.Encoding, string: str) -> int:
     """
     Count the number of tokens in a string.
     """
     try:
-        return len(encoding.encode(string))
+        return len(encoding_tik.encode(string))
     except Exception:
         word_count = len(re.findall(r'\w+', string))
         # Note: This is a rough estimate and may not be accurate
@@ -208,7 +209,9 @@ def _count_tokens(encoding: tiktoken.Encoding, string: str) -> int:
 
 def openai_message_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
-    return token_counter(model=model, text=str(message))
+    if "claude" in model:
+        return token_counter(model=model, text=str(message))
+    return len(encoding.encode(str(message)))
 
 
 def openai_response_tokens(message: dict, model: str) -> int:

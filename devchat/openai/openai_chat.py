@@ -1,8 +1,6 @@
 from typing import Optional, Union, List, Dict, Iterator
-import os
 from pydantic import BaseModel, Field
 import openai
-from litellm import completion
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
@@ -68,22 +66,10 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
-        api_key = os.environ.get("OPENAI_API_KEY")
-
-        if api_key.startswith("DC."):
-            response = openai.ChatCompletion.create(
-                messages=prompt.messages,
-                **config_params
-            )
-        else:
-            if config_params["model"].startswith("gpt-"):
-                # call gpt- model by openai api and openai api key
-                response = openai.ChatCompletion.create(
-                    messages=prompt.messages,
-                    **config_params
-                )
-            else:
-                response = completion(messages=prompt.messages, **config_params, api_key=api_key)
+        response = openai.ChatCompletion.create(
+            messages=prompt.messages,
+            **config_params
+        )
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
@@ -94,21 +80,8 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
-        # read environment variable
-        api_key = os.environ.get("OPENAI_API_KEY")
-
-        if api_key.startswith("DC."):
-            response = openai.ChatCompletion.create(
-                messages=prompt.messages,
-                **config_params
-            )
-        else:
-            if config_params["model"].startswith("gpt-"):
-                # call gpt- model by openai api and openai api key
-                response = openai.ChatCompletion.create(
-                    messages=prompt.messages,
-                    **config_params
-                )
-            else:
-                response = completion(**config_params, messages=prompt.messages, api_key=api_key)
+        response = openai.ChatCompletion.create(
+            messages=prompt.messages,
+            **config_params
+        )
         return response
