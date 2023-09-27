@@ -117,6 +117,6 @@ Issues and pull request are welcome: https://github.com/devchat-ai/devchat/issue
   
 ## Contact
   
-Email: hello@merico.dev
+Email: hello@devchat.ai
 
 We are creators of [Apache DevLake](https://devlake.apache.org/).
