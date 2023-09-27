@@ -17,7 +17,7 @@
 [![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
 [![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/9t3yrbBUXD)
 
-**The AI Coding Assistant Made Effective by Manual Control**
+**The AI Coding Assistant Made Effective with Human in the Loop**
 
 🛠️ No excessive automation, just right AI where it works.
 
