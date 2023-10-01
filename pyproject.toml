@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "devchat"
-version = "0.2.6"
+version = "0.2.8"
 description = "DevChat is an open-source tool that helps developers write prompts to generate code and documentation."
 authors = ["DevChat Team <hello@devchat.ai>"]
 license = "Apache License 2.0"
@@ -29,7 +29,6 @@ urllib3 = "<2.0"
 importlib-metadata = "^6.8.0"
 pyyaml = "^6.0.1"
 gitpython = "^3.1.32"
-anthropic = "^0.3.11"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli.main:main"
