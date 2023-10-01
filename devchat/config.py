@@ -11,7 +11,7 @@ from devchat.anthropic import AnthropicChatParameters
 class Client(str, Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
-    General = "general"
+    GENERAL = "general"
 
 
 class ProviderConfig(BaseModel):
@@ -146,7 +146,7 @@ class ConfigManager:
                     api_key=""
                 ),
                 "general": ProviderConfig(
-                    client=Client.General
+                    client=Client.GENERAL
                 )
             },
             models={
