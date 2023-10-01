@@ -11,7 +11,7 @@ from devchat.anthropic import AnthropicChatParameters
 class Client(str, Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
-    LITELLM = "litellm"
+    GENERAL = "general"
 
 
 class ProviderConfig(BaseModel):
@@ -90,7 +90,7 @@ class ConfigManager:
                     data['providers'][provider] = OpenAIProviderConfig(**config)
                 elif config['client'] == "anthropic":
                     data['providers'][provider] = AnthropicProviderConfig(**config)
-                elif config['client'] == "litellm":
+                else:
                     data['providers'][provider] = ProviderConfig(**config)
         for model, config in data['models'].items():
             if 'provider' not in config:
@@ -101,7 +101,7 @@ class ConfigManager:
                     data['models'][model] = OpenAIModelConfig(**config)
                 elif provider.client == Client.ANTHROPIC:
                     data['models'][model] = AnthropicModelConfig(**config)
-                elif provider.client == Client.LITELLM:
+                else:
                     data['models'][model] = GeneralModelConfig(**config)
 
         return ChatConfig(**data)
@@ -146,7 +146,7 @@ class ConfigManager:
                     api_key=""
                 ),
                 "general": ProviderConfig(
-                    client=Client.LITELLM
+                    client=Client.GENERAL
                 )
             },
             models={

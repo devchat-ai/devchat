@@ -711,23 +711,6 @@ files = [
 ]
 
 [[package]]
-name = "litellm"
-version = "0.1.538"
-description = "Library to easily interface with LLM API providers"
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "litellm-0.1.538-py3-none-any.whl", hash = "sha256:773e19c689ff193a5fed13d432acb6fba2b1264c45680c30add03a0e34f71beb"},
-    {file = "litellm-0.1.538.tar.gz", hash = "sha256:3239e6835a84b47fdcbbbe8252c5f2ec533f08a059b288fb0ca8ce544ae13e27"},
-]
-
-[package.dependencies]
-importlib-metadata = ">=6.8.0,<7.0.0"
-openai = ">=0.27.8,<0.28.0"
-python-dotenv = ">=0.2.0"
-tiktoken = ">=0.4.0,<0.5.0"
-
-[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -1053,20 +1036,6 @@ tomli = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
-
-[[package]]
-name = "python-dotenv"
-version = "1.0.0"
-description = "Read key-value pairs from a .env file and set them as environment variables"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "python-dotenv-1.0.0.tar.gz", hash = "sha256:a8df96034aae6d2d50a4ebe8216326c61c3eb64836776504fcca410e5937a3ba"},
-    {file = "python_dotenv-1.0.0-py3-none-any.whl", hash = "sha256:f5971a9226b701070a4bf2c38c89e5a3f0d64de8debda981d1db98583009122a"},
-]
-
-[package.extras]
-cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pyyaml"
@@ -1733,4 +1702,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "b36228c573436dcaff5dbe235d0f494a114c02dc55d3ccb8445c58b9e1ff07ea"
+content-hash = "dea3d9cec54b2ce407340ba9269a90eb2bd7db261dba5c299979edd5881def8e"

@@ -8,7 +8,6 @@ from typing import List, Tuple, Optional
 import datetime
 import hashlib
 import tiktoken
-from litellm import token_counter
 
 
 encoding = tiktoken.get_encoding("cl100k_base")
@@ -207,11 +206,9 @@ def _count_tokens(encoding_tik: tiktoken.Encoding, string: str) -> int:
         return int(word_count / 0.75)
 
 
-def openai_message_tokens(message: dict, model: str) -> int:
+def openai_message_tokens(messages: dict, model: str) -> int: # pylint: disable=unused-argument
     """Returns the number of tokens used by a message."""
-    if "claude" in model:
-        return token_counter(model=model, text=str(message))
-    return len(encoding.encode(str(message)))
+    return len(encoding.encode(str(messages)))
 
 
 def openai_response_tokens(message: dict, model: str) -> int:
