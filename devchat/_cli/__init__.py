@@ -1,4 +1,3 @@
-from .optimize import *
 from .log import log
 from .prompt import prompt
 from .run import run
