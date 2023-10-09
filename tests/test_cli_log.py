@@ -137,23 +137,23 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
     )
     prompt2 = json.loads(result.output)[0]
 
-    chat3 = """{
+    chat3 = f"""{{
         "model": "gpt-3.5-turbo",
         "messages": [
-            {
+            {{
                 "role": "user",
                 "content": "Let's continue with Topic 1."
-            },
-            {
+            }},
+            {{
                 "role": "assistant",
                 "content": "Sure!"
-            }
+            }}
         ],
-        "parent": "%s",
+        "parent": "{prompt1['hash']}",
         "timestamp": 1630000000,
         "request_tokens": 300,
         "response_tokens": 300
-    }""" % prompt1['hash']
+    }}"""
     result = runner.invoke(
         main,
         ['log', '--insert', chat3]
