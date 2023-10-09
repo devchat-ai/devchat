@@ -1,4 +1,5 @@
 import json
+import time
 from click.testing import CliRunner
 from devchat.utils import get_prompt_hash
 from devchat._cli.main import main
@@ -14,6 +15,8 @@ def test_topic_list(git_repo):  # pylint: disable=W0613
     )
     assert result.exit_code == 0
     topic1 = get_prompt_hash(result.output)
+
+    time.sleep(3)
 
     result = runner.invoke(
         main,

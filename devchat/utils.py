@@ -206,7 +206,7 @@ def _count_tokens(encoding_tik: tiktoken.Encoding, string: str) -> int:
         return int(word_count / 0.75)
 
 
-def openai_message_tokens(messages: dict, model: str) -> int: # pylint: disable=unused-argument
+def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable=unused-argument
     """Returns the number of tokens used by a message."""
     return len(encoding.encode(str(messages)))
 
