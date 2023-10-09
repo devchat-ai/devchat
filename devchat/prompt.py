@@ -72,10 +72,6 @@ class Prompt(ABC):
         return True
 
     @property
-    def timestamp(self) -> int:
-        return self._timestamp
-
-    @property
     def new_context(self) -> List[Message]:
         return self._new_messages[Message.CONTEXT]
 
@@ -83,19 +79,39 @@ class Prompt(ABC):
     def request(self) -> Message:
         return self._new_messages['request']
 
+    @request.setter
+    def request(self, value: Message):
+        self._new_messages['request'] = value
+
     @property
     def responses(self) -> List[Message]:
         return self._new_messages['responses']
 
     @property
+    def timestamp(self) -> int:
+        return self._timestamp
+
+    @timestamp.setter
+    def timestamp(self, value: int):
+        self._timestamp = value
+
+    @property
     def request_tokens(self) -> int:
         return self._request_tokens
+
+    @request_tokens.setter
+    def request_tokens(self, value: int):
+        self._request_tokens = value
 
     @property
     def response_tokens(self) -> int:
         if not self._response_tokens:
             self._response_tokens = self._count_response_tokens()
         return self._response_tokens
+
+    @response_tokens.setter
+    def response_tokens(self, value: int):
+        self._response_tokens = value
 
     @abstractmethod
     def _count_response_tokens(self) -> int:

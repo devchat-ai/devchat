@@ -87,10 +87,10 @@ class OpenAIPrompt(Prompt):
             while True:
                 last_message = self._history_messages[Message.CHAT].pop()
                 if last_message.role in ("user", "function"):
-                    self._new_messages["request"] = last_message
+                    self.request = last_message
                     break
                 if last_message.role == "assistant":
-                    self._new_messages["responses"].append(last_message)
+                    self.responses.append(last_message)
                     continue
                 self._history_messages[Message.CHAT].append(last_message)
 
@@ -151,7 +151,7 @@ class OpenAIPrompt(Prompt):
         message = OpenAIMessage(content=content,
                                 role=('user' if not function_name else 'function'),
                                 name=function_name)
-        self._new_messages['request'] = message
+        self.request = message
         self._request_tokens += openai_message_tokens(message.to_dict(), self.model)
 
     def set_response(self, response_str: str):
