@@ -84,11 +84,15 @@ class OpenAIPrompt(Prompt):
                     logger.warning("Invalid new context message: %s", message)
 
         if not self.request:
-            last_user_message = self._history_messages[Message.CHAT].pop()
-            if last_user_message.role in ("user", "function"):
-                self._new_messages["request"] = last_user_message
-            else:
-                logger.warning("Invalid user request: %s", last_user_message)
+            while True:
+                last_message = self._history_messages[Message.CHAT].pop()
+                if last_message.role in ("user", "function"):
+                    self._new_messages["request"] = last_message
+                    break
+                if last_message.role == "assistant":
+                    self._new_messages["responses"].append(last_message)
+                    continue
+                self._history_messages[Message.CHAT].append(last_message)
 
     def append_new(self, message_type: str, content: str,
                    available_tokens: int = sys.maxsize) -> bool:
@@ -232,7 +236,7 @@ class OpenAIPrompt(Prompt):
                              f"got '{response_data['model']}'")
 
     def _timestamp_from_dict(self, response_data: dict):
-        if self._timestamp is None:
+        if not self._timestamp:
             self._timestamp = response_data['created']
         elif self._timestamp != response_data['created']:
             raise ValueError(f"Time mismatch: expected {self._timestamp}, "

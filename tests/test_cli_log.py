@@ -90,3 +90,84 @@ def test_tokens_with_log(git_repo):  # pylint: disable=W0613
     logs = json.loads(result.output)
     assert _within_range(logs[1]["request_tokens"], logs[0]["request_tokens"])
     assert _within_range(logs[1]["response_tokens"], logs[0]["response_tokens"])
+
+
+def test_log_insert(git_repo):  # pylint: disable=W0613
+    chat1 = """{
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "user",
+                "content": "This is Topic 1. Reply the topic number."
+            },
+            {
+                "role": "assistant",
+                "content": "Topic 1"
+            }
+        ],
+        "timestamp": 1610000000,
+        "request_tokens": 100,
+        "response_tokens": 100
+    }"""
+    result = runner.invoke(
+        main,
+        ['log', '--insert', chat1]
+    )
+    prompt1 = json.loads(result.output)[0]
+
+    chat2 = """{
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "user",
+                "content": "This is Topic 2. Reply the topic number."
+            },
+            {
+                "role": "assistant",
+                "content": "Topic 2"
+            }
+        ],
+        "timestamp": 1620000000,
+        "request_tokens": 200,
+        "response_tokens": 200
+    }"""
+    result = runner.invoke(
+        main,
+        ['log', '--insert', chat2]
+    )
+    prompt2 = json.loads(result.output)[0]
+
+    chat3 = """{
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "user",
+                "content": "Let's continue with Topic 1."
+            },
+            {
+                "role": "assistant",
+                "content": "Sure!"
+            }
+        ],
+        "parent": "%s",
+        "timestamp": 1630000000,
+        "request_tokens": 300,
+        "response_tokens": 300
+    }""" % prompt1['hash']
+    result = runner.invoke(
+        main,
+        ['log', '--insert', chat3]
+    )
+    prompt3 = json.loads(result.output)[0]
+    assert prompt3['parent'] == prompt1['hash']
+
+    result = runner.invoke(main, ['log', '-n', 3])
+    logs = json.loads(result.output)
+    assert logs[0]['hash'] == prompt3['hash']
+    assert logs[1]['hash'] == prompt2['hash']
+    assert logs[2]['hash'] == prompt1['hash']
+
+    result = runner.invoke(main, ['topic', '--list'])
+    topics = json.loads(result.output)
+    assert topics[0]['root_prompt']['hash'] == prompt1['hash']
+    assert topics[1]['root_prompt']['hash'] == prompt2['hash']

@@ -1,10 +1,23 @@
 import json
 import sys
+from typing import Optional, List, Dict
+from pydantic import BaseModel
 import rich_click as click
-from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
+from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
 from devchat.store import Store
-from devchat.utils import get_logger
+from devchat.utils import get_logger, get_user_info
 from devchat._cli.utils import handle_errors, init_dir, get_model_config
+
+
+class PromptData(BaseModel):
+    model: str
+    messages: List[Dict]
+    parent: Optional[str] = None
+    references: Optional[List[str]] = []
+    timestamp: int
+    request_tokens: int
+    response_tokens: int
+
 
 logger = get_logger(__name__)
 
@@ -14,13 +27,15 @@ logger = get_logger(__name__)
 @click.option('-n', '--max-count', default=1, help='Limit the number of commits to output.')
 @click.option('-t', '--topic', 'topic_root', default=None,
               help='Hash of the root prompt of the topic to select prompts from.')
-@click.option('--delete', default=None, help='Delete a leaf prompt from the log.')
-def log(skip, max_count, topic_root, delete):
+@click.option('--insert', default=None, help='JSON string of the prompt to insert into the log.')
+@click.option('--delete', default=None, help='Hash of the leaf prompt to delete from the log.')
+def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.
     """
-    if delete and (skip != 0 or max_count != 1 or topic_root is not None):
-        click.echo("Error: The --delete option cannot be used with other options.", err=True)
+    if (insert or delete) and (skip != 0 or max_count != 1 or topic_root is not None):
+        click.echo("Error: The --insert or --delete option cannot be used with other options.",
+                   err=True)
         sys.exit(1)
 
     repo_chat_dir, user_chat_dir = init_dir()
@@ -39,6 +54,19 @@ def log(skip, max_count, topic_root, delete):
             else:
                 click.echo(f"Failed to delete prompt {delete}.")
         else:
+            if insert:
+                prompt_data = PromptData(**json.loads(insert))
+                user, email = get_user_info()
+                prompt = OpenAIPrompt(prompt_data.model, user, email)
+                prompt.model = prompt_data.model
+                prompt.input_messages(prompt_data.messages)
+                prompt.parent = prompt_data.parent
+                prompt.references = prompt_data.references
+                prompt._timestamp = prompt_data.timestamp
+                prompt._request_tokens = prompt_data.request_tokens
+                prompt._response_tokens = prompt_data.response_tokens
+                store.store_prompt(prompt)
+
             recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
             logs = []
             for record in recent_prompts:
