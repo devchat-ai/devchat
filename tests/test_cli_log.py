@@ -1,6 +1,6 @@
 import json
 from click.testing import CliRunner
-from devchat.utils import get_prompt_hash
+from devchat.utils import get_prompt_hash, get_content
 from devchat._cli.main import main
 
 runner = CliRunner()
@@ -113,6 +113,7 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
         main,
         ['log', '--insert', chat1]
     )
+    assert result.exit_code == 0
     prompt1 = json.loads(result.output)[0]
 
     chat2 = """{
@@ -135,6 +136,7 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
         main,
         ['log', '--insert', chat2]
     )
+    assert result.exit_code == 0
     prompt2 = json.loads(result.output)[0]
 
     chat3 = f"""{{
@@ -158,6 +160,7 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
         main,
         ['log', '--insert', chat3]
     )
+    assert result.exit_code == 0
     prompt3 = json.loads(result.output)[0]
     assert prompt3['parent'] == prompt1['hash']
 
@@ -171,3 +174,17 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
     topics = json.loads(result.output)
     assert topics[0]['root_prompt']['hash'] == prompt1['hash']
     assert topics[1]['root_prompt']['hash'] == prompt2['hash']
+
+    result = runner.invoke(
+        main,
+        ['prompt', '-p', prompt2['hash'], 'Again, just reply the topic number.']
+    )
+    assert result.exit_code == 0
+    content = get_content(result.output)
+    assert content.strip() == "Topic 2"
+
+    result = runner.invoke(main, ['log', '-t', prompt2['hash'], '-n', 100])
+    assert result.exit_code == 0
+    logs = json.loads(result.output)
+    assert len(logs) == 2
+    assert logs[0]['responses'][0] == "Topic 2"
