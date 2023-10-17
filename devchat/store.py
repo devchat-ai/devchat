@@ -92,7 +92,7 @@ class Store:
                     logger.warning("Topic %s not found in graph but added", topic['root'])
                 if prompt.parent == topic['root'] or \
                         prompt.parent in nx.ancestors(self._graph, topic['root']):
-                    topic['latest_time'] = max(topic['latest_time'], prompt.timestamp)
+                    topic['latest_time'] = prompt.timestamp
                     self._topics_table.update(topic, doc_ids=[topic.doc_id])
                     break
         else:
