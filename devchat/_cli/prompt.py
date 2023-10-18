@@ -49,17 +49,11 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     Configuration
     -------------
 
-    DevChat CLI reads configuration from `~/.chat/config.json`
+    DevChat CLI reads configuration from `~/.chat/config.yml`
     (if `~/.chat` is not accessible, it will try `.chat` in your current Git or SVN root directory).
-    Otherwise, it uses the following default configuration:
-    ```yaml
-    gpt-4:
-      max_input_tokens: 6000
-      temperature: 0
-      provider: openai.com
-    ```
+    You can edit the file to modify default configuration.
 
-    Note: To use OpenAI's APIs, you must have an API key to run the CLI.
+    To use OpenAI's APIs, you have to set an API key by the environment variable `OPENAI_API_KEY`.
     Run the following command line with your API key:
 
     ```bash
