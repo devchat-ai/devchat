@@ -110,7 +110,7 @@ class Assistant:
                     first_chunk = False
                     yield self._prompt.formatted_header()
                 yield delta
-            if not self._prompt.responses or len(self._prompt.responses) == 0:
+            if not self._prompt.responses:
                 raise RuntimeError("No responses returned from the chat API")
             self._store.store_prompt(self._prompt)
             yield self._prompt.formatted_footer(0) + '\n'
@@ -119,7 +119,7 @@ class Assistant:
         else:
             response_str = self._chat.complete_response(self._prompt)
             self._prompt.set_response(response_str)
-            if not self._prompt.responses or len(self._prompt.responses) == 0:
+            if not self._prompt.responses:
                 raise RuntimeError("No responses returned from the chat API")
             self._store.store_prompt(self._prompt)
             for index in range(len(self._prompt.responses)):
