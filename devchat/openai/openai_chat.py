@@ -82,6 +82,7 @@ class OpenAIChat(Chat):
 
         response = openai.ChatCompletion.create(
             messages=prompt.messages,
-            **config_params
+            **config_params,
+            request_timeout = 4
         )
         return response
