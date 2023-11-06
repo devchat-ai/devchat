@@ -7,7 +7,10 @@ import requests
 import zipfile
 from urllib.parse import urlparse
 from typing import Tuple, List, Optional, Any
-from git import Repo, InvalidGitRepositoryError, GitCommandError
+try:
+    from git import Repo, InvalidGitRepositoryError, GitCommandError
+except Exception:
+    pass
 import rich_click as click
 from devchat.config import ConfigManager, OpenAIModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger

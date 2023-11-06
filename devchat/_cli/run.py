@@ -4,7 +4,10 @@ import shutil
 import sys
 from typing import List
 import rich_click as click
-from git import Repo, GitCommandError
+try:
+    from git import Repo, GitCommandError
+except Exception:
+    pass
 from devchat._cli.utils import init_dir, handle_errors, valid_git_repo, clone_git_repo
 from devchat._cli.utils import download_and_extract_workflow
 from devchat.engine import Namespace, CommandParser, RecursivePrompter
