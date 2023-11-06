@@ -92,8 +92,8 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[str], zip_urls: Lis
             try:
                 download_and_extract_workflow(url, target_dir)
                 break
-            except Exception as e:
-                logger.exception("Failed to download and extract workflow: %s", e)
+            except Exception as err:
+                logger.exception("Failed to download and extract workflow: %s", err)
         return
 
     if os.path.exists(target_dir):
