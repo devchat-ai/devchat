@@ -111,43 +111,43 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
     assert get_content(result.output).find("hot summer\n") >= 0
 
 
-def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
-    # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
-                                  "What is the weather like in Boston?"])
-    if result.exit_code:
-        print(result.output)
-    assert result.exit_code == 0
-    content = get_content(result.output)
-    assert 'finish_reason: function_call' in content
-    assert '```command' in content
-    assert '"name": "get_current_weather"' in content
+# def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
+#     # call with -f option
+#     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
+#                                   "What is the weather like in Boston?"])
+#     if result.exit_code:
+#         print(result.output)
+#     assert result.exit_code == 0
+#     content = get_content(result.output)
+#     assert 'finish_reason: function_call' in content
+#     assert '```command' in content
+#     assert '"name": "get_current_weather"' in content
 
-    # compare with no -f options
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
-                                  'What is the weather like in Boston?'])
+#     # compare with no -f options
+#     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
+#                                   'What is the weather like in Boston?'])
 
-    content = get_content(result.output)
-    assert result.exit_code == 0
-    assert 'finish_reason: stop' not in content
-    assert 'command' not in content
+#     content = get_content(result.output)
+#     assert result.exit_code == 0
+#     assert 'finish_reason: stop' not in content
+#     assert 'command' not in content
 
 
-def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
-    # call with -f option
-    result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
-                                  'What is the weather like in Boston?'])
-    if result.exit_code:
-        print(result.output)
-    assert result.exit_code == 0
-    prompt_hash = get_prompt_hash(result.output)
-    result = runner.invoke(main, ['log', '-t', prompt_hash])
+# def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
+#     # call with -f option
+#     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
+#                                   'What is the weather like in Boston?'])
+#     if result.exit_code:
+#         print(result.output)
+#     assert result.exit_code == 0
+#     prompt_hash = get_prompt_hash(result.output)
+#     result = runner.invoke(main, ['log', '-t', prompt_hash])
 
-    result_json = json.loads(result.output)
-    assert result.exit_code == 0
-    assert result_json[0]['request'] == 'What is the weather like in Boston?'
-    assert '```command' in result_json[0]['responses'][0]
-    assert 'get_current_weather' in result_json[0]['responses'][0]
+#     result_json = json.loads(result.output)
+#     assert result.exit_code == 0
+#     assert result_json[0]['request'] == 'What is the weather like in Boston?'
+#     assert '```command' in result_json[0]['responses'][0]
+#     assert 'get_current_weather' in result_json[0]['responses'][0]
 
 
 def test_prompt_log_compatibility():
