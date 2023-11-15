@@ -1,11 +1,9 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@2.1.1
-
 jobs:
   build:
-    executor: python/default
+    docker:
+      - image: cimg/python:3.12.0
     steps:
       - checkout
       - python/install-packages:
