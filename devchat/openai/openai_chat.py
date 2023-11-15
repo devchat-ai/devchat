@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field
@@ -76,6 +77,8 @@ class OpenAIChat(Chat):
             messages=prompt.messages,
             **config_params
         )
+        if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
+            return json.dumps(response.dict())
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
