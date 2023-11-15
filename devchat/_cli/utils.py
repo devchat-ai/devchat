@@ -2,14 +2,45 @@ from contextlib import contextmanager
 import os
 import sys
 import json
+import shutil
 from typing import Tuple, List, Optional, Any
-from git import Repo, InvalidGitRepositoryError, GitCommandError
+import zipfile
+import requests
+try:
+    from git import Repo, InvalidGitRepositoryError, GitCommandError
+except Exception:
+    pass
 import rich_click as click
 from devchat.config import ConfigManager, OpenAIModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
 
 logger = get_logger(__name__)
+
+
+def download_and_extract_workflow(workflow_url, target_dir):
+    # Download the workflow zip file
+    response = requests.get(workflow_url, stream=True, timeout=10)
+    # Downaload file to temp dir
+    os.makedirs(target_dir, exist_ok=True)
+    zip_path = os.path.join(target_dir, 'workflow.zip')
+    with open(zip_path, 'wb') as file_handle:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                file_handle.write(chunk)
+
+    # Extract the zip file
+    parent_dir = os.path.dirname(target_dir)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(parent_dir)
+
+    # Delete target directory if exists
+    if os.path.exists(target_dir):
+        shutil.rmtree(target_dir)
+
+    # Rename extracted directory to target directory
+    extracted_dir = os.path.join(parent_dir, 'workflows-main')
+    os.rename(extracted_dir, target_dir)
 
 
 @contextmanager

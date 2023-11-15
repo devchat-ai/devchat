@@ -119,7 +119,11 @@ def get_user_info() -> Tuple[str, str]:
         cmd = ['git', 'config', 'user.name']
         user_name = subprocess.check_output(cmd, encoding='utf-8').strip()
     except Exception:
-        user_name = getpass.getuser()
+        try:
+            user_name = getpass.getuser()
+        except Exception:
+            user_dir = os.path.expanduser("~")
+            user_name = user_dir.split(os.sep)[-1]
 
     try:
         cmd = ['git', 'config', 'user.email']
