@@ -12,7 +12,7 @@ import tiktoken
 try:
     encoding = tiktoken.get_encoding("cl100k_base")
 except Exception:
-    import tiktoken.registry as registry
+    from tiktoken import registry
     from tiktoken.registry import _find_constructors
     from tiktoken.core import Encoding
 

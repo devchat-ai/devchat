@@ -98,7 +98,8 @@ class Assistant:
             for chunk in self._chat.stream_response(self._prompt):
                 if isinstance(chunk, openai.types.chat.chat_completion_chunk.ChatCompletionChunk):
                     chunk = chunk.dict()
-                    if "function_call" in chunk["choices"][0]["delta"] and not chunk["choices"][0]["delta"]["function_call"]:
+                    if "function_call" in chunk["choices"][0]["delta"] and \
+                          not chunk["choices"][0]["delta"]["function_call"]:
                         del chunk["choices"][0]["delta"]["function_call"]
                         if not chunk["choices"][0]["delta"]["content"]:
                             chunk["choices"][0]["delta"]["content"] = ""
