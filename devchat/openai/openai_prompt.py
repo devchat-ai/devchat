@@ -214,9 +214,9 @@ class OpenAIPrompt(Prompt):
                     self.responses[index].stream_from_dict(delta)
 
                 if 'function_call' in delta:
-                    if 'name' in delta['function_call']:
+                    if 'name' in delta['function_call'] and \
+                            self.responses[index].function_call.get('name', '') == '':
                         self.responses[index].function_call['name'] = \
-                            self.responses[index].function_call.get('name', '') + \
                             delta['function_call']['name']
                     if 'arguments' in delta['function_call']:
                         self.responses[index].function_call['arguments'] = \
