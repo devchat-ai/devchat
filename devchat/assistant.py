@@ -1,6 +1,7 @@
 import json
 import time
 from typing import Optional, List, Iterator
+import openai
 from devchat.message import Message
 from devchat.chat import Chat
 from devchat.store import Store
@@ -95,6 +96,12 @@ class Assistant:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
             for chunk in self._chat.stream_response(self._prompt):
+                if isinstance(chunk, openai.types.chat.chat_completion_chunk.ChatCompletionChunk):
+                    chunk = chunk.dict()
+                    if "function_call" in chunk["choices"][0]["delta"] and not chunk["choices"][0]["delta"]["function_call"]:
+                        del chunk["choices"][0]["delta"]["function_call"]
+                        if not chunk["choices"][0]["delta"]["content"]:
+                            chunk["choices"][0]["delta"]["content"] = ""
                 if "id" not in chunk or "index" not in chunk["choices"][0]:
                     chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
                     chunk["object"] = "chat.completion.chunk"

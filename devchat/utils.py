@@ -9,8 +9,20 @@ import datetime
 import hashlib
 import tiktoken
 
+try:
+    encoding = tiktoken.get_encoding("cl100k_base")
+except Exception:
+    import tiktoken.registry as registry
+    from tiktoken.registry import _find_constructors
+    from tiktoken.core import Encoding
 
-encoding = tiktoken.get_encoding("cl100k_base")
+    def get_encoding(name: str):
+        _find_constructors()
+        constructor = registry.ENCODING_CONSTRUCTORS[name]
+        return Encoding(**constructor(), use_pure_python=True)
+
+    encoding = get_encoding("cl100k_base")
+
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 

@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field
 import openai
@@ -66,7 +67,12 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY", None),
+            base_url=os.environ.get("OPENAI_API_BASE", None)
+        )
+
+        response = client.chat.completions.create(
             messages=prompt.messages,
             **config_params
         )
@@ -80,8 +86,14 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY", None),
+            base_url=os.environ.get("OPENAI_API_BASE", None)
+        )
+
+        response = client.chat.completions.create(
             messages=prompt.messages,
-            **config_params
+            **config_params,
+            timeout=8
         )
         return response
