@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional
-import yaml
+import oyaml as yaml
 from pydantic import BaseModel
 from .namespace import Namespace
 

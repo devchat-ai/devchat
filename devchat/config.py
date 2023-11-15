@@ -3,7 +3,7 @@ import os
 import sys
 from typing import List, Dict, Tuple, Union, Optional
 from pydantic import BaseModel
-import yaml
+import oyaml as yaml
 from devchat.openai import OpenAIChatParameters
 from devchat.anthropic import AnthropicChatParameters
 

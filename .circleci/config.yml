@@ -1,17 +1,17 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@2.1.1
-
 jobs:
   build:
-    executor: python/default
+    docker:
+      - image: circleci/python:3.9
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: poetry
       - run:
-          name: Install dependencies
+          name: Install Poetry
+          command: |
+            curl -sSL https://install.python-poetry.org | python3 -
+      - run:
+          name: Setup Python Environment
           command: |
             poetry install
       - run:
