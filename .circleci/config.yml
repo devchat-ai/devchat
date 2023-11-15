@@ -1,18 +1,15 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@2.1.1
-
 jobs:
   build:
-    executor: python/default
+    docker:
+      - image: circleci/python:3.9
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: poetry
       - run:
-          name: Install dependencies
+          name: Setup Python Environment
           command: |
+            pip install poetry
             poetry install
       - run:
           name: Run Pylint
