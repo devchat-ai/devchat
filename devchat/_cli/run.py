@@ -76,6 +76,8 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
             if not cmd.steps:
                 prompter = RecursivePrompter(namespace)
                 click.echo(prompter.run(command))
+            else:
+                click.echo(json.dumps(cmd.dict()))
             return
 
 
