@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict, Optional
 import oyaml as yaml
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ class Parameter(BaseModel, extra='forbid'):
     description: Optional[str]
     enum: Optional[List[str]]
     default: Optional[str]
+    required: Optional[bool]
 
 
 class Command(BaseModel, extra='forbid'):
@@ -53,7 +55,12 @@ def parse_command(file_path: str) -> Command:
     :param file_path: The path to the configuration file.
     :return: The validated configuration as a Pydantic model.
     """
+    # get path from file_path, /xx1/xx2/xx3.py => /xx1/xx2
+    config_dir = os.path.dirname(file_path)
+
     with open(file_path, 'r', encoding='utf-8') as file:
-        config_dict = yaml.safe_load(file)
+        # replace {curpath} with config_dir
+        content = file.read().replace('{curpath}', config_dir)
+        config_dict = yaml.safe_load(content)
     config = Command(**config_dict)
     return config
