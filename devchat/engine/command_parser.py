@@ -10,12 +10,13 @@ class Parameter(BaseModel, extra='forbid'):
     description: Optional[str]
     enum: Optional[List[str]]
     default: Optional[str]
-    required: Optional[bool]
 
 
 class Command(BaseModel, extra='forbid'):
     description: str
+    hint: Optional[str]
     parameters: Optional[Dict[str, Parameter]]
+    input: Optional[str]
     steps: Optional[List[Dict[str, str]]]
 
 
@@ -60,7 +61,7 @@ def parse_command(file_path: str) -> Command:
 
     with open(file_path, 'r', encoding='utf-8') as file:
         # replace {curpath} with config_dir
-        content = file.read().replace('{curpath}', config_dir)
+        content = file.read().replace('$command_path', config_dir)
         config_dict = yaml.safe_load(content)
     config = Command(**config_dict)
     return config
