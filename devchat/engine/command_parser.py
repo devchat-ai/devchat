@@ -10,12 +10,13 @@ class Parameter(BaseModel, extra='forbid'):
     description: Optional[str]
     enum: Optional[List[str]]
     default: Optional[str]
-    required: Optional[bool]
 
 
 class Command(BaseModel, extra='forbid'):
     description: str
+    hint: Optional[str]
     parameters: Optional[Dict[str, Parameter]]
+    input: Optional[str]
     steps: Optional[List[Dict[str, str]]]
 
 
