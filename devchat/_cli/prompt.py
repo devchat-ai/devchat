@@ -1,6 +1,8 @@
 import json
+import sys
 from typing import List, Optional
 import rich_click as click
+from devchat.engine import run_command
 from devchat.assistant import Assistant
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
@@ -24,10 +26,15 @@ from devchat._cli.utils import handle_errors, init_dir, get_model_config
               help='Path to a JSON file with functions for the prompt.')
 @click.option('-n', '--function-name',
               help='Specify the function name when the content is the output of a function.')
+@click.option('-s', '--store', is_flag=True, default=False,
+              help='Save the conversation to the store.')
+@click.option('-a', '--auto', is_flag=True, default=True,
+              help='Answer question by function-calling.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None,
-           functions: Optional[str] = None, function_name: Optional[str] = None):
+           functions: Optional[str] = None, function_name: Optional[str] = None,
+           store: Optional[bool] = False, auto: Optional[bool] = True):
     """
     This command performs interactions with the specified large language model (LLM)
     by sending prompts and receiving responses.
@@ -82,9 +89,9 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         openai_config = OpenAIChatConfig(model=model, **parameters_data)
 
         chat = OpenAIChat(openai_config)
-        store = Store(repo_chat_dir, chat)
+        chat_store = Store(repo_chat_dir, chat)
 
-        assistant = Assistant(chat, store, config.max_input_tokens)
+        assistant = Assistant(chat, chat_store, config.max_input_tokens, store)
 
         functions_data = None
         if functions is not None:
@@ -93,6 +100,17 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         assistant.make_prompt(content, instruct_contents, context_contents, functions_data,
                               parent=parent, references=reference,
                               function_name=function_name)
+
+        click.echo(assistant.prompt.formatted_header())
+        command_result = run_command(
+            model,
+            assistant.prompt.messages,
+            content,
+            parent,
+            context_contents,
+            auto)
+        if command_result is not None:
+            sys.exit(command_result[0])
 
         for response in assistant.iterate_response():
             click.echo(response, nl=False)
