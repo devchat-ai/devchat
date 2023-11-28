@@ -28,13 +28,13 @@ from devchat._cli.utils import handle_errors, init_dir, get_model_config
               help='Specify the function name when the content is the output of a function.')
 @click.option('-s', '--store', is_flag=True, default=False,
               help='Save the conversation to the store.')
-@click.option('-a', '--auto', is_flag=True, default=True,
+@click.option('-a', '--auto', is_flag=True, default=False,
               help='Answer question by function-calling.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None,
            functions: Optional[str] = None, function_name: Optional[str] = None,
-           store: Optional[bool] = False, auto: Optional[bool] = True):
+           store: Optional[bool] = False, auto: Optional[bool] = False):
     """
     This command performs interactions with the specified large language model (LLM)
     by sending prompts and receiving responses.
