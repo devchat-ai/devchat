@@ -26,15 +26,15 @@ from devchat._cli.utils import handle_errors, init_dir, get_model_config
               help='Path to a JSON file with functions for the prompt.')
 @click.option('-n', '--function-name',
               help='Specify the function name when the content is the output of a function.')
-@click.option('-s', '--store', is_flag=True, default=True, required=False,
-              help='Save the conversation to the store.')
+@click.option('-ns', '--not-store', is_flag=True, default=False, required=False,
+              help='Do not save the conversation to the store.')
 @click.option('-a', '--auto', is_flag=True, default=False, required=False,
               help='Answer question by function-calling.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None,
            functions: Optional[str] = None, function_name: Optional[str] = None,
-           store: Optional[bool] = True, auto: Optional[bool] = False):
+           not_store: Optional[bool] = False, auto: Optional[bool] = False):
     """
     This command performs interactions with the specified large language model (LLM)
     by sending prompts and receiving responses.
@@ -91,7 +91,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         chat = OpenAIChat(openai_config)
         chat_store = Store(repo_chat_dir, chat)
 
-        assistant = Assistant(chat, chat_store, config.max_input_tokens, store)
+        assistant = Assistant(chat, chat_store, config.max_input_tokens, not not_store)
 
         functions_data = None
         if functions is not None:
