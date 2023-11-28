@@ -4,6 +4,7 @@ Run Command with a input text.
 import os
 import sys
 import json
+import threading
 import subprocess
 from typing import List
 import shlex
@@ -137,6 +138,17 @@ class CommandRunner:
         replace $xxx in command.steps[0].run with parameters[xxx]
         then run command.steps[0].run
         """
+        def pipe_reader(pipe, out_data, out_flag):
+            try:
+                while True:
+                    data = pipe.read(1)
+                    if data == '':
+                        break
+                    out_data['out'] += data
+                    print(data, end='', file=out_flag, flush=True)
+            finally:
+                pipe.close()
+
         try:
             # add environment variables to parameters
             if parent_hash:
@@ -160,22 +172,29 @@ class CommandRunner:
             # return result
             with subprocess.Popen(
                         shlex.split(command_run),
-                        stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         env=env,
                         text=True
                     ) as process:
-                stdout = ''
-                while True:
-                    output = process.stdout.readline()
-                    if output == '' and process.poll() is not None:
-                        break
-                    if output:
-                        stdout += output
-                        print(output, end='\n')
-                exit_code = process.poll()
-                return (exit_code, stdout)
+
+                stdout_data = {'out': ''}
+                stderr_data = {'out': ''}
+
+                stdout_thread = threading.Thread(
+                    target=pipe_reader,
+                    args=(process.stdout, stdout_data, sys.stdout))
+                stderr_thread = threading.Thread(
+                    target=pipe_reader,
+                    args=(process.stderr, stderr_data, sys.stderr))
+
+                stdout_thread.start()
+                stderr_thread.start()
+
+                stdout_thread.join()
+                stderr_thread.join()
+                exit_code = process.wait()
+                return (exit_code, stdout_data["out"])
             return (-1, "")
         except Exception as err:
             print("Exception:", type(err), err, file=sys.stderr, flush=True)
