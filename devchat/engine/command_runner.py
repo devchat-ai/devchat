@@ -11,7 +11,7 @@ import shlex
 import openai
 
 from devchat.utils import get_logger
-from . import Command
+from .command_parser import Command
 
 
 logger = get_logger(__name__)
@@ -158,24 +158,25 @@ class CommandRunner:
                 del env['PYTHONPATH']
             # result = subprocess.run(command_run, shell=True, env=env)
             # return result
-            process = subprocess.Popen(
-                shlex.split(command_run),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True
-            )
-
-            # 实时读取输出并打印
-            stdout = ''
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                if output:
-                    stdout += output
-                    print(output, end='\n')
-            rc = process.poll()
-            return (rc, stdout)
+            with subprocess.Popen(
+                        shlex.split(command_run),
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        env=env,
+                        text=True
+                    ) as process:
+                stdout = ''
+                while True:
+                    output = process.stdout.readline()
+                    if output == '' and process.poll() is not None:
+                        break
+                    if output:
+                        stdout += output
+                        print(output, end='\n')
+                exit_code = process.poll()
+                return (exit_code, stdout)
+            return (-1, "")
         except Exception as err:
             print("Exception:", type(err), err, file=sys.stderr, flush=True)
             return (-1, "")

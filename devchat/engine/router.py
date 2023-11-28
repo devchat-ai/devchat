@@ -1,9 +1,10 @@
 import os
 import json
-from typing import List
+from typing import List, Iterable
 import openai
 from devchat._cli.utils import init_dir
-from . import Namespace, CommandParser, Command
+from .namespace import Namespace
+from .command_parser import CommandParser, Command
 from .command_runner import CommandRunner
 
 
@@ -95,7 +96,7 @@ def _call_gpt(messages: List[dict],  # messages passed to GPT
 
     for try_times in range(3):
         try:
-            response = client.chat.completions.create(
+            response: Iterable = client.chat.completions.create(
                 messages=messages,
                 model=model_name,
                 stream=True,
@@ -103,7 +104,7 @@ def _call_gpt(messages: List[dict],  # messages passed to GPT
             )
 
             response_result = {'content': None, 'function_name': None, 'parameters': ""}
-            for chunk in response:
+            for chunk in response: # pylint: disable=E1133
                 chunk = chunk.dict()
                 delta = chunk["choices"][0]["delta"]
                 if 'tool_calls' in delta and delta['tool_calls']:
@@ -135,6 +136,7 @@ def _call_gpt(messages: List[dict],  # messages passed to GPT
         except Exception as err:
             print("Exception Error:", err)
             return {'content': None, 'function_name': None, 'parameters': ""}
+    return {'content': None, 'function_name': None, 'parameters': ""}
 
 
 def _create_messages():
@@ -193,7 +195,7 @@ def _auto_route(history_messages, model_name:str):
             response['function_name'],
             response['parameters'],
             model_name)
-    elif not response['content']:
+    if not response['content']:
         return (-1, "")
     return (-1, "")
 
@@ -218,19 +220,18 @@ def run_command(
         # response = _auto_function_calling(history_messages, model_name)
         # return response['content']
         return _auto_route(history_messages, model_name)
-    else:
-        commands = input_text.split()
-        command = commands[0][1:]
+    commands = input_text.split()
+    command = commands[0][1:]
 
-        command_obj = _load_command(command)
-        if not command_obj or not command_obj.steps:
-            return None
+    command_obj = _load_command(command)
+    if not command_obj or not command_obj.steps:
+        return None
 
-        runner = CommandRunner(model_name)
-        return runner.run_command(
-            command,
-            command_obj,
-            history_messages,
-            input_text,
-            parent_hash,
-            context_contents)
+    runner = CommandRunner(model_name)
+    return runner.run_command(
+        command,
+        command_obj,
+        history_messages,
+        input_text,
+        parent_hash,
+        context_contents)
