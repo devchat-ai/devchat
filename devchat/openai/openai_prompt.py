@@ -239,8 +239,7 @@ class OpenAIPrompt(Prompt):
         if not self._timestamp:
             self._timestamp = response_data['created']
         elif self._timestamp != response_data['created']:
-            raise ValueError(f"Time mismatch: expected {self._timestamp}, "
-                             f"got {response_data['created']}")
+            self._timestamp = response_data['created']
 
     def _id_from_dict(self, response_data: dict):
         if self._id is None:
