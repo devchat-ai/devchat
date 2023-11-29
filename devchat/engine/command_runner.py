@@ -139,15 +139,12 @@ class CommandRunner:
         then run command.steps[0].run
         """
         def pipe_reader(pipe, out_data, out_flag):
-            try:
-                while True:
-                    data = pipe.read(1)
-                    if data == '':
-                        break
-                    out_data['out'] += data
-                    print(data, end='', file=out_flag, flush=True)
-            finally:
-                pipe.close()
+            while pipe:
+                data = pipe.read(1)
+                if data == '':
+                    break
+                out_data['out'] += data
+                print(data, end='', file=out_flag, flush=True)
 
         try:
             # add environment variables to parameters
