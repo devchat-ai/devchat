@@ -114,7 +114,7 @@ class CommandRunner:
             return self.run_command_with_parameters(
                 command,
                 {
-                    "input": input_text.strip().replace(f'/{command_name}', '')
+                    "input": input_text.strip().replace(f'/{command_name}', ''),
                     **arguments
                 },
                 parent_hash,
