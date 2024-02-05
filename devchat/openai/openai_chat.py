@@ -97,6 +97,6 @@ class OpenAIChat(Chat):
         response = client.chat.completions.create(
             messages=prompt.messages,
             **config_params,
-            timeout=8
+            timeout=180
         )
         return response
