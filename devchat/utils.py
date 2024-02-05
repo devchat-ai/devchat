@@ -9,6 +9,9 @@ import datetime
 import hashlib
 import tiktoken
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+os.environ['TIKTOKEN_CACHE_DIR'] = os.path.join(script_dir, 'tiktoken_cache')
+
 try:
     encoding = tiktoken.get_encoding("cl100k_base")
 except Exception:
@@ -224,7 +227,7 @@ def _count_tokens(encoding_tik: tiktoken.Encoding, string: str) -> int:
 
 def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable=unused-argument
     """Returns the number of tokens used by a message."""
-    return len(encoding.encode(str(messages)))
+    return len(encoding.encode(str(messages), disallowed_special=()))
 
 
 def openai_response_tokens(message: dict, model: str) -> int:
