@@ -48,8 +48,8 @@ def init_env_and_parameters(
     command_runtime = \
         os.path.expanduser(f'~/.chat/workflows/usr/{root_command_name}/runtime.json')
     if os.path.exists(command_runtime):
-        with open(command_runtime, 'r', encoding='utf8') as fp:
-            command_runtime_json = json.loads(fp.read())
+        with open(command_runtime, 'r', encoding='utf8') as file:
+            command_runtime_json = json.loads(file.read())
             if 'command_python' in command_runtime_json:
                 parameters['command_python'] = \
                     command_runtime_json['command_python'].replace('\\', '/')
@@ -198,8 +198,6 @@ class CommandRunner:
         replace $xxx in command.steps[0].run with parameters[xxx]
         then run command.steps[0].run
         """
-        
-
         try:
             # add environment variables to parameters
             init_env_and_parameters(
@@ -219,7 +217,7 @@ class CommandRunner:
             if command_run.find('$devchat_python ') == -1:
                 del env['PYTHONPATH']
             if (
-                    command_run.find('$command_python ') != -1 
+                    command_run.find('$command_python ') != -1
                     and parameters.get('command_python', '') == ''
                 ):
                 error_msg = ('devchat-commands environment is not installed yet. '
@@ -241,8 +239,8 @@ class CommandRunner:
                 command_dir = os.path.dirname(command.path)
                 readme_file = os.path.join(command_dir, 'README.md')
                 if os.path.exists(readme_file):
-                    with open(readme_file, 'r', encoding='utf8') as fp:
-                        readme = fp.read()
+                    with open(readme_file, 'r', encoding='utf8') as file:
+                        readme = file.read()
                     print(readme, flush=True)
                     return (0, readme)
                 if has_parameter:
