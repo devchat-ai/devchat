@@ -22,7 +22,7 @@ def before_prompt(content: Optional[str], parent: Optional[str], reference: Opti
         content = click.get_text_stream('stdin').read()
 
     if content == '':
-        return
+        return None, None, None, None, None
 
     instruct_contents = parse_files(instruct)
     context_contents = parse_files(context)
@@ -58,7 +58,8 @@ def llm_prompt(content: Optional[str], parent: Optional[str], reference: Optiona
            not_store: Optional[bool] = False):
     with handle_errors():
         _1, _2, assistant, _3, _4 = before_prompt(
-            content, parent, reference, instruct, context, model, config_str, functions, function_name, not_store
+            content, parent, reference, instruct, context,
+            model, config_str, functions, function_name, not_store
 		)
 
         click.echo(assistant.prompt.formatted_header())
@@ -70,7 +71,7 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None):
     with handle_errors():
-        openai_config, model, assistant, content, context_contents = before_prompt(
+        openai_config, model, assistant, content, _1 = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
@@ -81,7 +82,6 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
             assistant.prompt.messages,
             content,
             parent,
-            context_contents,
             False)
         if command_result is not None:
             sys.exit(0)
@@ -96,7 +96,7 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
            model: Optional[str], config_str: Optional[str] = None,
            auto: Optional[bool] = False):
     with handle_errors():
-        openai_config, model, assistant, content, context_contents = before_prompt(
+        openai_config, model, assistant, content, _1 = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
@@ -107,7 +107,6 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
             assistant.prompt.messages,
             content,
             parent,
-            context_contents,
             auto)
         if command_result is not None:
             sys.exit(command_result[0])

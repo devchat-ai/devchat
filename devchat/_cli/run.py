@@ -7,13 +7,9 @@ from typing import List, Optional
 
 import yaml
 import rich_click as click
-try:
-    from git import Repo, GitCommandError
-except Exception:
-    pass
-from devchat._cli.utils import init_dir, handle_errors, valid_git_repo, clone_git_repo
+from devchat._cli.utils import init_dir, handle_errors, clone_git_repo
 from devchat._cli.utils import download_and_extract_workflow
-from devchat.engine import Namespace, CommandParser, RecursivePrompter
+from devchat.engine import Namespace, CommandParser
 from devchat.utils import get_logger
 from devchat._cli.router import llm_commmand
 
@@ -41,8 +37,7 @@ logger = get_logger(__name__)
 def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool,
         parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
-           model: Optional[str], config_str: Optional[str] = None,
-           auto: Optional[bool] = False):
+           model: Optional[str], config_str: Optional[str] = None):
     """
     Operate the workflow engine of DevChat.
     """
@@ -134,7 +129,7 @@ def read_hidden_workflows():
     """
     user_path = os.path.expanduser('~')
     config_path = os.path.join(user_path, '.chat', 'workflows', 'config.yml')
-    
+
     if not os.path.exists(config_path):
         create_default_config_file(config_path)
 
@@ -146,7 +141,7 @@ def read_hidden_workflows():
     return hidden_workflows
 
 
-def __onerror(func, path, exc_info):
+def __onerror(func, path, _1):
     """
     Error handler for shutil.rmtree.
 
@@ -163,20 +158,17 @@ def __onerror(func, path, exc_info):
         os.chmod(path, stat.S_IWUSR)
         # Retry the function that failed
         func(path)
-    else:
-        # Re-raise the error if it's a different kind of error
-        raise
-    
+
 def __make_files_writable(directory):
     """
     Recursively make all files in the directory writable.
     """
-    for root, dirs, files in os.walk(directory):
+    for root, _1, files in os.walk(directory):
         for name in files:
             filepath = os.path.join(root, name)
             if not os.access(filepath, os.W_OK):
                 os.chmod(filepath, stat.S_IWUSR)
-                
+
 def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[str], zip_urls: List[str]):
     """
     Clone a Git repository to a specified location, or pull it if it already exists.
@@ -205,12 +197,12 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[str], zip_urls: Lis
         clone_git_repo(bak_dir, repo_urls)
         try:
             shutil.move(target_dir, new_dir)
-        except Exception as e:
+        except Exception:
             __make_files_writable(target_dir)
             shutil.move(target_dir, new_dir)
         try:
             shutil.move(bak_dir, target_dir)
-        except Exception as e:
+        except Exception:
             __make_files_writable(bak_dir)
             shutil.move(bak_dir, target_dir)
     else:

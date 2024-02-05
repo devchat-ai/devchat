@@ -99,7 +99,7 @@ def _call_gpt(
 
     tools_functions = _create_tools()
     tools = {} if not use_function_calling or not tools_functions else {"tools": tools_functions}
-    
+
     config_params = openai_config.dict(exclude_unset=True)
     config_params.pop('stream', None)
     config_params.pop('user', None)
@@ -251,7 +251,6 @@ def run_command(
         history_messages: List[dict],
         input_text: str,
         parent_hash: str,
-        context_contents: List[str],
         auto_fun: bool):
     """
     load command config, and then run Command
@@ -282,5 +281,4 @@ def run_command(
         command_obj,
         history_messages,
         input_text,
-        parent_hash,
-        context_contents)
+        parent_hash)

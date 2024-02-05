@@ -66,4 +66,3 @@ def route(content: Optional[str], parent: Optional[str], reference: Optional[Lis
         auto
 	)
     sys.exit(0)
-
