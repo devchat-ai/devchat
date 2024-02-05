@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 import hashlib
+from datetime import datetime
 import sys
 from typing import Dict, List
 from devchat.message import Message
@@ -224,7 +225,7 @@ class Prompt(ABC):
         formatted_str = f"User: {user_id(self.user_name, self.user_email)[0]}\n"
 
         if not self._timestamp:
-            raise ValueError(f"Prompt lacks timestamp for formatting header: {self.request}")
+            self._timestamp = datetime.timestamp(datetime.now())
 
         local_time = unix_to_local_datetime(self._timestamp)
         formatted_str += f"Date: {local_time.strftime('%a %b %d %H:%M:%S %Y %z')}\n\n"
@@ -233,8 +234,6 @@ class Prompt(ABC):
 
     def formatted_footer(self, index: int) -> str:
         """Formatted string footer of the prompt."""
-        if not self.hash:
-            raise ValueError(f"Prompt lacks hash for formatting footer: {self.request}")
 
         note = None
         formatted_str = "\n\n"
@@ -250,7 +249,7 @@ class Prompt(ABC):
         if note:
             formatted_str += f"Note: {note} (finish_reason: {reason})\n\n"
 
-        return formatted_str + f"prompt {self.hash}"
+        return formatted_str + (f"prompt {self.hash}" if self.hash else "")
 
     def formatted_full_response(self, index: int) -> str:
         """
@@ -267,7 +266,7 @@ class Prompt(ABC):
                          index, self.request, self.responses)
             return None
 
-        formatted_str = self.formatted_header()
+        formatted_str = ""
 
         if self.responses[index].content:
             formatted_str += self.responses[index].content
