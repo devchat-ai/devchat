@@ -4,6 +4,7 @@ from typing import Optional, List, Iterator
 import openai
 from devchat.message import Message
 from devchat.chat import Chat
+from devchat.openai.openai_prompt import OpenAIPrompt
 from devchat.store import Store
 from devchat.utils import get_logger
 
@@ -12,7 +13,7 @@ logger = get_logger(__name__)
 
 
 class Assistant:
-    def __init__(self, chat: Chat, store: Store, max_prompt_tokens: int):
+    def __init__(self, chat: Chat, store: Store, max_prompt_tokens: int, need_store: bool):
         """
         Initializes an Assistant object.
 
@@ -23,6 +24,11 @@ class Assistant:
         self._store = store
         self._prompt = None
         self.token_limit = max_prompt_tokens
+        self._need_store = need_store
+
+    @property
+    def prompt(self) -> OpenAIPrompt:
+        return self._prompt
 
     @property
     def available_tokens(self) -> int:
@@ -92,7 +98,6 @@ class Assistant:
             Iterator[str]: An iterator over response strings from the chat API.
         """
         if self._chat.config.stream:
-            first_chunk = True
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
             for chunk in self._chat.stream_response(self._prompt):
@@ -114,14 +119,12 @@ class Assistant:
                     chunk['choices'][0]['delta']['role']='assistant'
 
                 delta = self._prompt.append_response(json.dumps(chunk))
-                if first_chunk:
-                    first_chunk = False
-                    yield self._prompt.formatted_header()
                 yield delta
             if not self._prompt.responses:
                 raise RuntimeError("No responses returned from the chat API")
-            self._store.store_prompt(self._prompt)
-            yield self._prompt.formatted_footer(0) + '\n'
+            if self._need_store:
+                self._store.store_prompt(self._prompt)
+                yield self._prompt.formatted_footer(0) + '\n'
             for index in range(1, len(self._prompt.responses)):
                 yield self._prompt.formatted_full_response(index) + '\n'
         else:
@@ -129,6 +132,7 @@ class Assistant:
             self._prompt.set_response(response_str)
             if not self._prompt.responses:
                 raise RuntimeError("No responses returned from the chat API")
-            self._store.store_prompt(self._prompt)
+            if self._need_store:
+                self._store.store_prompt(self._prompt)
             for index in range(len(self._prompt.responses)):
                 yield self._prompt.formatted_full_response(index) + '\n'
