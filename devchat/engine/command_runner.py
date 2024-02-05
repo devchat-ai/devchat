@@ -254,35 +254,33 @@ class CommandRunner:
                         file=sys.stderr, flush=True)
                 return (-1, "")
 
-            # result = subprocess.run(command_run, shell=True, env=env)
-            # return result
-            # command_run = command_run.replace('\\', '/')
-            with subprocess.Popen(
-                        shlex.split(command_run),
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        env=env,
-                        text=True
-                    ) as process:
-
-                stdout_data = {'out': ''}
-                stderr_data = {'out': ''}
-
-                stdout_thread = threading.Thread(
-                    target=pipe_reader,
-                    args=(process.stdout, stdout_data, sys.stdout))
-                stderr_thread = threading.Thread(
-                    target=pipe_reader,
-                    args=(process.stderr, stderr_data, sys.stderr))
-
-                stdout_thread.start()
-                stderr_thread.start()
-
-                stdout_thread.join()
-                stderr_thread.join()
-                exit_code = process.wait()
-                return (exit_code, stdout_data["out"])
-            return (-1, "")
+            return self.run_command_with_thread_output(command_run)
         except Exception as err:
             print("Exception:", type(err), err, file=sys.stderr, flush=True)
             return (-1, "")
+
+    def run_command_with_thread_output(self, command_str: str):
+        """
+        run command string
+        """
+        def handle_output(process):
+            stdout_data, stderr_data = {'out': ''}, {'out': ''}
+            stdout_thread = threading.Thread(
+                target=pipe_reader,
+                args=(process.stdout, stdout_data, sys.stdout))
+            stderr_thread = threading.Thread(
+                target=pipe_reader,
+                args=(process.stderr, stderr_data, sys.stderr))
+            stdout_thread.start()
+            stderr_thread.start()
+            stdout_thread.join()
+            stderr_thread.join()
+            return (process.wait(), stdout_data["out"])
+
+        with subprocess.Popen(
+                shlex.split(command_str),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            ) as process:
+            return handle_output(process)
