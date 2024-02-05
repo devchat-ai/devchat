@@ -6,6 +6,7 @@ import shutil
 from typing import Tuple, List, Optional, Any
 import zipfile
 import requests
+import openai
 try:
     from git import Repo, InvalidGitRepositoryError, GitCommandError
 except Exception:
@@ -48,6 +49,10 @@ def handle_errors():
     """Handle errors in the CLI."""
     try:
         yield
+    except openai.APIError as error:
+        logger.exception(error)
+        click.echo(f"{type(error).__name__}: {error.type}", err=True)
+        sys.exit(1)
     except Exception as error:
         # import traceback
         # traceback.print_exc()
@@ -119,6 +124,8 @@ def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:
         return repo_url in valid_urls
     except InvalidGitRepositoryError:
         logger.exception("Not a valid Git repository: %s", target_dir)
+        return False
+    except Exception:
         return False
 
 
