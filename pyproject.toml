@@ -19,7 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pydantic = "1.10.13"
+pydantic = "1.10.14"
 networkx = "^3.1"
 openai = "^1.0rc"
 rich_click = "^1.6.1"
@@ -30,6 +30,9 @@ importlib-metadata = "^6.8.0"
 gitpython = "^3.1.32"
 oyaml = "^1.0"
 colorama = "^0.4.6"
+tenacity = "^8.2.3"
+pathspec = "^0.12.1"
+importlib-resources = "^6.1.1"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli.main:main"
