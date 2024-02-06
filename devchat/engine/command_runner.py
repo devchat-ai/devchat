@@ -13,6 +13,7 @@ import openai
 
 from devchat.utils import get_logger
 from .command_parser import Command
+from .util import ToolUtil
 
 
 logger = get_logger(__name__)
@@ -244,83 +245,7 @@ class CommandRunner:
             del env['PYTHONPATH']
         env["devchat_python"] = sys.executable.replace('\\', '/')
 
-    def __make_function_parameters(self, command: Command):
-        properties = {}
-        required = []
-        for key, value in command.parameters.items():
-            properties[key] = {}
-            for key1, value1 in value.dict().items():
-                if key1 not in ['type', 'description', 'enum'] or value1 is None:
-                    continue
-                properties[key][key1] = value1
-            required.append(key)
-        return properties, required
-
-    def __make_function(self, command: Command, command_name: str):
-        properties, required = self.__make_function_parameters(command)
-        command_name = command_name.replace('.', '---')
-
-        return {
-            "type": "function",
-            "function": {
-                "name": command_name,
-                "description": command.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": required,
-                },
-            }
-        }
-
-    def __select_function_by_llm(self, history_messages: List[Dict], tools: List[Dict]):
-        client = openai.OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY", None),
-            base_url=os.environ.get("OPENAI_API_BASE", None)
-        )
-
-        try:
-            tool_choice = {
-                "type": "function",
-                "function": {
-                    "name": tools[0]["function"]["name"],
-                }
-            }
-            response = client.chat.completions.create(
-                messages=history_messages,
-                model="gpt-3.5-turbo-16k",
-                stream=False,
-                tools=tools,
-                tool_choice=tool_choice
-            )
-
-            respose_message = response.dict()["choices"][0]["message"]
-            if not respose_message['tool_calls']:
-                return None
-            tool_call = respose_message['tool_calls'][0]['function']
-            if tool_call['name'] != tools[0]["function"]["name"]:
-                error_msg = (
-                    "The LLM returned an invalid function name. "
-                    f"Expected: {tools[0]['function']['name']}, "
-                    f"Actual: {tool_call['name']}"
-                )
-                print(error_msg, file=sys.stderr, flush=True)
-                return None
-            return {
-                "name": tool_call['name'],
-                "arguments": json.loads(tool_call['arguments'])
-            }
-        except (ConnectionError, openai.APIConnectionError) as err:
-            print("ConnectionError:", err, file=sys.stderr, flush=True)
-            return None
-        except openai.APIError as err:
-            print("openai APIError:", err.type, file=sys.stderr, flush=True)
-            logger.exception("Call command by LLM error: %s", err)
-            return None
-        except Exception as err:
-            print("Exception:", err, file=sys.stderr, flush=True)
-            logger.exception("Call command by LLM error: %s", err)
-            return None
+    
 
     def _call_function_by_llm(self,
                            command_name: str,
@@ -330,9 +255,9 @@ class CommandRunner:
         command needs multi parameters, so we need parse each
         parameter by LLM from input_text
         """
-        tools = [self.__make_function(command, command_name)]
+        tools = [ToolUtil.make_function(command, command_name)]
 
-        function_call = self.__select_function_by_llm(history_messages, tools)
+        function_call = ToolUtil.select_function_by_llm(history_messages, tools)
         if not function_call:
             return None
 
