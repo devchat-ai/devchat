@@ -10,7 +10,6 @@ from typing import List, Dict
 import shlex
 
 import openai
-from devchat.openai.openai_chat import OpenAIChatConfig
 
 from devchat.utils import get_logger
 from .command_parser import Command
@@ -18,6 +17,14 @@ from .command_parser import Command
 
 logger = get_logger(__name__)
 
+
+DEVCHAT_COMMAND_MISS_ERROR_MESSAGE = (
+    'devchat-commands environment is not installed yet. '
+    'Please install it before using the current command.'
+    'The devchat-command environment is automatically '
+    'installed after the plugin starts,'
+    ' and details can be viewed in the output window.'
+)
 
 def pipe_reader(pipe, out_data, out_flag):
     while pipe:
@@ -28,121 +35,13 @@ def pipe_reader(pipe, out_data, out_flag):
         print(data, end='', file=out_flag, flush=True)
 
 
-def init_env_and_parameters(
-        model_name: str,
-        parent_hash: str,
-        history_messages: List[Dict],
-        command_name: str,
-        parameters: Dict[str, str]):
-    if model_name:
-        os.environ['LLM_MODEL'] = model_name
-    if parent_hash:
-        os.environ['PARENT_HASH'] = parent_hash
-    if history_messages:
-        os.environ['CONTEXT_CONTENTS'] = json.dumps(history_messages)
-    for env_var in os.environ:
-        parameters[env_var] = os.environ[env_var]
-
-    # how to get command_python path?
-    root_command_name = command_name.split('.')[0]
-    command_runtime = \
-        os.path.expanduser(f'~/.chat/workflows/usr/{root_command_name}/runtime.json')
-    if os.path.exists(command_runtime):
-        with open(command_runtime, 'r', encoding='utf8') as file:
-            command_runtime_json = json.loads(file.read())
-            if 'command_python' in command_runtime_json:
-                parameters['command_python'] = \
-                    command_runtime_json['command_python'].replace('\\', '/')
-    elif os.environ.get('command_python', None):
-        parameters['command_python'] = os.environ['command_python'].replace('\\', '/')
-    parameters["devchat_python"] = sys.executable.replace('\\', '/')
-
-
 # Equivalent of CommandRun in Python\which executes subprocesses
 class CommandRunner:
     def __init__(self, model_name: str):
         self.process = None
         self._model_name = model_name
 
-    def _call_function_by_llm(self,
-                           openai_config: OpenAIChatConfig,
-                           command_name: str,
-                           command: Command,
-                           history_messages: List[Dict]):
-        """
-        command needs multi parameters, so we need parse each
-        parameter by LLM from input_text
-        """
-        properties = {}
-        required = []
-        for key, value in command.parameters.items():
-            properties[key] = {}
-            for key1, value1 in value.dict().items():
-                if key1 not in ['type', 'description', 'enum'] or value1 is None:
-                    continue
-                properties[key][key1] = value1
-            required.append(key)
-
-        command_name = command_name.replace('.', '---')
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": command_name,
-                    "description": command.description,
-                    "parameters": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": required,
-                    },
-                }
-            }
-        ]
-
-        client = openai.OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY", None),
-            base_url=os.environ.get("OPENAI_API_BASE", None)
-        )
-
-        config_params = openai_config.dict(exclude_unset=True)
-        config_params.pop('stream', None)
-        config_params.pop('user', None)
-        config_params.pop('request_timeout', None)
-        config_params.pop('model', None)
-
-        connection_error = ''
-        for _1 in range(3):
-            try:
-                response = client.chat.completions.create(
-                    messages=history_messages,
-                    model="gpt-3.5-turbo-16k",
-                    stream=False,
-                    **config_params,
-                    tools=tools,
-                    tool_choice={"type": "function", "function": {"name": command_name}}
-                )
-
-                respose_message = response.dict()["choices"][0]["message"]
-                if not respose_message['tool_calls']:
-                    return None
-                tool_call = respose_message['tool_calls'][0]['function']
-                if tool_call['name'] != command_name:
-                    return None
-                parameters = json.loads(tool_call['arguments'])
-                return parameters
-            except (ConnectionError, openai.APIConnectionError) as err:
-                connection_error = err
-                continue
-            except Exception as err:
-                print("Exception:", err, file=sys.stderr, flush=True)
-                logger.exception("Call command by LLM error: %s", err)
-                return None
-        print("Connect Error:", connection_error, file=sys.stderr, flush=True)
-        return None
-
-
     def run_command(self,
-                    openai_config: OpenAIChatConfig,
                     command_name: str,
                     command: Command,
                     history_messages: List[Dict],
@@ -157,36 +56,27 @@ class CommandRunner:
                     .replace('\"', '\\"')\
                     .replace('\'', '\\\'')\
                     .replace('\n', '\\n')
+
+        arguments = {}
         if command.parameters and len(command.parameters) > 0:
             if not self._model_name.startswith("gpt-"):
                 return None
 
-            arguments = self._call_function_by_llm(
-                openai_config, command_name, command, history_messages
-            )
+            arguments = self._call_function_by_llm(command_name, command, history_messages)
             if not arguments:
                 print("No valid parameters generated by LLM", file=sys.stderr, flush=True)
                 return (-1, "")
-            return self.run_command_with_parameters(
-                command_name,
-                command,
-                {
-                    "input": input_text,
-                    **arguments
-                },
-                parent_hash,
-                history_messages)
-
 
         return self.run_command_with_parameters(
-            command_name,
-            command,
-            {
-                "input": input_text
+            command_name=command_name,
+            command=command,
+            parameters={
+                "input": input_text,
+                **arguments
             },
-            parent_hash,
-            history_messages)
-
+            parent_hash=parent_hash,
+            history_messages=history_messages
+        )
 
     def run_command_with_parameters(self,
                                  command_name: str,
@@ -199,67 +89,35 @@ class CommandRunner:
         then run command.steps[0].run
         """
         try:
-            # add environment variables to parameters
-            init_env_and_parameters(
-                self._model_name, parent_hash, history_messages,
-                command_name, parameters
+            print("error --> :", file=sys.stderr, flush=True)
+            env = os.environ.copy()
+            env.update(parameters)
+            env.update(
+                self.__load_command_runtime(command)
             )
+            env.update(
+                self.__load_chat_data(self._model_name, parent_hash, history_messages)
+            )
+            self.__update_devchat_python_path(env, command.steps[0]["run"])
 
             command_run = command.steps[0]["run"]
+            for parameter in env:
+                command_run = command_run.replace('$' + parameter, str(env[parameter]))
 
-            # if $devchat_python in command_run
-            # then set environ PYTHONPATH to DEVCHAT_PYTHONPATH
-            # if command_python in command_run
-            # then unset environ PYTHONPATH
-            env = os.environ.copy()
-            if 'DEVCHAT_PYTHONPATH' not in env:
-                env['DEVCHAT_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
-            if command_run.find('$devchat_python ') == -1:
-                del env['PYTHONPATH']
-            if (
-                    command_run.find('$command_python ') != -1
-                    and parameters.get('command_python', '') == ''
-                ):
-                error_msg = ('devchat-commands environment is not installed yet. '
-                             'Please install it before using the current command.'
-                             'The devchat-command environment is automatically '
-                             'installed after the plugin starts,'
-                             ' and details can be viewed in the output window.')
-                print(error_msg, file=sys.stderr, flush=True)
+            if self.__check_command_python_error(command_run, env):
+                return (-1, "")
+            if self.__check_input_miss_error(command, command_name, env):
+                return (-1, "")
+            if self.__check_parameters_miss_error(command, command_run):
                 return (-1, "")
 
-            # Replace parameters in command run
-            for parameter in parameters:
-                command_run = command_run.replace('$' + parameter, str(parameters[parameter]))
-            # Check whether there is parameter not specified
-            has_parameter = command_run.find('$') != -1
-            is_input_required = command.input == "required"
-            is_input_invalid = (is_input_required and parameters["input"] == "")
-            if has_parameter or is_input_invalid:
-                command_dir = os.path.dirname(command.path)
-                readme_file = os.path.join(command_dir, 'README.md')
-                if os.path.exists(readme_file):
-                    with open(readme_file, 'r', encoding='utf8') as file:
-                        readme = file.read()
-                    print(readme, flush=True)
-                    return (0, readme)
-                if has_parameter:
-                    print(
-                        "Missing argument. the command being parsed is:",
-                        command_run, file=sys.stderr, flush=True)
-                else:
-                    print(
-                        ("Missing input which is required. You can use it as "
-                            f"'/{command_name} some related description'"),
-                        file=sys.stderr, flush=True)
-                return (-1, "")
-
-            return self.run_command_with_thread_output(command_run)
+            return self.__run_command_with_thread_output(command_run, env)
         except Exception as err:
             print("Exception:", type(err), err, file=sys.stderr, flush=True)
+            logger.exception("Run command error: %s", err)
             return (-1, "")
 
-    def run_command_with_thread_output(self, command_str: str):
+    def __run_command_with_thread_output(self, command_str: str, env: Dict[str, str]):
         """
         run command string
         """
@@ -277,10 +135,205 @@ class CommandRunner:
             stderr_thread.join()
             return (process.wait(), stdout_data["out"])
 
+        for key in env:
+            if isinstance(env[key], List) or isinstance(env[key], Dict):
+                env[key] = json.dumps(env[key])
         with subprocess.Popen(
                 shlex.split(command_str),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env=env,
                 text=True
             ) as process:
             return handle_output(process)
+
+    def __check_command_python_error(self, command_run: str, parameters: Dict[str, str]):
+        need_command_python = command_run.find('$command_python ') != -1
+        has_command_python = parameters.get('command_python', None)
+
+        if need_command_python and not has_command_python:
+            print(DEVCHAT_COMMAND_MISS_ERROR_MESSAGE, file=sys.stderr, flush=True)
+            return True
+        return False
+
+    def __get_readme(self, command: Command):
+        try:
+            command_dir = os.path.dirname(command.path)
+            readme_file = os.path.join(command_dir, 'README.md')
+            if os.path.exists(readme_file):
+                with open(readme_file, 'r', encoding='utf8') as file:
+                    readme = file.read()
+                return readme
+        except Exception:
+            return None
+
+    def __check_input_miss_error(
+            self, command: Command, command_name: str, parameters: Dict[str, str]
+        ):
+        is_input_required = command.input == "required"
+        if not (is_input_required and parameters["input"] == ""):
+            return False
+
+        input_miss_error = (
+            f"{command_name} workflow is missing input. Example usage: "
+            f"'/{command_name} user input'\n"
+        )
+        readme_content = self.__get_readme(command)
+        if readme_content:
+            print(readme_content, file=sys.stderr, flush=True)
+        else:
+            print(input_miss_error, file=sys.stderr, flush=True)
+        return True
+
+    def __check_parameters_miss_error(self, command: Command, command_run: str):
+        # visit parameters in command
+        parameter_names = command.parameters.keys() if command.parameters else []
+        if len(parameter_names) == 0:
+            return False
+
+        missed_parameters = []
+        for parameter_name in parameter_names:
+            if command_run.find('$' + parameter_name) != -1:
+                missed_parameters.append(parameter_name)
+
+        if len(missed_parameters) == 0:
+            return False
+
+        readme_content = self.__get_readme(command)
+        if readme_content:
+            print(readme_content, file=sys.stderr, flush=True)
+        else:
+            print("Missing parameters:", missed_parameters, file=sys.stderr, flush=True)
+        return True
+
+    def __load_command_runtime(self, command: Command):
+        command_path = os.path.dirname(command.path)
+        runtime_config = {}
+
+        # visit each path in command_path, for example: /usr/x1/x2/x3
+        # then load visit: /usr, /usr/x1, /usr/x1/x2, /usr/x1/x2/x3
+        paths = command_path.split('/')
+        for i in range(1, len(paths)+1):
+            try:
+                path = '/'.join(paths[:i])
+                runtime_file = os.path.join(path, 'runtime.json')
+                if os.path.exists(runtime_file):
+                    with open(runtime_file, 'r', encoding='utf8') as file:
+                        command_runtime_config = json.loads(file.read())
+                        runtime_config.update(command_runtime_config)
+            except Exception:
+                pass
+
+        # for windows
+        if runtime_config.get('command_python', None):
+            runtime_config['command_python'] = \
+                runtime_config['command_python'].replace('\\', '/')
+        return runtime_config
+
+    def __load_chat_data(self, model_name: str, parent_hash: str, history_messages: List[Dict]):
+        return {
+            "LLM_MODEL": model_name,
+            "PARENT_HASH": parent_hash,
+            "CONTEXT_CONTENTS": history_messages
+        }
+
+    def __update_devchat_python_path(self, env: Dict[str, str], command_run: str):
+        python_path = os.environ.get('PYTHONPATH', '')
+        env['DEVCHAT_PYTHONPATH'] = os.environ.get('DEVCHAT_PYTHONPATH', python_path)
+        if command_run.find('$devchat_python ') == -1:
+            del env['PYTHONPATH']
+        env["devchat_python"] = sys.executable.replace('\\', '/')
+
+    def __make_function_parameters(self, command: Command):
+        properties = {}
+        required = []
+        for key, value in command.parameters.items():
+            properties[key] = {}
+            for key1, value1 in value.dict().items():
+                if key1 not in ['type', 'description', 'enum'] or value1 is None:
+                    continue
+                properties[key][key1] = value1
+            required.append(key)
+        return properties, required
+
+    def __make_function(self, command: Command, command_name: str):
+        properties, required = self.__make_function_parameters(command)
+        command_name = command_name.replace('.', '---')
+
+        return {
+            "type": "function",
+            "function": {
+                "name": command_name,
+                "description": command.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required,
+                },
+            }
+        }
+
+    def __select_function_by_llm(self, history_messages: List[Dict], tools: List[Dict]):
+        client = openai.OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY", None),
+            base_url=os.environ.get("OPENAI_API_BASE", None)
+        )
+
+        try:
+            tool_choice = {
+                "type": "function",
+                "function": {
+                    "name": tools[0]["function"]["name"],
+                }
+            }
+            response = client.chat.completions.create(
+                messages=history_messages,
+                model="gpt-3.5-turbo-16k",
+                stream=False,
+                tools=tools,
+                tool_choice=tool_choice
+            )
+
+            respose_message = response.dict()["choices"][0]["message"]
+            if not respose_message['tool_calls']:
+                return None
+            tool_call = respose_message['tool_calls'][0]['function']
+            if tool_call['name'] != tools[0]["function"]["name"]:
+                error_msg = (
+                    "The LLM returned an invalid function name. "
+                    f"Expected: {tools[0]['function']['name']}, "
+                    f"Actual: {tool_call['name']}"
+                )
+                print(error_msg, file=sys.stderr, flush=True)
+                return None
+            return {
+                "name": tool_call['name'],
+                "arguments": json.loads(tool_call['arguments'])
+            }
+        except (ConnectionError, openai.APIConnectionError) as err:
+            print("ConnectionError:", err, file=sys.stderr, flush=True)
+            return None
+        except openai.APIError as err:
+            print("openai APIError:", err.type, file=sys.stderr, flush=True)
+            logger.exception("Call command by LLM error: %s", err)
+            return None
+        except Exception as err:
+            print("Exception:", err, file=sys.stderr, flush=True)
+            logger.exception("Call command by LLM error: %s", err)
+            return None
+
+    def _call_function_by_llm(self,
+                           command_name: str,
+                           command: Command,
+                           history_messages: List[Dict]):
+        """
+        command needs multi parameters, so we need parse each
+        parameter by LLM from input_text
+        """
+        tools = [self.__make_function(command, command_name)]
+
+        function_call = self.__select_function_by_llm(history_messages, tools)
+        if not function_call:
+            return None
+
+        return function_call["arguments"]

@@ -276,7 +276,6 @@ def run_command(
 
     runner = CommandRunner(model_name)
     return runner.run_command(
-        openai_config,
         command,
         command_obj,
         history_messages,
