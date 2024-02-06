@@ -71,13 +71,12 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None):
     with handle_errors():
-        openai_config, model, assistant, content, _1 = before_prompt(
+        _0, model, assistant, content, _1 = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
         click.echo(assistant.prompt.formatted_header())
         command_result = run_command(
-            openai_config,
             model,
             assistant.prompt.messages,
             content,
@@ -96,13 +95,12 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
            model: Optional[str], config_str: Optional[str] = None,
            auto: Optional[bool] = False):
     with handle_errors():
-        openai_config, model, assistant, content, _1 = before_prompt(
+        _0, model, assistant, content, _1 = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
         click.echo(assistant.prompt.formatted_header())
         command_result = run_command(
-            openai_config,
             model,
             assistant.prompt.messages,
             content,
