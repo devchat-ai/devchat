@@ -1,0 +1,4 @@
+
+
+class MissContentInPromptException(Exception):
+    pass

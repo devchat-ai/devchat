@@ -14,6 +14,7 @@ except Exception:
 import rich_click as click
 from devchat.config import ConfigManager, OpenAIModelConfig
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
+from devchat._cli.errors import MissContentInPromptException
 
 
 logger = get_logger(__name__)
@@ -52,6 +53,9 @@ def handle_errors():
     except openai.APIError as error:
         logger.exception(error)
         click.echo(f"{type(error).__name__}: {error.type}", err=True)
+        sys.exit(1)
+    except MissContentInPromptException:
+        click.echo("Miss content in prompt command.", err=True)
         sys.exit(1)
     except Exception as error:
         # import traceback

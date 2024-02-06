@@ -1,6 +1,30 @@
+import os
 from typing import List
 from .command_runner import CommandRunner
 from .util import CommandUtil
+from .namespace import Namespace
+from.recursive_prompter import  RecursivePrompter
+
+def load_workflow_instruction(user_input: str):
+    user_input = user_input.strip()
+    if len(user_input) == 0:
+        return None
+    if user_input[:1] != '/':
+        return None
+
+    workflows_dir = os.path.join(os.path.abspath('~/.chat'), 'workflows')
+    if not os.path.exists(workflows_dir):
+        return None
+    if not os.path.isdir(workflows_dir):
+        return None
+
+    namespace = Namespace(workflows_dir)
+    prompter = RecursivePrompter(namespace)
+
+    command_name = user_input.split()[0][1:]
+    command_prompts = prompter.run(command_name)
+
+    return command_prompts
 
 
 def run_command(
