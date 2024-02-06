@@ -9,8 +9,6 @@ import subprocess
 from typing import List, Dict
 import shlex
 
-import openai
-
 from devchat.utils import get_logger
 from .command_parser import Command
 from .util import ToolUtil
@@ -244,8 +242,6 @@ class CommandRunner:
         if command_run.find('$devchat_python ') == -1:
             del env['PYTHONPATH']
         env["devchat_python"] = sys.executable.replace('\\', '/')
-
-    
 
     def _call_function_by_llm(self,
                            command_name: str,

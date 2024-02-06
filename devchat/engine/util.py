@@ -41,7 +41,7 @@ class CommandUtil:
         commander = CommandUtil.__command_parser()
         if not commander:
             return []
-        
+
         command_names = commander.namespace.list_names("", True)
         commands = [ (name, commander.parse(name)) for name in command_names ]
         return [ cmd for cmd in commands if cmd[1] ]
@@ -89,7 +89,9 @@ class ToolUtil:
         }
 
     @staticmethod
-    def select_function_by_llm(history_messages: List[Dict], tools: List[Dict], model: str = DEFAULT_MODEL):
+    def select_function_by_llm(
+            history_messages: List[Dict], tools: List[Dict], model: str = DEFAULT_MODEL
+        ):
         client = openai.OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY", None),
             base_url=os.environ.get("OPENAI_API_BASE", None)
@@ -163,3 +165,4 @@ class ToolUtil:
                 },
             }
         }
+    
