@@ -88,7 +88,6 @@ class CommandRunner:
         then run command.steps[0].run
         """
         try:
-            print("error --> :", file=sys.stderr, flush=True)
             env = os.environ.copy()
             env.update(parameters)
             env.update(
@@ -231,9 +230,9 @@ class CommandRunner:
 
     def __load_chat_data(self, model_name: str, parent_hash: str, history_messages: List[Dict]):
         return {
-            "LLM_MODEL": model_name,
-            "PARENT_HASH": parent_hash,
-            "CONTEXT_CONTENTS": history_messages
+            "LLM_MODEL": model_name if model_name else "",
+            "PARENT_HASH": parent_hash if parent_hash else "",
+            "CONTEXT_CONTENTS": history_messages if history_messages else [],
         }
 
     def __update_devchat_python_path(self, env: Dict[str, str], command_run: str):
