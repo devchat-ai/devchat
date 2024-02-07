@@ -22,14 +22,12 @@ class Widget(ABC):
         """
         Generate ChatMark syntax for the widget
         """
-        pass
 
     @abstractmethod
     def _parse_response(self, response: Dict) -> None:
         """
         Parse ChatMark response from user input
         """
-        pass
 
     def render(self) -> None:
         """

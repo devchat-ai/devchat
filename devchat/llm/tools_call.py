@@ -140,7 +140,7 @@ def chat_tools(
 ):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs): # pylint: disable=unused-argument
             nonlocal prompt, memory, model, tools, call_confirm_fun, llm_config
             prompt = prompt.format(**kwargs)
             if not tools:

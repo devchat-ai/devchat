@@ -31,9 +31,8 @@ def _try_remove_markdown_block_flag(content):
         _ = match.group(1)  # language
         markdown_content = match.group(2)
         return markdown_content.strip()
-    else:
-        # 如果匹配失败，则返回原始内容
-        return content
+    # 如果匹配失败，则返回原始内容
+    return content
 
 
 def chat_completion_stream_commit(
@@ -79,7 +78,7 @@ def retry_timeout(chunks):
 
 
 def chunk_list(chunks):
-    return [chunk for chunk in chunks]
+    return [chunk for chunk in chunks] # noqa: R1721
 
 
 def chunks_content(chunks):
@@ -125,7 +124,9 @@ def content_to_json(content):
         raise err
 
 
-def to_dict_content_and_call(content, tool_calls=[]):
+def to_dict_content_and_call(content, tool_calls=None):
+    if tool_calls is None:
+        tool_calls = []
     return {
         "content": content,
         "function_name": tool_calls[0]["name"] if tool_calls else None,

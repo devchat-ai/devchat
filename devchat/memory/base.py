@@ -11,22 +11,18 @@ class ChatMemory:
         Append a request and response to the memory.
         """
         # it must implemented in sub class
-        pass
 
     def append_request(self, request):
         """
         Append a request to the memory.
         """
-        pass
 
     def append_response(self, response):
         """
         Append a request to the memory.
         """
-        pass
 
     def contexts(self):
         """
         Return the contexts of the memory.
         """
-        pass

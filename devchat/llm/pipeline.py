@@ -62,8 +62,8 @@ def pipeline(*funcs):
     def wrapper(*args, **kwargs):
         for index, func in enumerate(funcs):
             if index > 0:
-                if isinstance(args, Dict) and args.get("__type__", None) == "parallel":
-                    args = func(*args["value"])
+                if isinstance(args, Dict) and args.get("__type__", None) == "parallel":  # noqa: E1101
+                    args = func(*args["value"]) # noqa: E1126
                 else:
                     args = func(args)
             else:

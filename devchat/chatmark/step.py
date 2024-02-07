@@ -1,4 +1,4 @@
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import AbstractContextManager
 
 
 class Step(AbstractContextManager):
@@ -25,4 +25,4 @@ class Step(AbstractContextManager):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # close the step
-        print(f"\n```", flush=True)
+        print("\n```", flush=True)

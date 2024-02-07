@@ -1,3 +1,12 @@
+# disable pylint
+# noqa: W0613
+# noqa: E1133
+# noqa: R1710
+# noqa: W0212
+# noqa: W0719
+# noqa: W3101
+# noqa: C0103
+
 import os
 from functools import wraps
 from typing import List

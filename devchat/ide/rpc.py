@@ -1,3 +1,7 @@
+# noqa: C0103
+# noqa: W3101
+# noqa: W0719
+# noqa: R1710
 import os
 from functools import wraps
 

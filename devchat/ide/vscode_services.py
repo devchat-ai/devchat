@@ -1,16 +1,15 @@
 import os
-import sys
 
 from .rpc import rpc_call
 
 
 @rpc_call
-def run_code(code: str):
+def run_code(code: str): # pylint: disable=unused-argument
     pass
 
 
 @rpc_call
-def diff_apply(filepath, content):
+def diff_apply(filepath, content): # pylint: disable=unused-argument
     pass
 
 
@@ -99,14 +98,14 @@ def visible_lines():
     end_line = active_document["visibleRanges"][0][1]["line"]
 
     # read file lines from start_line to end_line
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-        selected_lines = lines[start_line : end_line + 1]
+    with open(file_path, "r", encoding="utf-8") as file:
+        _lines = file.readlines()
+        _visible_lines = _lines[start_line : end_line + 1]
 
     # continue with the rest of the function
     return {
         "filePath": file_path,
-        "visibleText": "".join(selected_lines),
+        "visibleText": "".join(_visible_lines),
         "visibleRange": [start_line, end_line],
     }
 
@@ -131,13 +130,13 @@ def selected_lines():
     end_col = active_document["selection"]["end"]["character"]
 
     # read file lines from start_line to end_line
-    with open(file_path, "r") as file:
-        lines = file.readlines()
-        selected_lines = lines[start_line : end_line + 1]
+    with open(file_path, "r", encoding="utf-8") as file:
+        _lines = file.readlines()
+        _selected_lines = _lines[start_line : end_line + 1]
 
     # continue with the rest of the function
     return {
         "filePath": "",
-        "selectedText": "".join(selected_lines),
+        "selectedText": "".join(_selected_lines),
         "selectedRange": [start_line, start_col, end_line, end_col],
     }
