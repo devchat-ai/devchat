@@ -18,6 +18,7 @@ class Command(BaseModel, extra='forbid'):
     parameters: Optional[Dict[str, Parameter]]
     input: Optional[str]
     steps: Optional[List[Dict[str, str]]]
+    path: Optional[str]
 
 
 class CommandParser:
@@ -61,7 +62,8 @@ def parse_command(file_path: str) -> Command:
 
     with open(file_path, 'r', encoding='utf-8') as file:
         # replace {curpath} with config_dir
-        content = file.read().replace('$command_path', config_dir)
+        content = file.read().replace('$command_path', config_dir.replace('\\', '/'))
         config_dict = yaml.safe_load(content)
     config = Command(**config_dict)
+    config.path = file_path
     return config

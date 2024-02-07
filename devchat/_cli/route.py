@@ -1,7 +1,7 @@
 import sys
 from typing import List, Optional
 import rich_click as click
-from devchat._cli.router import llm_prompt
+from devchat._cli.router import llm_route
 
 
 @click.command()
@@ -16,17 +16,12 @@ from devchat._cli.router import llm_prompt
 @click.option('-m', '--model', help='Specify the model to use for the prompt.')
 @click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
-@click.option('-f', '--functions', type=click.Path(exists=True),
-              help='Path to a JSON file with functions for the prompt.')
-@click.option('-n', '--function-name',
-              help='Specify the function name when the content is the output of a function.')
-@click.option('-ns', '--not-store', is_flag=True, default=False, required=False,
-              help='Do not save the conversation to the store.')
-def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
+@click.option('-a', '--auto', is_flag=True, default=False, required=False,
+              help='Answer question by function-calling.')
+def route(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None,
-           functions: Optional[str] = None, function_name: Optional[str] = None,
-           not_store: Optional[bool] = False):
+           auto: Optional[bool] = False):
     """
     This command performs interactions with the specified large language model (LLM)
     by sending prompts and receiving responses.
@@ -60,7 +55,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```
 
     """
-    llm_prompt(
+    llm_route(
         content,
         parent,
         reference,
@@ -68,7 +63,6 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
         context,
         model,
         config_str,
-        functions,
-        function_name,
-        not_store)
+        auto
+	)
     sys.exit(0)
