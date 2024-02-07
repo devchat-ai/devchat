@@ -136,7 +136,7 @@ def selected_lines():
 
     # continue with the rest of the function
     return {
-        "filePath": "",
+        "filePath": file_path,
         "selectedText": "".join(_selected_lines),
         "selectedRange": [start_line, start_col, end_line, end_col],
     }
