@@ -132,7 +132,7 @@ class ToolUtil:
             print("Exception:", err, file=sys.stderr, flush=True)
             logger.exception("Call command by LLM error: %s", err)
             return None
-        
+
     @staticmethod
     def _create_tool(command_name:str, command: Command) -> dict:
         properties = {}

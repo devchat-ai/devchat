@@ -134,7 +134,7 @@ class CommandRunner:
             return (process.wait(), stdout_data["out"])
 
         for key in env:
-            if isinstance(env[key], List) or isinstance(env[key], Dict):
+            if isinstance(env[key], (List, Dict)):
                 env[key] = json.dumps(env[key])
         with subprocess.Popen(
                 shlex.split(command_str),
@@ -162,6 +162,7 @@ class CommandRunner:
                 with open(readme_file, 'r', encoding='utf8') as file:
                     readme = file.read()
                 return readme
+            return None
         except Exception:
             return None
 
@@ -211,9 +212,9 @@ class CommandRunner:
         # visit each path in command_path, for example: /usr/x1/x2/x3
         # then load visit: /usr, /usr/x1, /usr/x1/x2, /usr/x1/x2/x3
         paths = command_path.split('/')
-        for i in range(1, len(paths)+1):
+        for index in range(1, len(paths)+1):
             try:
-                path = '/'.join(paths[:i])
+                path = '/'.join(paths[:index])
                 runtime_file = os.path.join(path, 'runtime.json')
                 if os.path.exists(runtime_file):
                     with open(runtime_file, 'r', encoding='utf8') as file:
