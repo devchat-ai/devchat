@@ -1,12 +1,7 @@
 # flake8: noqa: E402
-import os
-import sys
 from functools import wraps
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-
-from chatmark import Checkbox, Form, TextEditor  # noqa: #402
+from devchat.chatmark import Checkbox, Form, TextEditor
 
 
 class MissEditConfirmFieldException(Exception):

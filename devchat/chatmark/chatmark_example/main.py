@@ -1,11 +1,7 @@
-import os
-import sys
 import time
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "libs"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "libs"))
 
-from chatmark import Button, Checkbox, Form, Radio, Step, TextEditor  # noqa: E402
+from devchat.chatmark import Button, Checkbox, Form, Radio, Step, TextEditor  # noqa: E402
 
 
 def main():

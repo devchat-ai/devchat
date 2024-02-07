@@ -2,15 +2,12 @@
 import json
 import os
 import re
-import sys
-from functools import wraps
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import openai
 
 from .pipeline import (
     RetryException,
-    exception_err,
     exception_handle,
     exception_output_handle,
     parallel,

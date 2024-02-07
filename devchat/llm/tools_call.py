@@ -3,13 +3,11 @@ import os
 import sys
 from functools import wraps
 
-from .memory.base import ChatMemory
+from devchat.memory import ChatMemory
+from devchat.chatmark import Form, Radio, TextEditor
+from devchat.ide import IDEService
+
 from .openai import chat_call_completion_stream
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from chatmark import Checkbox, Form, Radio, TextEditor  # noqa: #402
-from ide_services import IDEService  # noqa: #402
 
 
 class MissToolsFieldException(Exception):
