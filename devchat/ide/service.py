@@ -1,11 +1,11 @@
 # disable pylint
-# noqa: W0613
-# noqa: E1133
-# noqa: R1710
-# noqa: W0212
-# noqa: W0719
-# noqa: W3101
-# noqa: C0103
+# pylint: disable=W0613
+# pylint: disable=E1133
+# pylint: disable=R1710
+# pylint: disable=W0212
+# pylint: disable=W0719
+# pylint: disable=W3101
+# pylint: disable=C0103
 
 import os
 from functools import wraps

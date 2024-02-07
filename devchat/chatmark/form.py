@@ -1,5 +1,5 @@
-# noqa: C0103
-# noqa: W0212
+# pylint: disable=C0103
+# pylint: disable=W0212
 from typing import Dict, List, Optional, Union
 
 from .iobase import pipe_interaction

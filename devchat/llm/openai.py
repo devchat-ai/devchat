@@ -78,7 +78,7 @@ def retry_timeout(chunks):
 
 
 def chunk_list(chunks):
-    return [chunk for chunk in chunks] # noqa: R1721
+    return [chunk for chunk in chunks] # pylint: disable=R1721
 
 
 def chunks_content(chunks):
