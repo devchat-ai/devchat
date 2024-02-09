@@ -2,7 +2,6 @@
 # pylint: disable=W0613
 # pylint: disable=E1133
 # pylint: disable=R1710
-# pylint: disable=W0212
 # pylint: disable=W0719
 # pylint: disable=W3101
 # pylint: disable=C0103
@@ -40,7 +39,8 @@ class IDEService:
     @rpc_method
     def install_python_env(self, command_name: str, requirements_file: str) -> str:
         """
-        A method to install a Python environment with the provided command name and requirements file, returning a string result.
+        A method to install a Python environment with the provided command name 
+        and requirements file, returning a string result.
         """
         return self._result
 
@@ -105,7 +105,7 @@ class IDEService:
             The name of the IDE as a string.
         """
         return self._result
-    
+
     @rpc_method
     def diff_apply(self, filepath, content) -> bool:
         """
@@ -135,8 +135,7 @@ class IDEService:
         """
         if self.ide_name() == "vscode":
             return visible_range()
-        else:
-            return IdeaIDEService().get_visible_range()
+        return IdeaIDEService().get_visible_range()
 
     def get_selected_range(self):
         """
@@ -148,5 +147,4 @@ class IDEService:
         """
         if self.ide_name() == "vscode":
             return selected_range()
-        else:
-            return IdeaIDEService().get_selected_range()
+        return IdeaIDEService().get_selected_range()

@@ -2,6 +2,7 @@
 # pylint: disable=W3101
 # pylint: disable=W0719
 # pylint: disable=R1710
+# pylint: disable=W0212
 import os
 from functools import wraps
 
