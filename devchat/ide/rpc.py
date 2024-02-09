@@ -39,3 +39,42 @@ def rpc_call(f):
             raise err
 
     return wrapper
+
+
+def rpc_method(f):
+    """
+    Decorator for Service methods
+    """
+
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        if os.environ.get("DEVCHAT_IDE_SERVICE_URL", "") == "":
+            # maybe in a test, user don't want to mock services functions
+            return
+
+        try:
+            function_name = f.__name__
+            url = f"{BASE_SERVER_URL}/{function_name}"
+
+            data = dict(zip(f.__code__.co_varnames[1:], args))  # Exclude "self"
+            data.update(kwargs)
+            headers = {"Content-Type": "application/json"}
+
+            response = requests.post(url, json=data, headers=headers)
+
+            if response.status_code != 200:
+                raise Exception(f"Server error: {response.status_code}")
+
+            response_data = response.json()
+            if "error" in response_data:
+                raise Exception(f"Server returned an error: {response_data['error']}")
+
+            # Store the result in the _result attribute of the instance
+            self._result = response_data.get("result", None)
+            return f(self, *args, **kwargs)
+
+        except ConnectionError as err:
+            # TODO
+            raise err
+
+    return wrapper

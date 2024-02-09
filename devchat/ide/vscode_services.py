@@ -1,6 +1,7 @@
 import os
 
 from .rpc import rpc_call
+from .types import LocationWithText
 
 
 @rpc_call
@@ -109,6 +110,23 @@ def visible_lines():
         "visibleRange": [start_line, end_line],
     }
 
+def visible_range() -> LocationWithText:
+    visible_range_text = visible_lines()
+    return LocationWithText(
+        text=visible_range_text["visibleText"],
+        abspath=visible_range_text["filePath"],
+        range={
+            "start": {
+                "line": visible_range_text["visibleRange"][0],
+                "character": 0,
+            },
+            "end": {
+                "line": visible_range_text["visibleRange"][1],
+                "character": 0,
+            },
+        }
+    )
+
 
 def selected_lines():
     active_document = active_text_editor()
@@ -140,3 +158,20 @@ def selected_lines():
         "selectedText": "".join(_selected_lines),
         "selectedRange": [start_line, start_col, end_line, end_col],
     }
+
+def selected_range() -> LocationWithText:
+    selected_range_text = selected_lines()
+    return LocationWithText(
+        text=selected_range_text["selectedText"],
+        abspath=selected_range_text["filePath"],
+        range={
+            "start": {
+                "line": selected_range_text["selectedRange"][0],
+                "character": selected_range_text["selectedRange"][1],
+            },
+            "end": {
+                "line": selected_range_text["selectedRange"][2],
+                "character": selected_range_text["selectedRange"][3],
+            },
+        }
+    )
