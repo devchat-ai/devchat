@@ -23,3 +23,9 @@ class SymbolNode(BaseModel):
     kind: str
     range: Range
     children: List["SymbolNode"]
+
+
+class LocationWithText(BaseModel):
+    abspath: str
+    range: Range
+    text: str
