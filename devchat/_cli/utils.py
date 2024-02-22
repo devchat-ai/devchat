@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import os
 import sys
-import json
 import shutil
 from typing import Tuple, List, Optional, Any
 import zipfile
@@ -12,7 +11,7 @@ try:
 except Exception:
     pass
 import rich_click as click
-from devchat.config import ConfigManager, GeneralModelConfig
+from devchat.config import ConfigManager
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 from devchat._cli.errors import MissContentInPromptException
 
