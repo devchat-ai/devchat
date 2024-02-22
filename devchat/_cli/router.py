@@ -14,8 +14,8 @@ from devchat._cli.errors import MissContentInPromptException
 def _get_model_and_config(
         model: Optional[str],
         config_str: Optional[str]):
-    repo_chat_dir, user_chat_dir = init_dir()
-    model, config = get_model_config(repo_chat_dir, user_chat_dir, model)
+    _1, user_chat_dir = init_dir()
+    model, config = get_model_config(user_chat_dir, model)
 
     parameters_data = config.dict(exclude_unset=True)
     if config_str:

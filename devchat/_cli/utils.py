@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 import os
 import sys
-import json
 import shutil
 from typing import Tuple, List, Optional, Any
 import zipfile
@@ -12,7 +11,7 @@ try:
 except Exception:
     pass
 import rich_click as click
-from devchat.config import ConfigManager, OpenAIModelConfig
+from devchat.config import ConfigManager
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 from devchat._cli.errors import MissContentInPromptException
 
@@ -152,37 +151,7 @@ def clone_git_repo(target_dir: str, repo_urls: List[str]):
     raise GitCommandError(f"Failed to clone repository to {target_dir}")
 
 
-def parse_legacy_config(config_json_file) -> Tuple[str, OpenAIModelConfig]:
-    with open(config_json_file, 'r', encoding='utf-8') as file:
-        legacy_data = json.load(file)
-        if 'model' not in legacy_data:
-            return None, None
-
-        model = legacy_data['model']
-        config = OpenAIModelConfig()
-        if 'tokens-per-prompt' in legacy_data:
-            config.max_input_tokens = legacy_data['tokens-per-prompt']
-        if 'OpenAI' in legacy_data:
-            if 'temperature' in legacy_data['OpenAI']:
-                config.temperature = legacy_data['OpenAI']['temperature']
-            if 'stream' in legacy_data['OpenAI']:
-                config.stream = legacy_data['OpenAI']['stream']
-        return model, config
-
-
-def get_model_config(repo_chat_dir: str, user_chat_dir: str,
+def get_model_config(user_chat_dir: str,
                      model: Optional[str] = None) -> Tuple[str, Any]:
     manager = ConfigManager(user_chat_dir)
-
-    legacy_path = os.path.join(repo_chat_dir, 'config.json')
-    if os.path.isfile(legacy_path):
-        if manager.file_is_new or os.path.getmtime(legacy_path) > manager.file_last_modified:
-            model, config = parse_legacy_config(legacy_path)
-            if model:
-                manager.config.default_model = model
-            if config:
-                manager.update_model_config(model, config)
-            manager.sync()
-            os.rename(legacy_path, legacy_path + '.old')
-
     return manager.model_config(model)
