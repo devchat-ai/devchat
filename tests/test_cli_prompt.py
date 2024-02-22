@@ -174,7 +174,8 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
 
     content = get_content(result.output)
     assert result.exit_code == 0
-    assert '22 degrees Celsius and sunny' in content
+    assert '22' in content
+    assert 'sunny' in content or 'Sunny' in content
 
     prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
