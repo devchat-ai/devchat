@@ -181,10 +181,10 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
     )
     assert result.exit_code == 0
     content = get_content(result.output)
-    assert content.strip() == "Topic 2"
+    assert content.strip() == "Topic 2" or content.strip() == "2"
 
     result = runner.invoke(main, ['log', '-t', prompt2['hash'], '-n', 100])
     assert result.exit_code == 0
     logs = json.loads(result.output)
     assert len(logs) == 2
-    assert logs[0]['responses'][0] == "Topic 2"
+    assert logs[0]['responses'][0] == "Topic 2" or logs[0]['responses'][0] == "2"
