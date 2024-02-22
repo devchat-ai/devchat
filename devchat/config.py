@@ -8,42 +8,13 @@ from devchat.openai import OpenAIChatParameters
 from devchat.anthropic import AnthropicChatParameters
 
 
-class Client(str, Enum):
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    GENERAL = "general"
-
-
-class ProviderConfig(BaseModel):
-    client: Optional[str]
-
-
-class OpenAIProviderConfig(ProviderConfig, extra='forbid'):
+class GeneralProviderConfig(BaseModel):
     api_key: Optional[str]
     api_base: Optional[str]
-    api_type: Optional[str]
-    api_version: Optional[str]
-    deployment_name: Optional[str]
-
-
-class AnthropicProviderConfig(ProviderConfig, extra='forbid'):
-    api_key: Optional[str]
-    api_base: Optional[str]
-    timeout: Optional[float]
-
 
 class ModelConfig(BaseModel, extra='forbid'):
     max_input_tokens: Optional[int] = sys.maxsize
     provider: Optional[str]
-
-
-class OpenAIModelConfig(ModelConfig, OpenAIChatParameters):
-    pass
-
-
-class AnthropicModelConfig(ModelConfig, AnthropicChatParameters):
-    pass
-
 
 class GeneralModelConfig(ModelConfig):
     max_tokens: Optional[int]
@@ -54,11 +25,9 @@ class GeneralModelConfig(ModelConfig):
     stream: Optional[bool]
 
 
-class ChatConfig(BaseModel, extra='forbid'):
-    providers: Optional[Dict[str, Union[OpenAIProviderConfig,
-                                        AnthropicProviderConfig,
-                                        ProviderConfig]]]
-    models: Dict[str, Union[OpenAIModelConfig, AnthropicModelConfig, GeneralModelConfig]]
+class ChatConfig(BaseModel):
+    providers: Optional[Dict[str, GeneralProviderConfig]]
+    models: Dict[str, GeneralModelConfig]
     default_model: Optional[str]
 
 
@@ -86,23 +55,9 @@ class ConfigManager:
 
         if 'providers' in data:
             for provider, config in data['providers'].items():
-                if config['client'] == "openai":
-                    data['providers'][provider] = OpenAIProviderConfig(**config)
-                elif config['client'] == "anthropic":
-                    data['providers'][provider] = AnthropicProviderConfig(**config)
-                else:
-                    data['providers'][provider] = ProviderConfig(**config)
+                data['providers'][provider] = GeneralProviderConfig(**config)
         for model, config in data['models'].items():
-            if 'provider' not in config:
-                data['models'][model] = GeneralModelConfig(**config)
-            elif 'parameters' in config:
-                provider = data['providers'][config['provider']]
-                if provider.client == Client.OPENAI:
-                    data['models'][model] = OpenAIModelConfig(**config)
-                elif provider.client == Client.ANTHROPIC:
-                    data['models'][model] = AnthropicModelConfig(**config)
-                else:
-                    data['models'][model] = GeneralModelConfig(**config)
+            data['models'][model] = GeneralModelConfig(**config)
 
         return ChatConfig(**data)
 
@@ -120,8 +75,8 @@ class ConfigManager:
     def update_model_config(
         self,
         model_id: str,
-        new_config: Union[OpenAIModelConfig, AnthropicModelConfig]
-    ) -> Union[OpenAIModelConfig, AnthropicModelConfig]:
+        new_config: GeneralModelConfig
+    ) -> GeneralModelConfig:
         _, old_config = self.model_config(model_id)
         if new_config.max_input_tokens is not None:
             old_config.max_input_tokens = new_config.max_input_tokens
@@ -137,32 +92,29 @@ class ConfigManager:
     def _create_sample_file(self):
         sample_config = ChatConfig(
             providers={
-                "devchat.ai": OpenAIProviderConfig(
-                    client=Client.OPENAI,
+                "devchat.ai": GeneralProviderConfig(
                     api_key=""
                 ),
-                "openai.com": OpenAIProviderConfig(
-                    client=Client.OPENAI,
+                "openai.com": GeneralProviderConfig(
                     api_key=""
                 ),
-                "general": ProviderConfig(
-                    client=Client.GENERAL
+                "general": GeneralProviderConfig(
                 )
             },
             models={
-                "gpt-4": OpenAIModelConfig(
+                "gpt-4": GeneralModelConfig(
                     max_input_tokens=6000,
                     provider='devchat.ai',
                     temperature=0,
                     stream=True
                 ),
-                "gpt-3.5-turbo-16k": OpenAIModelConfig(
+                "gpt-3.5-turbo-16k": GeneralModelConfig(
                     max_input_tokens=12000,
                     provider='devchat.ai',
                     temperature=0,
                     stream=True
                 ),
-                "gpt-3.5-turbo": OpenAIModelConfig(
+                "gpt-3.5-turbo": GeneralModelConfig(
                     max_input_tokens=3000,
                     provider='devchat.ai',
                     temperature=0,
