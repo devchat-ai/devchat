@@ -180,7 +180,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
     prompt_hash = get_prompt_hash(result.output)
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-p', prompt_hash,
-                                  'what is the GPT function name?'])
+                                  'what is the function tool name?'])
 
     content = get_content(result.output)
     assert result.exit_code == 0
