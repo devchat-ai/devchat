@@ -1,6 +1,6 @@
 import os
 from click.testing import CliRunner
-from devchat.config import ConfigManager, OpenAIModelConfig, ChatConfig
+from devchat.config import ConfigManager, GeneralModelConfig, ChatConfig
 from devchat._cli.main import main
 
 runner = CliRunner()
@@ -27,7 +27,7 @@ def test_get_model_config(tmp_path):
 def test_update_model_config(tmp_path):
     model = 'gpt-4'
     config_manager = ConfigManager(tmp_path)
-    config = OpenAIModelConfig(
+    config = GeneralModelConfig(
         max_input_tokens=7000,
         temperature=0.5
     )

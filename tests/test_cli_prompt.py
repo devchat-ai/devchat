@@ -2,7 +2,7 @@ import os
 import json
 import pytest
 from click.testing import CliRunner
-from devchat.config import ConfigManager, OpenAIModelConfig
+from devchat.config import ConfigManager, GeneralModelConfig
 from devchat._cli.main import main
 from devchat.utils import openai_response_tokens
 from devchat.utils import check_format, get_content, get_prompt_hash
@@ -198,7 +198,7 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
 def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config = OpenAIModelConfig(
+    config = GeneralModelConfig(
         max_input_tokens=max_input_tokens,
         temperature=0
     )
@@ -222,7 +222,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
 def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
-    config = OpenAIModelConfig(
+    config = GeneralModelConfig(
         max_input_tokens=max_input_tokens,
         temperature=0
     )

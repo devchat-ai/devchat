@@ -20,7 +20,7 @@ def topic(list_topics: bool, skip: int, max_count: int):
     repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
-        model, config = get_model_config(repo_chat_dir, user_chat_dir)
+        model, config = get_model_config(user_chat_dir)
         parameters_data = config.dict(exclude_unset=True)
         openai_config = OpenAIChatConfig(model=model, **parameters_data)
 
