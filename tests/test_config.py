@@ -1,7 +1,6 @@
 import os
 from click.testing import CliRunner
 from devchat.config import ConfigManager, GeneralModelConfig, ChatConfig
-from devchat._cli.main import main
 
 runner = CliRunner()
 
