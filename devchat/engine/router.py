@@ -12,7 +12,7 @@ def load_workflow_instruction(user_input: str):
     if user_input[:1] != '/':
         return None
 
-    workflows_dir = os.path.join(os.path.abspath('~/.chat'), 'workflows')
+    workflows_dir = os.path.join(os.path.expanduser('~/.chat'), 'workflows')
     if not os.path.exists(workflows_dir):
         return None
     if not os.path.isdir(workflows_dir):
@@ -24,7 +24,7 @@ def load_workflow_instruction(user_input: str):
     command_name = user_input.split()[0][1:]
     command_prompts = prompter.run(command_name)
 
-    return command_prompts
+    return [command_prompts]
 
 
 def run_command(
