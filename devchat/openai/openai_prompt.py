@@ -232,8 +232,8 @@ class OpenAIPrompt(Prompt):
 
     def _validate_model(self, response_data: dict):
         if not response_data['model'].startswith(self.model):
-            raise ValueError(f"Model mismatch: expected '{self.model}', "
-                             f"got '{response_data['model']}'")
+            logger.warning("Model mismatch: expected '%s', got '%s'",
+                           self.model, response_data['model'])
 
     def _timestamp_from_dict(self, response_data: dict):
         if not self._timestamp:
