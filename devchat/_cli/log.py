@@ -41,7 +41,7 @@ def log(skip, max_count, topic_root, insert, delete):
     repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
-        model, config = get_model_config(repo_chat_dir, user_chat_dir)
+        model, config = get_model_config(user_chat_dir)
         openai_config = OpenAIChatConfig(model=model, **config.dict(exclude_unset=True))
 
         chat = OpenAIChat(openai_config)

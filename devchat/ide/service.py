@@ -9,7 +9,7 @@
 from typing import List
 
 from .rpc import rpc_method
-from .types import Location, SymbolNode
+from .types import Location, SymbolNode, LocationWithText
 from .vscode_services import selected_range, visible_range
 from .idea_services import IdeaIDEService
 
@@ -40,7 +40,8 @@ class IDEService:
     def install_python_env(self, command_name: str, requirements_file: str) -> str:
         """
         A method to install a Python environment with the provided command name 
-        and requirements file, returning a string result.
+        and requirements file, returning python path installed.
+        Command name is the name of the environment to be installed.
         """
         return self._result
 
@@ -63,6 +64,7 @@ class IDEService:
     @rpc_method
     def ide_logging(self, level: str, message: str) -> bool:
         """
+        Logs a message to the IDE.
         level: "info" | "warn" | "error" | "debug"
         """
         return self._result
@@ -102,7 +104,7 @@ class IDEService:
         This method is a remote procedure call (RPC) that fetches the name of the IDE being used.
 
         Returns:
-            The name of the IDE as a string.
+            The name of the IDE as a string. For example, "vscode" or "pycharm".
         """
         return self._result
 
@@ -125,7 +127,7 @@ class IDEService:
         """
         return self._result
 
-    def get_visible_range(self):
+    def get_visible_range(self) -> LocationWithText:
         """
         Determines and returns the visible range of code in the current IDE.
 
@@ -137,7 +139,7 @@ class IDEService:
             return visible_range()
         return IdeaIDEService().get_visible_range()
 
-    def get_selected_range(self):
+    def get_selected_range(self) -> LocationWithText:
         """
         Retrieves the selected range of code in the current IDE.
 
