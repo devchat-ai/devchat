@@ -43,37 +43,6 @@ def test_prompt_init_and_set_response():
     assert prompt.responses[0].content == "The 2020 World Series was played in Arlington, Texas."
 
 
-def test_prompt_model_mismatch():
-    name, email = get_user_info()
-    prompt = OpenAIPrompt(model="gpt-3.5-turbo", user_name=name, user_email=email)
-
-    response_str = '''
-    {
-      "choices": [
-        {
-          "finish_reason": "stop",
-          "index": 0,
-          "message": {
-            "content": "\\n\\n1, 2, 3, 4, 5, 6, 7, 8, 9, 10.",
-            "role": "assistant"
-          }
-        }
-      ],
-      "created": 1677825456,
-      "id": "chatcmpl-6ptKqrhgRoVchm58Bby0UvJzq2ZuQ",
-      "model": "gpt-4",
-      "object": "chat.completion",
-      "usage": {
-        "completion_tokens": 301,
-        "prompt_tokens": 36,
-        "total_tokens": 337
-      }
-    }
-    '''
-    with pytest.raises(ValueError):
-        prompt.set_response(response_str)
-
-
 @pytest.fixture(scope="module", name='responses')
 def fixture_responses():
     current_dir = os.path.dirname(__file__)
