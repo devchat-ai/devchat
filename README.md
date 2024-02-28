@@ -11,13 +11,13 @@
 [![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
 [![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/9t3yrbBUXD)
 
-**Harness AI-Powered Scripts in Your IDE with a Dynamic Chat GUI**
+### Harness AI-Powered Scripts in Your IDE with a Dynamic Chat GUI
 
-🧩 Develop AI-powered scripts in a unified framework with minmized efforts to handle IDEs and LLMs.
+#### 🧩 Develop AI-powered scripts in a unified framework with minmized efforts to handle IDEs and LLMs.
 
-🛠️ Tailor the AI coding assistant to align perfectly with your specific needs.
+#### 🛠️ Tailor the AI coding assistant to align perfectly with your specific needs.
 
-✨ Elevate your text chats with a dynamic, Markdown-rendered GUI for enhanced interaction.
+#### ✨ Elevate your text chats with a dynamic, Markdown-rendered GUI for enhanced interaction.
 
 </div>
 
@@ -35,6 +35,17 @@ While numerous AI coding tools exist, many still struggle to adeptly handle nuan
 
 At its core, we believe that the creativity and productivity of developers are yet to be fully unleashed. Our aim with DevChat is to simplify the integration of AI in software development to the level of writing a script, thereby unlocking new possibilities for developers.
 
+## Showcase
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=ucHdcEwp1E0" target="_blank">
+ <img src="http://img.youtube.com/vi/ucHdcEwp1E0/mqdefault.jpg" alt="Watch the video" width="320" height="180" border="10" />
+</a>
+
+Source code of the intelligent scripts in the above video:
+- Generate unit tests of a function: [/unit_tests](https://github.com/devchat-ai/workflows/tree/main/unit_tests).
+- Write a well-formatted commit message: [/commit](https://github.com/devchat-ai/workflows/tree/main/commit).
+- Automatically rename poorly-named local variables for improved readability: [/refactor.names](https://github.com/devchat-ai/workflows/tree/main/refactor/names).
+
 ## Core Features
 
 ### IDE Chat Panels
@@ -48,25 +59,6 @@ At its core, we believe that the creativity and productivity of developers are y
 Documentation: https://docs.devchat.ai/chatmark-markdown-spec.
 
 ### IDE Services
-
-### Mannual Context Building
-
-Great output requires great input. To maximize the power of AI, DevChat assists you to mannually select **the optimal context** to the AI.
-
-- For instance, to generate test cases for a function, you can add an existing test case. The test case serves as a useful reference for DevChat, enabling it to understand how to write a valid test case specific to your environment, thus eliminating the need for you to specify every requirement in your prompt.
-
-  ![Add to context](https://github.com/devchat-ai/devchat-vscode/assets/592493/9b19c798-d06f-4373-8f8a-6a950c3a8ba5)
-
-- You can incorporate the output of any command, such as `tree ./src`, into a prompt with DevChat. For example, you can add the output of `git diff --cached` to DevChat, which can then generate a commit message for you.
-
-  ![Generate a commit message](https://github.com/devchat-ai/devchat-vscode/assets/592493/7bd34547-762c-4f97-b792-8d05a9eb1dcf)
-
-- Program analysis can assist in building the necessary context. Suppose you want DevChat to explain some code to you. DevChat can perform better if it's aware of the dependent functions that the code is calling. In this scenario, you can select the target code with DevChat to explain and add "symbol definitions" to the context (by clicking the plus button). DevChat will then generate a prompt that explains the target code, taking into account the dependent functions.
-
-## Workflow Examples
-
-- Automatically rename poorly-named local variables for improved readability: [/refactor.names](https://github.com/devchat-ai/workflows/tree/main/refactor/names).
-- Generate unit tests of a function: [/unit_tests](https://github.com/devchat-ai/workflows/tree/main/unit_tests).
 
 ## Quick Start
 
