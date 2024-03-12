@@ -98,6 +98,10 @@ class IDEService:
         return [Location.parse_obj(loc) for loc in self._result]
 
     @rpc_method
+    def find_def_locations(self, abspath: str, line: int, character: int) -> List[Location]:
+        return [Location.parse_obj(loc) for loc in self._result]
+
+    @rpc_method
     def ide_name(self) -> str:
         """Returns the name of the IDE.
 
