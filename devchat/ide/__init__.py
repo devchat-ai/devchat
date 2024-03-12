@@ -1,5 +1,6 @@
 from .service import IDEService
+from .types import *
 
-__all__ = [
+__all__ = types.__all__ + [
     "IDEService",
 ]
