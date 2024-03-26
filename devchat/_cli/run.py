@@ -5,7 +5,6 @@ import shutil
 import sys
 from typing import List, Optional
 
-import yaml
 import rich_click as click
 from devchat._cli.utils import init_dir, handle_errors, clone_git_repo
 from devchat._cli.utils import download_and_extract_workflow
@@ -68,11 +67,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
 
         if list_flag:
             commands = []
-            hidden_workflows = read_hidden_workflows()
             for name in namespace.list_names(command, recursive_flag):
-                # check whether match item == name or item.startWiths(name + ".")
-                if any(name.startswith(item + ".") or item == name for item in hidden_workflows):
-                    continue
                 cmd = commander.parse(name)
                 if not cmd:
                     logger.warning("Existing command directory failed to parse: %s", name)
@@ -96,50 +91,6 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
                 config_str
             )
             return
-
-
-def create_default_config_file(config_path):
-    """
-    Create default configuration file with predefined hidden workflows.
-
-    This function generates a config file at `~/.chat/workflows/config.yml`.
-    The default file contains a list of workflows that are hidden by default.
-    For example, it includes 'unit_tests' as a hidden workflow.
-    """
-    default_config = {
-        'hidden_workflows': [
-            'unit_tests'
-            # You can add more default hidden workflows here
-        ]
-    }
-
-    with open(config_path, 'w', encoding="utf-8") as file:
-        yaml.dump(default_config, file)
-
-def read_hidden_workflows():
-    """
-    Read the list of hidden workflows from the config.yml file.
-
-    This function checks if the configuration file exists at the specified
-    path `~/.chat/workflows/config.yml`. If it does not exist, it creates
-    the default configuration file with predefined hidden workflows.
-
-    Returns:
-        list: A list containing the names of hidden workflows.
-    """
-    user_path = os.path.expanduser('~')
-    config_path = os.path.join(user_path, '.chat', 'workflows', 'config.yml')
-
-    if not os.path.exists(config_path):
-        create_default_config_file(config_path)
-
-    hidden_workflows = []
-    with open(config_path, 'r', encoding="utf-8") as file:
-        config = yaml.safe_load(file)
-        hidden_workflows = config.get('hidden_workflows', [])
-
-    return hidden_workflows
-
 
 def __onerror(func, path, _1):
     """
