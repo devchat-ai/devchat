@@ -179,7 +179,7 @@ class CommandRunner:
         )
         readme_content = self.__get_readme(command)
         if readme_content:
-            print(readme_content, file=sys.stderr, flush=True)
+            print(readme_content, flush=True)
         else:
             print(input_miss_error, file=sys.stderr, flush=True)
         return True
@@ -200,7 +200,7 @@ class CommandRunner:
 
         readme_content = self.__get_readme(command)
         if readme_content:
-            print(readme_content, file=sys.stderr, flush=True)
+            print(readme_content, flush=True)
         else:
             print("Missing parameters:", missed_parameters, file=sys.stderr, flush=True)
         return True
