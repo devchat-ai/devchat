@@ -10,6 +10,8 @@ from devchat._cli import run
 from devchat._cli import topic
 from devchat._cli import route
 
+from devchat.workflow.cli import workflow
+
 logger = get_logger(__name__)
 
 
@@ -23,3 +25,5 @@ main.add_command(log)
 main.add_command(run)
 main.add_command(topic)
 main.add_command(route)
+
+main.add_command(workflow)
