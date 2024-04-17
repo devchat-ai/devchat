@@ -87,6 +87,7 @@ class CommandRunner:
         replace $xxx in command.steps[0].run with parameters[xxx]
         then run command.steps[0].run
         """
+        result = (-1, "")
         try:
             env = os.environ.copy()
             env.update(parameters)
@@ -103,21 +104,21 @@ class CommandRunner:
                 command_run = command_run.replace('$' + parameter, str(env[parameter]))
 
             if self.__check_command_python_error(command_run, env):
-                return (-1, "")
+                return result
             if self.__check_input_miss_error(command, command_name, env):
                 if self.__get_readme(command):
-                    return (0, "")
-                return (-1, "")
+                    result = (0, "")
+                return result
             if self.__check_parameters_miss_error(command, command_run):
                 if self.__get_readme(command):
-                    return (0, "")
-                return (-1, "")
+                    result = (0, "")
+                return result
 
-            return self.__run_command_with_thread_output(command_run, env)
+            result = self.__run_command_with_thread_output(command_run, env)
         except Exception as err:
             print("Exception:", type(err), err, file=sys.stderr, flush=True)
             logger.exception("Run command error: %s", err)
-            return (-1, "")
+        return result
 
     def __run_command_with_thread_output(self, command_str: str, env: Dict[str, str]):
         """
