@@ -105,8 +105,12 @@ class CommandRunner:
             if self.__check_command_python_error(command_run, env):
                 return (-1, "")
             if self.__check_input_miss_error(command, command_name, env):
+                if self.__get_readme(command):
+                    return (0, "")
                 return (-1, "")
             if self.__check_parameters_miss_error(command, command_run):
+                if self.__get_readme(command):
+                    return (0, "")
                 return (-1, "")
 
             return self.__run_command_with_thread_output(command_run, env)
