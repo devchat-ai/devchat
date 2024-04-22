@@ -49,10 +49,10 @@ def chat(
         @wraps(func)
         def wrapper(*args, **kwargs): # pylint: disable=unused-argument
             nonlocal prompt, memory, model, llm_config
-            prompt = prompt.format(**kwargs)
+            prompt_new = prompt.format(**kwargs)
             messages = memory.contexts() if memory else []
-            if not any(item["content"] == prompt for item in messages) and prompt:
-                messages.append({"role": "user", "content": prompt})
+            if not any(item["content"] == prompt_new for item in messages) and prompt_new:
+                messages.append({"role": "user", "content": prompt_new})
             if "__user_request__" in kwargs:
                 messages.append(kwargs["__user_request__"])
                 del kwargs["__user_request__"]
@@ -68,7 +68,7 @@ def chat(
 
             if memory:
                 memory.append(
-                    {"role": "user", "content": prompt},
+                    {"role": "user", "content": prompt_new},
                     {"role": "assistant", "content": response["content"]},
                 )
             return response["content"]
@@ -88,10 +88,10 @@ def chat_json(
         @wraps(func)
         def wrapper(*args, **kwargs): # pylint: disable=unused-argument
             nonlocal prompt, memory, model, llm_config
-            prompt = prompt.format(**kwargs)
+            prompt_new = prompt.format(**kwargs)
             messages = memory.contexts() if memory else []
-            if not any(item["content"] == prompt for item in messages):
-                messages.append({"role": "user", "content": prompt})
+            if not any(item["content"] == prompt_new for item in messages):
+                messages.append({"role": "user", "content": prompt_new})
 
             llm_config["model"] = model
             response = chat_completion_no_stream_return_json(messages, llm_config=llm_config)
@@ -100,7 +100,7 @@ def chat_json(
 
             if memory:
                 memory.append(
-                    {"role": "user", "content": prompt},
+                    {"role": "user", "content": prompt_new},
                     {"role": "assistant", "content": json.dumps(response)},
                 )
             return response
