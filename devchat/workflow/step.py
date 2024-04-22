@@ -71,7 +71,11 @@ class WorkflowStep:
         # TODO: set workflow_python path
         # if (BuiltInVars.workflow_python in command_raw) and wf_config.workflow_python:
 
-        env["PYTHONPATH"] = os.pathsep.join(new_paths)
+        paths = [os.path.normpath(p) for p in new_paths]
+        paths = [p.replace("\\", "\\\\") for p in paths]
+        joined = os.pathsep.join(paths)
+
+        env["PYTHONPATH"] = joined
         env[BuiltInEnvs.llm_model] = rt_param.model_name or ""
         env[BuiltInEnvs.parent_hash] = rt_param.parent_hash or ""
         env[BuiltInEnvs.context_contents] = ""
