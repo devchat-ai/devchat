@@ -6,7 +6,7 @@ import threading
 import subprocess
 import shlex
 import json
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from enum import Enum
 from .schema import WorkflowConfig, RuntimeParameter
 from .path import WORKFLOWS_BASE
@@ -83,13 +83,14 @@ class WorkflowStep:
 
     def _validate_and_interpolate(
         self, wf_config: WorkflowConfig, rt_param: RuntimeParameter
-    ) -> str:
+    ) -> List[str]:
         """
         Validate the step configuration and interpolate variables in the command.
 
-        Return the interpolated command string.
+        Return the command parts as a list of strings.
         """
         command_raw = self.command_raw
+        parts = shlex.split(command_raw)
 
         # if the command_raw use $workflow_python,
         # it must be set in workflow config
@@ -99,16 +100,34 @@ class WorkflowStep:
                     "The command uses $workflow_python, "
                     "but the workflow_python is not set yet."
                 )
+        
+        args = []
+        for p in parts:
+            arg = p
 
-        # variable interpolation in the command
-        command = (
-            command_raw.replace(BuiltInVars.command_path, wf_config.root_path)
-            .replace(BuiltInVars.devchat_python, rt_param.devchat_python)
-            .replace(BuiltInVars.user_input, rt_param.user_input)
-            .replace(BuiltInVars.workflow_python, rt_param.workflow_python)
-        )
+            if p.startswith(BuiltInVars.workflow_python):
+                if not rt_param.workflow_python:
+                    raise ValueError(
+                        "The command uses $workflow_python, "
+                        "but the workflow_python is not set yet."
+                    )
+                arg = arg.replace(BuiltInVars.workflow_python, rt_param.workflow_python)
 
-        return command
+            if p.startswith(BuiltInVars.devchat_python):
+                arg = arg.replace(BuiltInVars.devchat_python, rt_param.devchat_python)
+
+            if p.startswith(BuiltInVars.command_path):
+                path_parts = os.path.split(p)
+                # replace "$command_path" with the root path in path_parts
+                arg = os.path.join(wf_config.root_path, *path_parts[1:])
+
+            if BuiltInVars.user_input in p:
+                arg = arg.replace(BuiltInVars.user_input, rt_param.user_input)
+
+            args.append(arg)
+        
+        return args
+            
 
     def run(
         self, wf_config: WorkflowConfig, rt_param: RuntimeParameter
@@ -136,7 +155,7 @@ class WorkflowStep:
         #     .replace(BuiltInVars.devchat_python, rt_param.devchat_python)
         #     .replace(BuiltInVars.user_input, rt_param.user_input)
         # )
-        command = self._validate_and_interpolate(wf_config, rt_param)
+        command_args = self._validate_and_interpolate(wf_config, rt_param)
 
         # print(f"\n\n- command_raw: {command_raw}")
         # print(f"- command: {command}\n\n")
@@ -161,7 +180,7 @@ class WorkflowStep:
                 print(pipe_data, end="", file=out_file, flush=True)
 
         with subprocess.Popen(
-            shlex.split(command),
+            command_args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
