@@ -17,7 +17,7 @@ MERICO_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "merico", "workflows")
 CUSTOM_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "custom", "workflows")
 COMMUNITY_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "community", "workflows")
 
-COMMAND_FILENAME = "command.yml"
+COMMAND_FILENAMES = ["command.yml", "command.yaml"]
 
 # the priority order of the workflows when naming conflicts
 PrioritizedWorkflows = [

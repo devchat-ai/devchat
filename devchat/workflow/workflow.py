@@ -8,7 +8,7 @@ from .step import WorkflowStep
 from .schema import WorkflowConfig, RuntimeParameter
 from .path import (
     PrioritizedWorkflows,
-    COMMAND_FILENAME,
+    COMMAND_FILENAMES,
 )
 from .env_manager import PyEnvManager
 
@@ -74,10 +74,13 @@ class Workflow:
         found = False
         workflow_dir = ""
         for wf_dir in PrioritizedWorkflows:
-            yaml_file = os.path.join(wf_dir, rel_path, COMMAND_FILENAME)
-            if os.path.exists(yaml_file):
-                workflow_dir = wf_dir
-                found = True
+            for fn in COMMAND_FILENAMES:
+                yaml_file = os.path.join(wf_dir, rel_path, fn)
+                if os.path.exists(yaml_file):
+                    workflow_dir = wf_dir
+                    found = True
+                    break
+            if found:
                 break
         if not found:
             return None
@@ -86,21 +89,22 @@ class Workflow:
         config_dict = {}
         for i in range(len(path_parts)):
             cur_path = os.path.join(workflow_dir, *path_parts[: i + 1])
-            cur_yaml = os.path.join(cur_path, COMMAND_FILENAME)
+            for fn in COMMAND_FILENAMES:
+                cur_yaml = os.path.join(cur_path, fn)
 
-            if os.path.exists(cur_yaml):
-                with open(cur_yaml, "r", encoding="utf-8") as file:
-                    yaml_content = file.read()
-                    cur_conf = yaml.safe_load(yaml_content)
-                    cur_conf["root_path"] = cur_path
+                if os.path.exists(cur_yaml):
+                    with open(cur_yaml, "r", encoding="utf-8") as file:
+                        yaml_content = file.read()
+                        cur_conf = yaml.safe_load(yaml_content)
+                        cur_conf["root_path"] = cur_path
 
-                # convert relative path to absolute path for dependencies file
-                if cur_conf.get("workflow_python", {}).get("dependencies"):
-                    rel_dep = cur_conf["workflow_python"]["dependencies"]
-                    abs_dep = os.path.join(cur_path, rel_dep)
-                    cur_conf["workflow_python"]["dependencies"] = abs_dep
+                    # convert relative path to absolute path for dependencies file
+                    if cur_conf.get("workflow_python", {}).get("dependencies"):
+                        rel_dep = cur_conf["workflow_python"]["dependencies"]
+                        abs_dep = os.path.join(cur_path, rel_dep)
+                        cur_conf["workflow_python"]["dependencies"] = abs_dep
 
-                config_dict.update(cur_conf)
+                    config_dict.update(cur_conf)
 
         config = WorkflowConfig.parse_obj(config_dict)
 
