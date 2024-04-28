@@ -132,17 +132,17 @@ def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:
         return False
 
 
-def clone_git_repo(target_dir: str, repo_urls: List[str]):
+def clone_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]]):
     """
     Clone a Git repository from a list of possible URLs.
 
     :param target_dir: The path where the repository should be cloned.
     :param repo_urls: A list of possible Git repository URLs.
     """
-    for url in repo_urls:
+    for url, branch in repo_urls:
         try:
             click.echo(f"Cloning repository {url} to {target_dir}")
-            Repo.clone_from(url, target_dir)
+            Repo.clone_from(url, target_dir, branch=branch)
             click.echo("Cloned successfully")
             return
         except GitCommandError:

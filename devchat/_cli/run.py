@@ -3,7 +3,7 @@ import os
 import stat
 import shutil
 import sys
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import rich_click as click
 from devchat._cli.utils import init_dir, handle_errors, clone_git_repo
@@ -55,8 +55,8 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
         if update_sys_flag:
             sys_dir = os.path.join(workflows_dir, 'sys')
             git_urls = [
-                'https://gitlab.com/devchat-ai/workflows.git',
-                'https://github.com/devchat-ai/workflows.git'
+                ('https://gitlab.com/devchat-ai/workflows.git', 'main'),
+                ('https://github.com/devchat-ai/workflows.git', 'main')
             ]
             zip_urls = [
                 'https://gitlab.com/devchat-ai/workflows/-/archive/main/workflows-main.zip',
@@ -120,7 +120,7 @@ def __make_files_writable(directory):
             if not os.access(filepath, os.W_OK):
                 os.chmod(filepath, stat.S_IWUSR)
 
-def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[str], zip_urls: List[str]):
+def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]], zip_urls: List[str]):
     """
     Clone a Git repository to a specified location, or pull it if it already exists.
 
