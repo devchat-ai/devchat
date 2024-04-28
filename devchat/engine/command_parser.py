@@ -1,20 +1,19 @@
+from dataclasses import dataclass
 import os
 from typing import List, Dict, Optional
-from dataclasses import dataclass
+from pydantic import BaseModel
 import oyaml as yaml
 from .namespace import Namespace
 
 
-@dataclass
-class Parameter():
+class Parameter(BaseModel):
     type: str = "string"
     description: Optional[str] = None
     enum: Optional[List[str]] = None
     default: Optional[str] = None
 
 
-@dataclass
-class Command():
+class Command(BaseModel):
     description: str
     hint: Optional[str] = None
     parameters: Optional[Dict[str, Parameter]] = None
@@ -23,8 +22,7 @@ class Command():
     path: Optional[str] = None
 
 
-@dataclass
-class CommandParser:
+class CommandParser():
     def __init__(self, namespace: Namespace):
         self.namespace = namespace
 

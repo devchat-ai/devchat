@@ -96,7 +96,7 @@ def test_select_topics_and_prompts_with_single_root(chat_store):
     # Test selecting topics
     topics = store.select_topics(0, 5)
     assert len(topics) == 1
-    assert topics[0]['root_prompt'].hash == root_prompt.hash
+    assert topics[0]['root_prompt']['hash'] == root_prompt.hash
 
     # Test selecting prompts within the topic
     recent_prompts = store.select_prompts(0, 2, topic=root_prompt.hash)
@@ -135,7 +135,7 @@ def test_select_recent_with_topic_tree(chat_store):
     # Test selecting topics
     topics = store.select_topics(0, 5)
     assert len(topics) == 1
-    assert topics[0]['root_prompt'].hash == root_prompt.hash
+    assert topics[0]['root_prompt']['hash'] == root_prompt.hash
 
     # Test selecting recent prompts within the nested topic
     recent_prompts = store.select_prompts(1, 3, topic=root_prompt.hash)
@@ -195,8 +195,8 @@ def test_delete_prompt_grandchild(prompt_tree):
     # Verify the trees after deletion
     topics = store.select_topics(0, 5)
     assert len(topics) == 2
-    assert topics[0]['root_prompt'].hash == other_root_prompt.hash
-    assert topics[1]['root_prompt'].hash == root_prompt.hash
+    assert topics[0]['root_prompt']['hash'] == other_root_prompt.hash
+    assert topics[1]['root_prompt']['hash'] == root_prompt.hash
 
 
 def test_delete_prompt_other_root(prompt_tree):
@@ -208,4 +208,4 @@ def test_delete_prompt_other_root(prompt_tree):
     # Verify the trees after deletion
     topics = store.select_topics(0, 5)
     assert len(topics) == 1
-    assert topics[0]['root_prompt'].hash == root_prompt.hash
+    assert topics[0]['root_prompt']['hash'] == root_prompt.hash

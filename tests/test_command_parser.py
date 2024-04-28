@@ -82,6 +82,7 @@ def test_command_parser(tmp_path):
                 ./get_weather --location=$location --unit=$unit
         """)
     command = command_parser.parse('a.b.c')
+    command = command.dict()
     assert command['description'] == 'Get the current weather in a given location'
     assert 'location' in command['parameters']
     assert command['parameters']['unit']['default'] == 'celsius'
@@ -96,6 +97,7 @@ def test_command_parser(tmp_path):
         parameters:
         """)
     command = command_parser.parse('d.e.f')
+    command = command.dict()
     assert command['description'] == 'Prompt for /code'
     assert command['parameters'] is None
     assert command['steps'] is None

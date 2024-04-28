@@ -44,7 +44,6 @@ def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.
     """
-    # import rich_click as click
     from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
 
     from devchat.store import Store

@@ -31,25 +31,24 @@ class Command:
         return decorator
 
     def register(self, subparsers):
-        if not self.parser:
-            self.parser = subparsers.add_parser(self.name, help=self.help)
-            for option_type, args, kwargs in self.options:
-                is_flag = kwargs.pop('is_flag', None)
-                if is_flag:
-                    kwargs['action'] = 'store_true'  # 如果是标志，则设置此动作
-                else:
-                    nargs = kwargs.pop('multiple', None)
-                    if nargs:
-                        kwargs['nargs'] = '+'  # 表示至少需要一个参数，或'*'允许零个参数
-                required = kwargs.pop('required', None)
-                if required is not None:
-                    kwargs['required'] = required
+        self.parser = subparsers.add_parser(self.name, help=self.help)
+        for option_type, args, kwargs in self.options:
+            is_flag = kwargs.pop('is_flag', None)
+            if is_flag:
+                kwargs['action'] = 'store_true'  # 如果是标志，则设置此动作
+            else:
+                nargs = kwargs.pop('multiple', None)
+                if nargs:
+                    kwargs['nargs'] = '+'  # 表示至少需要一个参数，或'*'允许零个参数
+            required = kwargs.pop('required', None)
+            if required is not None:
+                kwargs['required'] = required
 
-                if option_type == "option":
-                    self.parser.add_argument(*args, **kwargs)
-                elif option_type == "argument":
-                    self.parser.add_argument(*args, **kwargs)
-            self.parser.set_defaults(func=self.func)
+            if option_type == "option":
+                self.parser.add_argument(*args, **kwargs)
+            elif option_type == "argument":
+                self.parser.add_argument(*args, **kwargs)
+        self.parser.set_defaults(func=self.func)
 
 # 命令装饰器工厂，每个命令通过这个工厂创建
 # pylint: disable=redefined-builtin
