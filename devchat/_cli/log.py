@@ -69,7 +69,7 @@ def log(skip, max_count, topic_root, insert, delete):
                 prompt.timestamp = prompt_data.timestamp
                 prompt.request_tokens = prompt_data.request_tokens
                 prompt.response_tokens = prompt_data.response_tokens
-                store.store_prompt(prompt)
+                topic_root = store.store_prompt(prompt)
 
             recent_prompts = store.select_prompts(skip, skip + max_count, topic_root)
             logs = []

@@ -91,7 +91,7 @@ def llm_prompt(content: Optional[str], parent: Optional[str], reference: Optiona
 
         print(assistant.prompt.formatted_header())
         for response in assistant.iterate_response():
-            print(response, end='')
+            print(response, end='', flush=True)
 
 
 def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
@@ -137,4 +137,4 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
             sys.exit(command_result[0])
 
         for response in assistant.iterate_response():
-            print(response, end='')
+            print(response, end='', flush=True)

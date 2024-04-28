@@ -5,11 +5,6 @@ import shutil
 from typing import Tuple, List, Optional, Any
 import zipfile
 
-try:
-    from git import Repo, InvalidGitRepositoryError, GitCommandError
-except Exception:
-    pass
-
 from devchat._cli.errors import MissContentInPromptException
 from devchat.utils import find_root_dir, add_gitignore, setup_logger, get_logger
 
@@ -44,14 +39,14 @@ def download_and_extract_workflow(workflow_url, target_dir):
 
 @contextmanager
 def handle_errors():
-    import openai
+    # import openai
     """Handle errors in the CLI."""
     try:
         yield
-    except openai.APIError as error:
-        logger.exception(error)
-        print(f"{type(error).__name__}: {error.type}", file=sys.stderr)
-        sys.exit(1)
+    # except openai.APIError as error:
+    #     logger.exception(error)
+    #     print(f"{type(error).__name__}: {error.type}", file=sys.stderr)
+    #     sys.exit(1)
     except MissContentInPromptException:
         print("Miss content in prompt command.", file=sys.stderr)
         sys.exit(1)
@@ -63,6 +58,8 @@ def handle_errors():
         sys.exit(1)
 
 
+repo_chat_dir = None
+user_chat_dir = None
 def init_dir() -> Tuple[str, str]:
     """
     Initialize the chat directories.
@@ -71,6 +68,11 @@ def init_dir() -> Tuple[str, str]:
         repo_chat_dir: The chat directory in the repository.
         user_chat_dir: The chat directory in the user's home.
     """
+    global repo_chat_dir
+    global user_chat_dir
+    if repo_chat_dir and user_chat_dir:
+        return repo_chat_dir, user_chat_dir
+
     repo_dir, user_dir = find_root_dir()
     if not repo_dir and not user_dir:
         print(f"Error: Failed to find home for .chat: {repo_dir}, {user_dir}", file=sys.stderr)
@@ -121,6 +123,11 @@ def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:
     :return: True if the directory is a valid Git repository with a valid URL, False otherwise.
     """
     try:
+        from git import Repo, InvalidGitRepositoryError
+    except Exception:
+        pass
+
+    try:
         repo = Repo(target_dir)
         repo_url = next(repo.remote().urls)
         return repo_url in valid_urls
@@ -138,6 +145,11 @@ def clone_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]]):
     :param target_dir: The path where the repository should be cloned.
     :param repo_urls: A list of possible Git repository URLs.
     """
+    try:
+        from git import Repo, GitCommandError
+    except Exception:
+        pass
+
     for url, branch in repo_urls:
         try:
             print(f"Cloning repository {url} to {target_dir}")

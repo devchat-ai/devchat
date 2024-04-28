@@ -84,8 +84,10 @@ class OpenAIChat(Chat):
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
+        # return None
         import openai
-        
+        print("-----> 2", flush=True)
+
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
         if prompt.get_functions():

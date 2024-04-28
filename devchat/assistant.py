@@ -98,13 +98,12 @@ class Assistant:
         Returns:
             Iterator[str]: An iterator over response strings from the chat API.
         """
-        import openai
 
         if self._chat.config.stream:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
             for chunk in self._chat.stream_response(self._prompt):
-                if isinstance(chunk, openai.types.chat.chat_completion_chunk.ChatCompletionChunk):
+                if hasattr(chunk, "dict"):
                     chunk = chunk.dict()
                     if "function_call" in chunk["choices"][0]["delta"] and \
                           not chunk["choices"][0]["delta"]["function_call"]:

@@ -198,6 +198,9 @@ def update_dict(dict_to_update, key, value) -> dict:
 
 def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable=unused-argument
     """Returns the number of tokens used by a message."""
+    if not os.environ.get("USE_TIKTOKEN", False):
+        return len(str(messages))/4
+    
     global encoding
     if not encoding:
         import tiktoken
