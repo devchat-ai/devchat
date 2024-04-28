@@ -1,18 +1,21 @@
 import json
-import rich_click as click
+# import rich_click as click
 from devchat.store import Store
 from devchat.openai import OpenAIChatConfig, OpenAIChat
 from devchat.utils import get_logger
 from devchat._cli.utils import init_dir, handle_errors, get_model_config
 
+from .command import command, Command
+
+
 logger = get_logger(__name__)
 
 
-@click.command()
-@click.option('--list', '-l', 'list_topics', is_flag=True,
+@command('topic', help='Manage topics')
+@Command.option('--list', '-l', dest='list_topics', is_flag=True,
               help='List topics in reverse chronological order.')
-@click.option('--skip', default=0, help='Skip number of topics before showing the list.')
-@click.option('-n', '--max-count', default=100, help='Limit the number of topics to output.')
+@Command.option('--skip', default=0, help='Skip number of topics before showing the list.')
+@Command.option('-n', '--max-count', default=100, help='Limit the number of topics to output.')
 def topic(list_topics: bool, skip: int, max_count: int):
     """
     Manage topics.
@@ -35,4 +38,4 @@ def topic(list_topics: bool, skip: int, max_count: int):
                 except Exception as exc:
                     logger.exception(exc)
                     continue
-            click.echo(json.dumps(topics, indent=2))
+            print(json.dumps(topics, indent=2))

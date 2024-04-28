@@ -72,13 +72,14 @@ class Assistant:
             self._check_limit()
 
         # Add history to the prompt
-        for reference_hash in references:
-            prompt = self._store.get_prompt(reference_hash)
-            if not prompt:
-                logger.error("Reference %s not retrievable while making prompt.", reference_hash)
-                continue
-            self._prompt.references.append(reference_hash)
-            self._prompt.prepend_history(prompt, self.token_limit)
+        if references:
+            for reference_hash in references:
+                prompt = self._store.get_prompt(reference_hash)
+                if not prompt:
+                    logger.error("Reference %s not retrievable while making prompt.", reference_hash)
+                    continue
+                self._prompt.references.append(reference_hash)
+                self._prompt.prepend_history(prompt, self.token_limit)
         if parent:
             self._prompt.parent = parent
             parent_hash = parent
@@ -98,7 +99,7 @@ class Assistant:
             Iterator[str]: An iterator over response strings from the chat API.
         """
         import openai
-        
+
         if self._chat.config.stream:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)

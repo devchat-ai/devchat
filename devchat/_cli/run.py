@@ -5,33 +5,36 @@ import shutil
 import sys
 from typing import List, Optional, Tuple
 
-import rich_click as click
+# import rich_click as click
 from devchat._cli.utils import init_dir, handle_errors, clone_git_repo
 from devchat._cli.utils import download_and_extract_workflow
 from devchat.engine import Namespace, CommandParser
 from devchat.utils import get_logger
 from devchat._cli.router import llm_commmand
 
+from .command import command, Command
+
+
 logger = get_logger(__name__)
 
-@click.command(
+@command('run',
     help="The 'command' argument is the name of the command to run or get information about.")
-@click.argument('command', required=False, default='')
-@click.option('--list', 'list_flag', is_flag=True, default=False,
+@Command.argument('command', default='')
+@Command.option('--list', dest='list_flag', is_flag=True, default=False,
               help='List all specified commands in JSON format.')
-@click.option('--recursive', '-r', 'recursive_flag', is_flag=True, default=True,
+@Command.option('--recursive', '-r', dest='recursive_flag', is_flag=True, default=True,
               help='List commands recursively.')
-@click.option('--update-sys', 'update_sys_flag', is_flag=True, default=False,
+@Command.option('--update-sys', dest='update_sys_flag', is_flag=True, default=False,
               help='Pull the `sys` command directory from the DevChat repository.')
-@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
-@click.option('-r', '--reference', multiple=True,
+@Command.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
+@Command.option('--reference', multiple=True,
               help='Input one or more specific previous prompts to include in the current prompt.')
-@click.option('-i', '--instruct', multiple=True,
+@Command.option('-i', '--instruct', multiple=True,
               help='Add one or more files to the prompt as instructions.')
-@click.option('-c', '--context', multiple=True,
+@Command.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@click.option('-m', '--model', help='Specify the model to use for the prompt.')
-@click.option('--config', 'config_str',
+@Command.option('-m', '--model', help='Specify the model to use for the prompt.')
+@Command.option('--config', dest='config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
 def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool,
         parent: Optional[str], reference: Optional[List[str]],
@@ -46,7 +49,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
         if not os.path.exists(workflows_dir):
             os.makedirs(workflows_dir)
         if not os.path.isdir(workflows_dir):
-            click.echo(f"Error: Failed to find workflows directory: {workflows_dir}", err=True)
+            print(f"Error: Failed to find workflows directory: {workflows_dir}", file=sys.stderr)
             sys.exit(1)
 
         namespace = Namespace(workflows_dir)
@@ -77,7 +80,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
                     'description': cmd.description,
                     'path': cmd.path
                 })
-            click.echo(json.dumps(commands, indent=2))
+            print(json.dumps(commands, indent=2))
             return
 
         if command:
@@ -144,7 +147,7 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]], z
             shutil.rmtree(new_dir, onerror=__onerror)
         if os.path.exists(bak_dir):
             shutil.rmtree(bak_dir, onerror=__onerror)
-        click.echo(f'{target_dir} is already exists. Moved to {new_dir}')
+        print(f'{target_dir} is already exists. Moved to {new_dir}')
         clone_git_repo(bak_dir, repo_urls)
         try:
             shutil.move(target_dir, new_dir)
@@ -159,4 +162,4 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]], z
     else:
         clone_git_repo(target_dir, repo_urls)
 
-    click.echo(f'Updated {target_dir}')
+    print(f'Updated {target_dir}')

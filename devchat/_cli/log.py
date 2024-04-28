@@ -3,12 +3,14 @@ import sys
 import time
 from typing import Optional, List, Dict
 from dataclasses import dataclass, field
-import rich_click as click
+# import rich_click as click
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
 
 from devchat.store import Store
 from devchat._cli.utils import handle_errors, init_dir, get_model_config
 from devchat.utils import get_logger, get_user_info
+
+from .command import command, Command
 
 @dataclass
 class PromptData:
@@ -24,20 +26,20 @@ class PromptData:
 logger = get_logger(__name__)
 
 
-@click.command()
-@click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
-@click.option('-n', '--max-count', default=1, help='Limit the number of commits to output.')
-@click.option('-t', '--topic', 'topic_root', default=None,
+@command('log', help='Process logs')
+@Command.option('--skip', type=int, default=0, help='Skip number prompts before showing the prompt history.')
+@Command.option('-n', '--max-count', type=int, default=1, help='Limit the number of commits to output.')
+@Command.option('-t', '--topic', dest='topic_root', default=None,
               help='Hash of the root prompt of the topic to select prompts from.')
-@click.option('--insert', default=None, help='JSON string of the prompt to insert into the log.')
-@click.option('--delete', default=None, help='Hash of the leaf prompt to delete from the log.')
+@Command.option('--insert', default=None, help='JSON string of the prompt to insert into the log.')
+@Command.option('--delete', default=None, help='Hash of the leaf prompt to delete from the log.')
 def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.
     """
     if (insert or delete) and (skip != 0 or max_count != 1 or topic_root is not None):
-        click.echo("Error: The --insert or --delete option cannot be used with other options.",
-                   err=True)
+        print("Error: The --insert or --delete option cannot be used with other options.",
+                   file=sys.stderr)
         sys.exit(1)
 
     repo_chat_dir, user_chat_dir = init_dir()
@@ -52,9 +54,9 @@ def log(skip, max_count, topic_root, insert, delete):
         if delete:
             success = store.delete_prompt(delete)
             if success:
-                click.echo(f"Prompt {delete} deleted successfully.")
+                print(f"Prompt {delete} deleted successfully.")
             else:
-                click.echo(f"Failed to delete prompt {delete}.")
+                print(f"Failed to delete prompt {delete}.")
         else:
             if insert:
                 prompt_data = PromptData(**json.loads(insert))
@@ -77,4 +79,4 @@ def log(skip, max_count, topic_root, insert, delete):
                 except Exception as exc:
                     logger.exception(exc)
                     continue
-            click.echo(json.dumps(logs, indent=2))
+            print(json.dumps(logs, indent=2))

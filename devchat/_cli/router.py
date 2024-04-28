@@ -1,7 +1,7 @@
 import json
 import sys
 from typing import List, Optional
-import rich_click as click
+# import rich_click as click
 from devchat.engine import run_command, load_workflow_instruction
 from devchat.assistant import Assistant
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
@@ -49,7 +49,7 @@ def before_prompt(content: Optional[str], parent: Optional[str], reference: Opti
     repo_chat_dir, _1 = init_dir()
 
     if content is None:
-        content = click.get_text_stream('stdin').read()
+        content = sys.stdin.read()
 
     if content == '':
         raise MissContentInPromptException()
@@ -89,9 +89,9 @@ def llm_prompt(content: Optional[str], parent: Optional[str], reference: Optiona
             model, config_str, functions, function_name, not_store
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         for response in assistant.iterate_response():
-            click.echo(response, nl=False)
+            print(response, end='')
 
 
 def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
@@ -102,7 +102,7 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         command_result = run_command(
             model_name = model,
             history_messages = assistant.prompt.messages,
@@ -112,8 +112,8 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
         if command_result is not None:
             sys.exit(0)
 
-        click.echo("run command fail.")
-        click.echo(command_result)
+        print("run command fail.")
+        print(command_result)
     sys.exit(-1)
 
 
@@ -126,7 +126,7 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         command_result = run_command(
             model_name = model,
             history_messages = assistant.prompt.messages,
@@ -137,4 +137,4 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
             sys.exit(command_result[0])
 
         for response in assistant.iterate_response():
-            click.echo(response, nl=False)
+            print(response, end='')
