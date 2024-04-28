@@ -39,7 +39,7 @@ class Command:
             else:
                 nargs = kwargs.pop('multiple', None)
                 if nargs:
-                    kwargs['nargs'] = '+'  # 表示至少需要一个参数，或'*'允许零个参数
+                    kwargs['action'] = 'append'  # 表示至少需要一个参数，或'*'允许零个参数
             required = kwargs.pop('required', None)
             if required is not None:
                 kwargs['required'] = required
