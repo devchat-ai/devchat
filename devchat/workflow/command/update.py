@@ -3,7 +3,7 @@
 import shutil
 import tempfile
 import zipfile
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from pathlib import Path
 from datetime import datetime
 
@@ -22,14 +22,27 @@ else:
     HAS_GIT = True
     # pass
 
-REPO_URLS = ["git@github.com:kagami-l/new_workflows.git"]
-ZIP_URLS = [
-    "https://codeload.github.com/kagami-l/new_workflows/zip/refs/heads/main",
-]
-# ZIP_URLS = [
-#     "https://gitlab.com/devchat-ai/workflows/-/archive/main/workflows-main.zip",
-#     "https://codeload.github.com/devchat-ai/workflows/zip/refs/heads/main",
+# REPO_NAME = "new_workflows"
+# DEFAULT_BRANCH = "main"
+# REPO_URLS = [
+#     # url, branch
+#     ("git@github.com:kagami-l/new_workflows.git", DEFAULT_BRANCH),
 # ]
+# ZIP_URLS = [
+#     "https://codeload.github.com/kagami-l/new_workflows/zip/refs/heads/main",
+# ]
+
+REPO_NAME = "workflows"
+DEFAULT_BRANCH = "scripts"
+REPO_URLS = [
+    # url, branch
+    ("git@github.com:devchat-ai/workflows.git", DEFAULT_BRANCH),
+    ("https://github.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
+]
+ZIP_URLS = [
+    "https://codeload.github.com/devchat-ai/workflows/zip/refs/heads/scripts",
+]
+
 
 logger = get_logger(__name__)
 
@@ -104,7 +117,7 @@ def _download_zip_to_dir(candidate_urls: List[str], dst_dir: Path) -> bool:
                 # TODO: use workflows-main for dev
                 # TODO: will set to the actual zip dir name when the new repo is ready
                 extracted_dir = (
-                    tmp_dir_path / "new_workflows-main"
+                    tmp_dir_path / f"{REPO_NAME}-{DEFAULT_BRANCH}"
                 )  # TODO: use Constant
                 shutil.move(extracted_dir, dst_dir)
                 click.echo(f"Extracted to {dst_dir}")
@@ -159,13 +172,13 @@ def update_by_zip(workflow_base: Path):
         click.echo(f"Updated {workflow_base} by zip. (backup: {backup_zip})")
 
 
-def _clone_repo_to_dir(candidate_urls: List[str], dst_dir: Path) -> bool:
+def _clone_repo_to_dir(candidates: List[Tuple[str, str]], dst_dir: Path) -> bool:
     """
     Clone the git repo with the first successful url
-    in the candidate_urls to the dst_dir.
+    in the candidates to the dst_dir.
 
     Args:
-        candidate_urls: the list of candidate git urls
+        candidates: the list of candidate git url and branch pairs.
         dst_dir: the dst dir of the cloned repo, should not exist
 
     Returns:
@@ -175,14 +188,16 @@ def _clone_repo_to_dir(candidate_urls: List[str], dst_dir: Path) -> bool:
     assert not dst_dir.exists()
 
     clone_ok = False
-    for url in candidate_urls:
+    for url, branch in candidates:
         try:
-            repo = Repo.clone_from(url, dst_dir)
-            click.echo(f"Cloned from {url} to {dst_dir}")
+            # TODO: What will happen when using an SSH URL without configuring an SSH key
+            # TODO：how to handle it?
+            repo = Repo.clone_from(url, to_path=dst_dir, branch=branch)
+            click.echo(f"Cloned from {url}|{branch} to {dst_dir}")
             clone_ok = True
             break
         except GitCommandError as e:
-            click.echo(f"Failed to clone from {url}: {e}")
+            click.echo(f"Failed to clone from  {url}|{branch}: {e}")
 
     return clone_ok
 
@@ -235,9 +250,10 @@ def update_by_git(workflow_base: Path):
 
         # current workflow base dir is a valid git repo
         head_name = repo.head.reference.name
-        if head_name != "main":
+        if head_name != DEFAULT_BRANCH:
             click.echo(
-                f"Current workflow branch is not main: <{head_name}>. Skip update."
+                f"Current workflow branch is not the default one[{DEFAULT_BRANCH}]: "
+                f"<{head_name}>. Skip update."
             )
             return
 
@@ -248,10 +264,12 @@ def update_by_git(workflow_base: Path):
             return
 
         local_main_hash = repo.head.commit.hexsha
-        remote_main_hash = repo.commit("origin/main").hexsha
+        remote_main_hash = repo.commit(f"origin/{DEFAULT_BRANCH}").hexsha
 
         if local_main_hash == remote_main_hash:
-            click.echo("Local main is up-to-date with remote main. Skip update.")
+            click.echo(
+                f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
+            )
             return
 
         try:
@@ -262,7 +280,7 @@ def update_by_git(workflow_base: Path):
             repo.git.reset("--hard", "HEAD")
             repo.git.clean("-df")
             repo.git.fetch("origin")
-            repo.git.reset("--hard", "origin/main")
+            repo.git.reset("--hard", f"origin/{DEFAULT_BRANCH}")
             click.echo(
                 f"Updated {workflow_base} from <{local_main_hash[:8]}> to"
                 f" <{remote_main_hash[:8]}>. (backup: {backup_zip})"
