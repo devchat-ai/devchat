@@ -14,7 +14,6 @@ def topic(list_topics: bool, skip: int, max_count: int):
     import json
     from devchat.store import Store
     from devchat.openai import OpenAIChatConfig, OpenAIChat
-    from devchat.utils import get_logger
     from devchat._cli.utils import init_dir, handle_errors, get_model_config
 
     repo_chat_dir, user_chat_dir = init_dir()
