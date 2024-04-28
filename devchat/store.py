@@ -297,6 +297,7 @@ class Store:
             bool: True if the prompt is successfully deleted, False otherwise.
         """
         # Check if the prompt is a leaf
+        has_deleted = False
         for chat_list in self._chat_lists:
             if not chat_list:
                 continue
@@ -304,11 +305,15 @@ class Store:
             if chat_list[-1][0] != prompt_hash:
                 continue
 
+            has_deleted = True
             chat_list.pop()
 
             # If the chat list is empty, remove it from the list of chat lists
             if not chat_list:
                 self._chat_lists.remove(chat_list)
+
+        if not has_deleted:
+            return False
 
         # Update the topics table
         self._topics_table.remove(where('root') == prompt_hash)
