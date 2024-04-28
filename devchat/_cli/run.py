@@ -6,7 +6,7 @@ from .command import command, Command
 
 @command('run',
     help="The 'command' argument is the name of the command to run or get information about.")
-@Command.argument('command', default='')
+@Command.argument('command', nargs='?',  default='')
 @Command.option('--list', dest='list_flag', is_flag=True, default=False,
               help='List all specified commands in JSON format.')
 @Command.option('--recursive', '-r', dest='recursive_flag', is_flag=True, default=True,
