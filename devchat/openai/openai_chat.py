@@ -2,7 +2,7 @@ import json
 import os
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field
-import openai
+
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
@@ -61,6 +61,8 @@ class OpenAIChat(Chat):
         return OpenAIPrompt(**data)
 
     def complete_response(self, prompt: OpenAIPrompt) -> str:
+        import openai
+
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
         if prompt.get_functions():
@@ -82,6 +84,8 @@ class OpenAIChat(Chat):
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
+        import openai
+        
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
         if prompt.get_functions():

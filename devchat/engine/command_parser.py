@@ -1,26 +1,29 @@
 import os
 from typing import List, Dict, Optional
+from dataclasses import dataclass
 import oyaml as yaml
-from pydantic import BaseModel
 from .namespace import Namespace
 
 
-class Parameter(BaseModel, extra='forbid'):
-    type: str
-    description: Optional[str]
-    enum: Optional[List[str]]
-    default: Optional[str]
+@dataclass
+class Parameter():
+    type: str = "string"
+    description: Optional[str] = None
+    enum: Optional[List[str]] = None
+    default: Optional[str] = None
 
 
-class Command(BaseModel, extra='forbid'):
+@dataclass
+class Command():
     description: str
-    hint: Optional[str]
-    parameters: Optional[Dict[str, Parameter]]
-    input: Optional[str]
-    steps: Optional[List[Dict[str, str]]]
-    path: Optional[str]
+    hint: Optional[str] = None
+    parameters: Optional[Dict[str, Parameter]] = None
+    input: Optional[str] = None
+    steps: Optional[List[Dict[str, str]]] = None
+    path: Optional[str] = None
 
 
+@dataclass
 class CommandParser:
     def __init__(self, namespace: Namespace):
         self.namespace = namespace
@@ -36,18 +39,6 @@ class CommandParser:
         if not file_path:
             return None
         return parse_command(file_path)
-
-    def parse_json(self, name: str) -> str:
-        """
-        Parse a command configuration file to JSON.
-
-        :param name: The command name in the namespace.
-        :return: The JSON representation of the command.
-        """
-        file_path = self.namespace.get_file(name, 'command.yml')
-        if not file_path:
-            return None
-        return parse_command(file_path).json()
 
 
 def parse_command(file_path: str) -> Command:

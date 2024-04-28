@@ -82,8 +82,7 @@ def test_command_parser(tmp_path):
             - run:
                 ./get_weather --location=$location --unit=$unit
         """)
-    command_json = command_parser.parse_json('a.b.c')
-    command = json.loads(command_json)
+    command = command_parser.parse('a.b.c')
     assert command['description'] == 'Get the current weather in a given location'
     assert 'location' in command['parameters']
     assert command['parameters']['unit']['default'] == 'celsius'
@@ -97,8 +96,7 @@ def test_command_parser(tmp_path):
         description: Prompt for /code
         parameters:
         """)
-    command_json = command_parser.parse_json('d.e.f')
-    command = json.loads(command_json)
+    command = command_parser.parse('d.e.f')
     assert command['description'] == 'Prompt for /code'
     assert command['parameters'] is None
     assert command['steps'] is None
@@ -114,8 +112,8 @@ def test_command_parser(tmp_path):
                 type: string
         """)
     with pytest.raises(Exception):
-        command_parser.parse_json('g.h.i')
+        command_parser.parse('g.h.i')
 
     # Test with a non-existent command
-    command_json = command_parser.parse_json('j.k.l')
-    assert command_json is None
+    command = command_parser.parse('j.k.l')
+    assert command is None

@@ -1,22 +1,24 @@
 import json
 import sys
+import time
 from typing import Optional, List, Dict
-from pydantic import BaseModel
+from dataclasses import dataclass, field
 import rich_click as click
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
+
 from devchat.store import Store
-from devchat.utils import get_logger, get_user_info
 from devchat._cli.utils import handle_errors, init_dir, get_model_config
+from devchat.utils import get_logger, get_user_info
 
-
-class PromptData(BaseModel):
-    model: str
-    messages: List[Dict]
+@dataclass
+class PromptData:
+    model: str = "none"
+    messages: Optional[List[Dict]] = field(default_factory=list)
     parent: Optional[str] = None
-    references: Optional[List[str]] = []
-    timestamp: int
-    request_tokens: int
-    response_tokens: int
+    references: Optional[List[str]] = field(default_factory=list)
+    timestamp: int = time.time()
+    request_tokens: int = 0
+    response_tokens: int = 0
 
 
 logger = get_logger(__name__)

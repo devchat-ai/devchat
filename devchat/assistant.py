@@ -1,7 +1,7 @@
 import json
 import time
 from typing import Optional, List, Iterator
-import openai
+
 from devchat.message import Message
 from devchat.chat import Chat
 from devchat.openai.openai_prompt import OpenAIPrompt
@@ -97,6 +97,8 @@ class Assistant:
         Returns:
             Iterator[str]: An iterator over response strings from the chat API.
         """
+        import openai
+        
         if self._chat.config.stream:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
