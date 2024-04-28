@@ -15,7 +15,7 @@ from .command import command, Command
 @Command.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
 @Command.option('-m', '--model', help='Specify the model to use for the prompt.')
-@Command.option('--config',
+@Command.option('--config', dest="config_str", required=False,
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
 @Command.option('-f', '--functions',
               help='Path to a JSON file with functions for the prompt.')
