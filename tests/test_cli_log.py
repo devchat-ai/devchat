@@ -167,6 +167,8 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
 
     result = runner.invoke(click_main, ['topic', '--list'])
     topics = json.loads(result.output)
+    prompt_hashes = [prompt1['hash'], prompt2['hash']]
+    topics = [topic for topic in topics if topic['root_prompt']['hash'] in prompt_hashes]
     assert topics[0]['root_prompt']['hash'] == prompt1['hash']
     assert topics[1]['root_prompt']['hash'] == prompt2['hash']
 
