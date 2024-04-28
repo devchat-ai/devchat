@@ -36,6 +36,7 @@ class Assistant:
         return self.token_limit - self._prompt.request_tokens
 
     def _check_limit(self):
+        print("-->:", self._prompt.request_tokens, self.token_limit)
         if self._prompt.request_tokens > self.token_limit:
             raise ValueError(f"Prompt tokens {self._prompt.request_tokens} "
                              f"beyond limit {self.token_limit}.")
