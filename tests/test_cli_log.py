@@ -161,8 +161,11 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
     prompt3 = json.loads(result.output)[0]
     assert prompt3['parent'] == prompt1['hash']
 
-    result = runner.invoke(click_main, ['log', '-n', '3'])
+    result = runner.invoke(click_main, ['log', '-n', '3', '-t', ])
     logs = json.loads(result.output)
+    print("output:", logs)
+    print(prompt3)
+    print(prompt1)
     assert logs[0]['hash'] == prompt3['hash']
     assert logs[1]['hash'] == prompt1['hash']
 
