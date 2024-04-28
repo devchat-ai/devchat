@@ -1,6 +1,5 @@
-
+# pylint: disable=import-outside-toplevel
 from typing import List, Optional, Tuple
-
 from .command import command, Command
 
 
@@ -23,6 +22,7 @@ from .command import command, Command
 @Command.option('-m', '--model', help='Specify the model to use for the prompt.')
 @Command.option('--config', dest='config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
+# pylint: disable=redefined-outer-name
 def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool,
         parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
@@ -34,7 +34,7 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
     import os
     import sys
     from devchat._cli.utils import init_dir, handle_errors
-    
+
     from devchat.engine import Namespace, CommandParser
     from devchat.utils import get_logger
     from devchat._cli.router import llm_commmand

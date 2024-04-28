@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 from .command import command, Command
 
 

@@ -1,3 +1,5 @@
+# pylint: disable=import-outside-toplevel
+
 import json
 import sys
 import time
@@ -17,16 +19,27 @@ class PromptData:
     response_tokens: int = 0
 
 
-
-
-
 @command('log', help='Process logs')
-@Command.option('--skip', type=int, default=0, help='Skip number prompts before showing the prompt history.')
-@Command.option('-n', '--max-count', type=int, default=1, help='Limit the number of commits to output.')
-@Command.option('-t', '--topic', dest='topic_root', default=None,
-              help='Hash of the root prompt of the topic to select prompts from.')
-@Command.option('--insert', default=None, help='JSON string of the prompt to insert into the log.')
-@Command.option('--delete', default=None, help='Hash of the leaf prompt to delete from the log.')
+@Command.option('--skip',
+                type=int,
+                default=0,
+                help='Skip number prompts before showing the prompt history.')
+@Command.option('-n',
+                '--max-count',
+                type=int,
+                default=1,
+                help='Limit the number of commits to output.')
+@Command.option('-t',
+                '--topic',
+                dest='topic_root',
+                default=None,
+                help='Hash of the root prompt of the topic to select prompts from.')
+@Command.option('--insert',
+                default=None,
+                help='JSON string of the prompt to insert into the log.')
+@Command.option('--delete',
+                default=None,
+                help='Hash of the leaf prompt to delete from the log.')
 def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.

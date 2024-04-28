@@ -1,7 +1,6 @@
+# pylint: disable=import-outside-toplevel
 import sys
 from typing import List, Optional
-# import rich_click as click
-
 
 from .command import command, Command
 

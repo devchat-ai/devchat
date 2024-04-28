@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 from contextlib import contextmanager
 import os
 import sys
@@ -57,21 +58,22 @@ def handle_errors():
         print(f"{type(error).__name__}: {error}", file=sys.stderr)
         sys.exit(1)
 
+REPO_CHAT_DIR = None
+USER_CHAT_DIR = None
 
-repo_chat_dir = None
-user_chat_dir = None
 def init_dir() -> Tuple[str, str]:
     """
     Initialize the chat directories.
 
     Returns:
-        repo_chat_dir: The chat directory in the repository.
-        user_chat_dir: The chat directory in the user's home.
+        REPO_CHAT_DIR: The chat directory in the repository.
+        USER_CHAT_DIR: The chat directory in the user's home.
     """
-    global repo_chat_dir
-    global user_chat_dir
-    if repo_chat_dir and user_chat_dir:
-        return repo_chat_dir, user_chat_dir
+    # pylint: disable=global-statement
+    global REPO_CHAT_DIR
+    global USER_CHAT_DIR
+    if REPO_CHAT_DIR and USER_CHAT_DIR:
+        return REPO_CHAT_DIR, USER_CHAT_DIR
 
     repo_dir, user_dir = find_root_dir()
     if not repo_dir and not user_dir:
@@ -84,34 +86,34 @@ def init_dir() -> Tuple[str, str]:
         user_dir = repo_dir
 
     try:
-        repo_chat_dir = os.path.join(repo_dir, ".chat")
-        if not os.path.exists(repo_chat_dir):
-            os.makedirs(repo_chat_dir)
+        REPO_CHAT_DIR = os.path.join(repo_dir, ".chat")
+        if not os.path.exists(REPO_CHAT_DIR):
+            os.makedirs(REPO_CHAT_DIR)
     except Exception:
         pass
 
     try:
-        user_chat_dir = os.path.join(user_dir, ".chat")
-        if not os.path.exists(user_chat_dir):
-            os.makedirs(user_chat_dir)
+        USER_CHAT_DIR = os.path.join(user_dir, ".chat")
+        if not os.path.exists(USER_CHAT_DIR):
+            os.makedirs(USER_CHAT_DIR)
     except Exception:
         pass
 
-    if not os.path.isdir(repo_chat_dir):
-        repo_chat_dir = user_chat_dir
-    if not os.path.isdir(user_chat_dir):
-        user_chat_dir = repo_chat_dir
-    if not os.path.isdir(repo_chat_dir) or not os.path.isdir(user_chat_dir):
-        print(f"Error: Failed to create {repo_chat_dir} and {user_chat_dir}", file=sys.stderr)
+    if not os.path.isdir(REPO_CHAT_DIR):
+        REPO_CHAT_DIR = USER_CHAT_DIR
+    if not os.path.isdir(USER_CHAT_DIR):
+        USER_CHAT_DIR = REPO_CHAT_DIR
+    if not os.path.isdir(REPO_CHAT_DIR) or not os.path.isdir(USER_CHAT_DIR):
+        print(f"Error: Failed to create {REPO_CHAT_DIR} and {USER_CHAT_DIR}", file=sys.stderr)
         sys.exit(1)
 
     try:
-        setup_logger(os.path.join(repo_chat_dir, 'error.log'))
-        add_gitignore(repo_chat_dir, '*')
+        setup_logger(os.path.join(REPO_CHAT_DIR, 'error.log'))
+        add_gitignore(REPO_CHAT_DIR, '*')
     except Exception as exc:
         logger.error("Failed to setup logger or add .gitignore: %s", exc)
 
-    return repo_chat_dir, user_chat_dir
+    return REPO_CHAT_DIR, USER_CHAT_DIR
 
 
 def valid_git_repo(target_dir: str, valid_urls: List[str]) -> bool:

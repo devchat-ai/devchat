@@ -3,6 +3,7 @@ This module contains the main function for the DevChat CLI.
 """
 import argparse
 from devchat.utils import get_logger
+# pylint: disable=unused-import
 from devchat._cli import log
 from devchat._cli import prompt
 from devchat._cli import run

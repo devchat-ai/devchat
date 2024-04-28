@@ -1,17 +1,11 @@
-import argparse
-import sys
-
-# 全局字典用于存储所有命令的引用
 commands = {}
 
-# Command类，用于存储单个命令的信息
 class Command:
-    def __init__(self, name, help):
-        global commands
+    def __init__(self, name, help_text):
         self.parser = None
         self.func = None
         self.name = name
-        self.help = help
+        self.help = help_text
         self.options = []
         commands[name] = self
 
@@ -58,9 +52,10 @@ class Command:
             self.parser.set_defaults(func=self.func)
 
 # 命令装饰器工厂，每个命令通过这个工厂创建
+# pylint: disable=redefined-builtin
 def command(name, help=""):
     def decorator(func):
-        cmd = Command(name, help)
+        cmd = Command(name, help_text=help)
         cmd.func = func  # 将处理函数直接赋值给 Command 实例
 
         # 注册命令参数

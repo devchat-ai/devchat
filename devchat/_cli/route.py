@@ -1,7 +1,6 @@
+# pylint: disable=import-outside-toplevel
 import sys
 from typing import List, Optional
-# import rich_click as click
-
 
 from .command import command, Command
 
@@ -58,7 +57,7 @@ def route(content: Optional[str], parent: Optional[str], reference: Optional[Lis
 
     """
     from devchat._cli.router import llm_route
-    
+
     llm_route(
         content,
         parent,
