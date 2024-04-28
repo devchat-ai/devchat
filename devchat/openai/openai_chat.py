@@ -87,7 +87,7 @@ class OpenAIChat(Chat):
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
         if not os.environ.get("USE_TIKTOKEN", False):
             api_key=os.environ.get("OPENAI_API_KEY", None)
-            base_url=os.environ.get("OPENAI_API_BASE", None)
+            base_url=os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1/")
 
             config_params = self.config.dict(exclude_unset=True)
             if prompt.get_functions():
