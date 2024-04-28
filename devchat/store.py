@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 from dataclasses import asdict
 import json
 import os
@@ -44,7 +45,7 @@ class Store:
                 graph = nx.read_graphml(self._graph_path)
 
                 roots = [node for node in graph.nodes() if graph.out_degree(node) == 0]
-                
+
                 self._chat_lists = []
                 for root in roots:
                     chat_list = [(root, graph.nodes[root]['timestamp'])]
@@ -52,7 +53,7 @@ class Store:
                     ancestors = nx.ancestors(graph, root)
                     for ancestor in ancestors:
                         chat_list.append((ancestor, graph.nodes[ancestor]['timestamp']))
-                
+
                     self._chat_lists.append(chat_list)
 
                 with open(self._chat_list_path, 'w', encoding="utf-8") as fp:
@@ -67,7 +68,6 @@ class Store:
                 for topic in visible_topics:
                     prompt = self.get_prompt(topic['root'])
                     if not prompt:
-                        logger.error("Prompt %s not found while selecting from the store", prompt_hash)
                         continue
                     self._update_topic_fields(topic, prompt)
                     self._topics_table.update(topic, doc_ids=[topic.doc_id])
@@ -131,7 +131,7 @@ class Store:
 
             prompt = self.get_prompt(topic['root'])
             if not prompt:
-                logger.error("Prompt %s not found while selecting from the store", prompt_hash)
+                logger.error("Prompt %s not found while selecting from the store", topic['root'])
                 continue
             self._update_topic_fields(topic, prompt)
 
@@ -181,7 +181,7 @@ class Store:
                 chat_list.append((prompt.hash, prompt.timestamp))
                 topic_hash = chat_list[0][0]
                 break
-        
+
         if not topic_hash:
             topic_hash = prompt.hash
             self._chat_lists.append([(prompt.hash, prompt.timestamp)])
