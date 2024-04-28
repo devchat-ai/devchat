@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import logging
 import os
 import re
@@ -201,6 +202,7 @@ def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable
     if not os.environ.get("USE_TIKTOKEN", False):
         return len(str(messages))/4
     
+    # pylint: disable=global-statement
     global encoding
     if not encoding:
         import tiktoken
