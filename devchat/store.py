@@ -29,6 +29,10 @@ class Store:
         self._db_path = os.path.join(store_dir, 'prompts.json')
         self._chat = chat
 
+        self._db = TinyDB(self._db_path)
+        self._db_meta = self._migrate_db()
+        self._topics_table = self._db.table('topics')
+
         if os.path.isfile(self._chat_list_path):
             with open(self._chat_list_path, 'r', encoding="utf-8") as fp:
                 self._chat_lists = json.loads(fp.read())
@@ -56,18 +60,37 @@ class Store:
 
                 # rename graphml to json
                 os.rename(self._graph_path, self._graph_path + '.bak')
-                
+
+                # update topic table, add request and response fields
+                # new fields: user, date, request, responses, hash
+                visible_topics = self._topics_table.all()
+                for topic in visible_topics:
+                    prompt = self.get_prompt(topic['root'])
+                    if not prompt:
+                        logger.error("Prompt %s not found while selecting from the store", prompt_hash)
+                        continue
+                    self._update_topic_fields(topic, prompt)
+                    self._topics_table.update(topic, doc_ids=[topic.doc_id])
+
             except ParseError as error:
                 raise ValueError(f"Invalid file format for graph: {self._graph_path}") from error
         else:
             self._chat_lists = []
 
-        self._db = TinyDB(self._db_path)
-        self._db_meta = self._migrate_db()
-        self._topics_table = self._db.table('topics')
-
         if not self._topics_table or not self._topics_table.all():
             self._initialize_topics_table()
+
+    def _update_topic_fields(self, topic, prompt):
+        topic['user'] = prompt.user_name
+        topic['date'] = prompt.timestamp
+        topic['request'] = prompt.request.content
+        topic['responses'] = prompt.responses[0].content if prompt.responses else ""
+        topic['hash'] = prompt.hash
+        if len(topic['request']) > 100:
+            topic['request'] = topic['request'][:100] + "..."
+        if len(topic['responses']) > 100:
+            topic['responses'] = topic['responses'][:100] + "..."
+
 
     def _migrate_db(self) -> Table:
         """
@@ -99,12 +122,20 @@ class Store:
             first = chat_list[0]
             last  = chat_list[-1]
 
-            self._topics_table.insert({
+            topic = {
                 'root': first[0],
                 'latest_time': last[1],
                 'title': None,
                 'hidden': False
-            })
+            }
+
+            prompt = self.get_prompt(topic['root'])
+            if not prompt:
+                logger.error("Prompt %s not found while selecting from the store", prompt_hash)
+                continue
+            self._update_topic_fields(topic, prompt)
+
+            self._topics_table.insert(topic)
 
     def _update_topics_table(self, prompt: Prompt):
         if prompt.parent:
@@ -120,12 +151,14 @@ class Store:
                         self._topics_table.update(topic, doc_ids=[topic.doc_id])
                     break
         else:
-            self._topics_table.insert({
+            topic = {
                 'root': prompt.hash,
                 'latest_time': prompt.timestamp,
                 'title': None,
                 'hidden': False
-            })
+            }
+            self._update_topic_fields(topic, prompt)
+            self._topics_table.insert(topic)
 
     def store_prompt(self, prompt: Prompt) -> str:
         """
@@ -233,12 +266,14 @@ class Store:
 
         topics = []
         for topic in sorted_topics[start:end]:
-            prompt = self.get_prompt(topic['root'])
-            if not prompt:
-                logger.error("Topic %s not found while selecting from the store", topic['root'])
-                continue
             topics.append({
-                'root_prompt': prompt,
+                'root_prompt': {
+                    'hash': topic['root'],
+                    'user': topic['user'],
+                    'date': topic['date'],
+                    'request': topic['request'],
+                    'responses': [topic['responses']],
+                },
                 'latest_time': topic['latest_time'],
                 'title': topic['title'],
                 'hidden': topic['hidden'],
