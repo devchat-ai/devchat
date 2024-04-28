@@ -31,10 +31,4 @@ def topic(list_topics: bool, skip: int, max_count: int):
 
         if list_topics:
             topics = store.select_topics(skip, skip + max_count)
-            for topic_data in topics:
-                try:
-                    topic_data.update({'root_prompt': topic_data['root_prompt'].shortlog()})
-                except Exception as exc:
-                    logger.exception(exc)
-                    continue
             print(json.dumps(topics, indent=2))
