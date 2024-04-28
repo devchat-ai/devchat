@@ -10,21 +10,17 @@ CHAT_DIR = os.path.join(USE_DIR, ".chat")
 # -------------------------------
 # workflow scripts paths
 # -------------------------------
-WORKFLOWS_BASE_NAME = "new_wf"
+WORKFLOWS_BASE_NAME = "scripts"
 WORKFLOWS_BASE = os.path.join(CHAT_DIR, WORKFLOWS_BASE_NAME)  # TODO: a temporary name
+WORKFLOWS_CONFIG_FILENAME = "config.yml"
 
-MERICO_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "merico", "workflows")
-CUSTOM_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "custom", "workflows")
-COMMUNITY_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "community", "workflows")
+MERICO_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "merico")
+COMMUNITY_WORKFLOWS = os.path.join(WORKFLOWS_BASE, "community")
 
 COMMAND_FILENAMES = ["command.yml", "command.yaml"]
 
-# the priority order of the workflows when naming conflicts
-PrioritizedWorkflows = [
-    CUSTOM_WORKFLOWS,
-    MERICO_WORKFLOWS,
-    COMMUNITY_WORKFLOWS,
-]
+CUSTOM_BASE = os.path.join(WORKFLOWS_BASE, "custom")
+CUSTOM_CONFIG_FILE = os.path.join(CUSTOM_BASE, "config.yml")
 
 
 # -------------------------------

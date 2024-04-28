@@ -6,10 +6,9 @@ from typing import Optional, Tuple, List, Dict
 import oyaml as yaml
 from .step import WorkflowStep
 from .schema import WorkflowConfig, RuntimeParameter
-from .path import (
-    PrioritizedWorkflows,
-    COMMAND_FILENAMES,
-)
+from .path import COMMAND_FILENAMES
+from .namespace import get_prioritized_namespace_path
+
 from .env_manager import PyEnvManager
 
 
@@ -73,7 +72,8 @@ class Workflow:
 
         found = False
         workflow_dir = ""
-        for wf_dir in PrioritizedWorkflows:
+        prioritized_dirs = get_prioritized_namespace_path()
+        for wf_dir in prioritized_dirs:
             for fn in COMMAND_FILENAMES:
                 yaml_file = os.path.join(wf_dir, rel_path, fn)
                 if os.path.exists(yaml_file):

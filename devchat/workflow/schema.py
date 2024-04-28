@@ -10,7 +10,7 @@ class WorkflowPyConf(BaseModel):
     env_name: Optional[str]  # python env name, will use the workflow name if not set
 
     @validator("version")
-    def validate_version(cls, value): # pylint: disable=no-self-argument
+    def validate_version(cls, value):  # pylint: disable=no-self-argument
         pattern = r"^\d+\.\d+(\.\d+)?$"
         if not re.match(pattern, value):
             raise ValidationError(
@@ -28,7 +28,7 @@ class WorkflowConfig(BaseModel):
     workflow_python: Optional[WorkflowPyConf] = None
 
     @validator("input_required", pre=True)
-    def to_boolean(cls, value): # pylint: disable=no-self-argument
+    def to_boolean(cls, value):  # pylint: disable=no-self-argument
         return value.lower() == "required"
 
     class Config:
