@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import json
 import os
 from typing import Optional, Union, List, Dict, Iterator
@@ -101,24 +102,23 @@ class OpenAIChat(Chat):
             }
             response = stream_request(api_key, base_url, data)
             return response
-        else:
-            import openai
+        import openai
 
-            # Filter the config parameters with set values
-            config_params = self.config.dict(exclude_unset=True)
-            if prompt.get_functions():
-                config_params['functions'] = prompt.get_functions()
-                config_params['function_call'] = 'auto'
-            config_params['stream'] = True
+        # Filter the config parameters with set values
+        config_params = self.config.dict(exclude_unset=True)
+        if prompt.get_functions():
+            config_params['functions'] = prompt.get_functions()
+            config_params['function_call'] = 'auto'
+        config_params['stream'] = True
 
-            client = openai.OpenAI(
-                api_key=os.environ.get("OPENAI_API_KEY", None),
-                base_url=os.environ.get("OPENAI_API_BASE", None)
-            )
+        client = openai.OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY", None),
+            base_url=os.environ.get("OPENAI_API_BASE", None)
+        )
 
-            response = client.chat.completions.create(
-                messages=prompt.messages,
-                **config_params,
-                timeout=180
-            )
-            return response
+        response = client.chat.completions.create(
+            messages=prompt.messages,
+            **config_params,
+            timeout=180
+        )
+        return response

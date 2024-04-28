@@ -77,7 +77,8 @@ class Assistant:
             for reference_hash in references:
                 prompt = self._store.get_prompt(reference_hash)
                 if not prompt:
-                    logger.error("Reference %s not retrievable while making prompt.", reference_hash)
+                    logger.error("Reference %s not retrievable while making prompt.",
+                                 reference_hash)
                     continue
                 self._prompt.references.append(reference_hash)
                 self._prompt.prepend_history(prompt, self.token_limit)

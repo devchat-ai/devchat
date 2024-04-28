@@ -35,8 +35,8 @@ class Store:
         self._topics_table = self._db.table('topics')
 
         if os.path.isfile(self._chat_list_path):
-            with open(self._chat_list_path, 'r', encoding="utf-8") as fp:
-                self._chat_lists = json.loads(fp.read())
+            with open(self._chat_list_path, 'r', encoding="utf-8") as file:
+                self._chat_lists = json.loads(file.read())
         elif os.path.isfile(self._graph_path):
             # convert old graphml to new json
             from xml.etree.ElementTree import ParseError
@@ -56,8 +56,8 @@ class Store:
 
                     self._chat_lists.append(chat_list)
 
-                with open(self._chat_list_path, 'w', encoding="utf-8") as fp:
-                    fp.write(json.dumps(self._chat_lists))
+                with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+                    file.write(json.dumps(self._chat_lists))
 
                 # rename graphml to json
                 os.rename(self._graph_path, self._graph_path + '.bak')
@@ -187,8 +187,8 @@ class Store:
             self._chat_lists.append([(prompt.hash, prompt.timestamp)])
         self._update_topics_table(prompt)
 
-        with open(self._chat_list_path, 'w', encoding="utf-8") as fp:
-            fp.write(json.dumps(self._chat_lists))
+        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+            file.write(json.dumps(self._chat_lists))
 
         return topic_hash
 
@@ -311,8 +311,8 @@ class Store:
         self._db.remove(where('_hash') == prompt_hash)
 
         # Save the graph
-        with open(self._chat_list_path, 'w', encoding="utf-8") as fp:
-            fp.write(json.dumps(self._chat_lists))
+        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+            file.write(json.dumps(self._chat_lists))
 
         return True
 

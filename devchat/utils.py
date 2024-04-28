@@ -11,6 +11,7 @@ import hashlib
 
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# pylint: disable=invalid-name
 encoding = None
 
 def setup_logger(file_path: Optional[str] = None):
@@ -201,7 +202,7 @@ def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable
     """Returns the number of tokens used by a message."""
     if not os.environ.get("USE_TIKTOKEN", False):
         return len(str(messages))/4
-    
+
     # pylint: disable=global-statement
     global encoding
     if not encoding:
