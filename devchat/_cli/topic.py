@@ -17,8 +17,6 @@ def topic(list_topics: bool, skip: int, max_count: int):
     from devchat.utils import get_logger
     from devchat._cli.utils import init_dir, handle_errors, get_model_config
 
-    logger = get_logger(__name__)
-
     repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():
