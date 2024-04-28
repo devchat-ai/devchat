@@ -1,7 +1,7 @@
 import sys
 from typing import List, Optional
 # import rich_click as click
-from devchat._cli.router import llm_prompt
+
 
 from .command import command, Command
 
@@ -62,6 +62,7 @@ def prompt(content: Optional[str], parent: Optional[str], reference: Optional[Li
     ```
 
     """
+    from devchat._cli.router import llm_prompt
     llm_prompt(
         content,
         parent,

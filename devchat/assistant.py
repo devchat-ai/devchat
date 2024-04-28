@@ -105,11 +105,11 @@ class Assistant:
             for chunk in self._chat.stream_response(self._prompt):
                 if hasattr(chunk, "dict"):
                     chunk = chunk.dict()
-                    if "function_call" in chunk["choices"][0]["delta"] and \
-                          not chunk["choices"][0]["delta"]["function_call"]:
-                        del chunk["choices"][0]["delta"]["function_call"]
-                        if not chunk["choices"][0]["delta"]["content"]:
-                            chunk["choices"][0]["delta"]["content"] = ""
+                if "function_call" in chunk["choices"][0]["delta"] and \
+                        not chunk["choices"][0]["delta"]["function_call"]:
+                    del chunk["choices"][0]["delta"]["function_call"]
+                    if not chunk["choices"][0]["delta"]["content"]:
+                        chunk["choices"][0]["delta"]["content"] = ""
                 if "id" not in chunk or "index" not in chunk["choices"][0]:
                     chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
                     chunk["object"] = "chat.completion.chunk"

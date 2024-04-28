@@ -1,14 +1,4 @@
-import json
-# import rich_click as click
-from devchat.store import Store
-from devchat.openai import OpenAIChatConfig, OpenAIChat
-from devchat.utils import get_logger
-from devchat._cli.utils import init_dir, handle_errors, get_model_config
-
 from .command import command, Command
-
-
-logger = get_logger(__name__)
 
 
 @command('topic', help='Manage topics')
@@ -20,6 +10,14 @@ def topic(list_topics: bool, skip: int, max_count: int):
     """
     Manage topics.
     """
+    import json
+    from devchat.store import Store
+    from devchat.openai import OpenAIChatConfig, OpenAIChat
+    from devchat.utils import get_logger
+    from devchat._cli.utils import init_dir, handle_errors, get_model_config
+
+    logger = get_logger(__name__)
+
     repo_chat_dir, user_chat_dir = init_dir()
 
     with handle_errors():

@@ -2,7 +2,6 @@
 This module contains the main function for the DevChat CLI.
 """
 import argparse
-import sys
 from devchat.utils import get_logger
 from devchat._cli import log
 from devchat._cli import prompt

@@ -35,7 +35,7 @@ class Command:
             func.command_args.append(("argument", args, kwargs))
             return func
         return decorator
-    
+
     def register(self, subparsers):
         if not self.parser:
             self.parser = subparsers.add_parser(self.name, help=self.help)
@@ -62,11 +62,11 @@ def command(name, help=""):
     def decorator(func):
         cmd = Command(name, help)
         cmd.func = func  # 将处理函数直接赋值给 Command 实例
-        
+
         # 注册命令参数
         for option in getattr(func, 'command_args', []):
             cmd.add_option(option)
-            
+
         commands[name] = cmd  # 将命令实例添加到全局命令字典中
         return func
     return decorator

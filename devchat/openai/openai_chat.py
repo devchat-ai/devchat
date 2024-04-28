@@ -7,7 +7,7 @@ from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
-
+from .http_openai import stream_request
 
 class OpenAIChatParameters(BaseModel, extra='ignore'):
     temperature: Optional[float] = Field(0, ge=0, le=2)
@@ -84,25 +84,41 @@ class OpenAIChat(Chat):
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
-        # return None
-        import openai
-        print("-----> 2", flush=True)
-
-        # Filter the config parameters with set values
-        config_params = self.config.dict(exclude_unset=True)
-        if prompt.get_functions():
-            config_params['functions'] = prompt.get_functions()
-            config_params['function_call'] = 'auto'
-        config_params['stream'] = True
-
-        client = openai.OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY", None),
+        if not os.environ.get("USE_TIKTOKEN", False):
+            api_key=os.environ.get("OPENAI_API_KEY", None)
             base_url=os.environ.get("OPENAI_API_BASE", None)
-        )
 
-        response = client.chat.completions.create(
-            messages=prompt.messages,
-            **config_params,
-            timeout=180
-        )
-        return response
+            config_params = self.config.dict(exclude_unset=True)
+            if prompt.get_functions():
+                config_params['functions'] = prompt.get_functions()
+                config_params['function_call'] = 'auto'
+            config_params['stream'] = True
+
+            data = {
+                "messages":prompt.messages,
+                **config_params,
+                "timeout":180
+            }
+            response = stream_request(api_key, base_url, data)
+            return response
+        else:
+            import openai
+
+            # Filter the config parameters with set values
+            config_params = self.config.dict(exclude_unset=True)
+            if prompt.get_functions():
+                config_params['functions'] = prompt.get_functions()
+                config_params['function_call'] = 'auto'
+            config_params['stream'] = True
+
+            client = openai.OpenAI(
+                api_key=os.environ.get("OPENAI_API_KEY", None),
+                base_url=os.environ.get("OPENAI_API_BASE", None)
+            )
+
+            response = client.chat.completions.create(
+                messages=prompt.messages,
+                **config_params,
+                timeout=180
+            )
+            return response

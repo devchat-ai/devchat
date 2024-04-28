@@ -1,21 +1,8 @@
-import json
-import os
-import stat
-import shutil
-import sys
-from typing import List, Optional, Tuple
 
-# import rich_click as click
-from devchat._cli.utils import init_dir, handle_errors, clone_git_repo
-from devchat._cli.utils import download_and_extract_workflow
-from devchat.engine import Namespace, CommandParser
-from devchat.utils import get_logger
-from devchat._cli.router import llm_commmand
+from typing import List, Optional, Tuple
 
 from .command import command, Command
 
-
-logger = get_logger(__name__)
 
 @command('run',
     help="The 'command' argument is the name of the command to run or get information about.")
@@ -43,6 +30,17 @@ def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bo
     """
     Operate the workflow engine of DevChat.
     """
+    import json
+    import os
+    import sys
+    from devchat._cli.utils import init_dir, handle_errors
+    
+    from devchat.engine import Namespace, CommandParser
+    from devchat.utils import get_logger
+    from devchat._cli.router import llm_commmand
+
+    logger = get_logger(__name__)
+
     _, user_chat_dir = init_dir()
     with handle_errors():
         workflows_dir = os.path.join(user_chat_dir, 'workflows')
@@ -106,6 +104,9 @@ def __onerror(func, path, _1):
 
     Usage : shutil.rmtree(path, onerror=onerror)
     """
+    import os
+    import stat
+
     # Check if file access issue
     if not os.access(path, os.W_OK):
         # Try to change the file to be writable (remove read-only flag)
@@ -117,6 +118,8 @@ def __make_files_writable(directory):
     """
     Recursively make all files in the directory writable.
     """
+    import os
+    import stat
     for root, _1, files in os.walk(directory):
         for name in files:
             filepath = os.path.join(root, name)
@@ -130,6 +133,14 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]], z
     :param target_dir: The path where the repository should be cloned.
     :param repo_urls: A list of possible Git repository URLs.
     """
+    import os
+    import shutil
+    from devchat.utils import get_logger
+    from devchat._cli.utils import download_and_extract_workflow
+    from devchat._cli.utils import clone_git_repo
+
+    logger = get_logger(__name__)
+
     if shutil.which('git') is None:
         # If Git is not installed, download and extract the workflow
         for url in zip_urls:

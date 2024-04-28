@@ -3,12 +3,6 @@ import sys
 import time
 from typing import Optional, List, Dict
 from dataclasses import dataclass, field
-# import rich_click as click
-from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
-
-from devchat.store import Store
-from devchat._cli.utils import handle_errors, init_dir, get_model_config
-from devchat.utils import get_logger, get_user_info
 
 from .command import command, Command
 
@@ -23,7 +17,7 @@ class PromptData:
     response_tokens: int = 0
 
 
-logger = get_logger(__name__)
+
 
 
 @command('log', help='Process logs')
@@ -37,6 +31,15 @@ def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.
     """
+    # import rich_click as click
+    from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
+
+    from devchat.store import Store
+    from devchat._cli.utils import handle_errors, init_dir, get_model_config
+    from devchat.utils import get_logger, get_user_info
+
+    logger = get_logger(__name__)
+
     if (insert or delete) and (skip != 0 or max_count != 1 or topic_root is not None):
         print("Error: The --insert or --delete option cannot be used with other options.",
                    file=sys.stderr)
