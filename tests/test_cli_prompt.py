@@ -201,7 +201,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
     max_input_tokens = 2000
     config = GeneralModelConfig(
-        max_input_tokens=max_input_tokens,
+        max_input_tokens=200,
         temperature=0
     )
 
