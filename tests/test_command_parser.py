@@ -25,10 +25,11 @@ def test_parse_command():
         config_file.seek(0)
         command = parse_command(config_file.name)
         assert isinstance(command, Command)
-        assert command.description == 'Get the current weather in a given location'
-        assert 'location' in command.parameters
-        assert command.parameters['unit'].default == 'celsius'
-        assert command.steps[0]['run'] == './get_weather --location=$location --unit=$unit'
+        command = command.dict()
+        assert command['description'] == 'Get the current weather in a given location'
+        assert 'location' in command['parameters']
+        assert command['parameters']['unit']['default'] == 'celsius'
+        assert command['steps'][0]['run'] == './get_weather --location=$location --unit=$unit'
 
     # Test with a valid configuration file with missing optional fields
     with tempfile.NamedTemporaryFile('w', delete=False) as config_file:
