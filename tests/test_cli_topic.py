@@ -30,6 +30,7 @@ def test_topic_list(git_repo):  # pylint: disable=W0613
     result = runner.invoke(click_main, ['topic', '--list'])
     assert result.exit_code == 0
     topics = json.loads(result.output)
+    print("topics:", topics)
     assert len(topics) == 2
     assert topics[0]['root_prompt']['responses'][0] == "15"
     assert topics[1]['root_prompt']['responses'][0] == "17"
