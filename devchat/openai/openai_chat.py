@@ -1,13 +1,14 @@
+# pylint: disable=import-outside-toplevel
 import json
 import os
 from typing import Optional, Union, List, Dict, Iterator
 from pydantic import BaseModel, Field
-import openai
+
 from devchat.chat import Chat
 from devchat.utils import get_user_info, user_id
 from .openai_message import OpenAIMessage
 from .openai_prompt import OpenAIPrompt
-
+from .http_openai import stream_request
 
 class OpenAIChatParameters(BaseModel, extra='ignore'):
     temperature: Optional[float] = Field(0, ge=0, le=2)
@@ -61,6 +62,8 @@ class OpenAIChat(Chat):
         return OpenAIPrompt(**data)
 
     def complete_response(self, prompt: OpenAIPrompt) -> str:
+        import openai
+
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
         if prompt.get_functions():
@@ -82,6 +85,25 @@ class OpenAIChat(Chat):
         return str(response)
 
     def stream_response(self, prompt: OpenAIPrompt) -> Iterator:
+        api_key=os.environ.get("OPENAI_API_KEY", None)
+        base_url=os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1/")
+
+        if not os.environ.get("USE_TIKTOKEN", False) and base_url != "https://api.openai.com/v1/":
+            config_params = self.config.dict(exclude_unset=True)
+            if prompt.get_functions():
+                config_params['functions'] = prompt.get_functions()
+                config_params['function_call'] = 'auto'
+            config_params['stream'] = True
+
+            data = {
+                "messages":prompt.messages,
+                **config_params,
+                "timeout":180
+            }
+            response = stream_request(api_key, base_url, data)
+            return response
+        import openai
+
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
         if prompt.get_functions():

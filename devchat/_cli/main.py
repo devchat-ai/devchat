@@ -1,28 +1,34 @@
 """
 This module contains the main function for the DevChat CLI.
 """
-import importlib.metadata
-import rich_click as click
+import argparse
+import sys
 from devchat.utils import get_logger
+# pylint: disable=unused-import
 from devchat._cli import log
 from devchat._cli import prompt
 from devchat._cli import run
 from devchat._cli import topic
 from devchat._cli import route
+from devchat._cli import commands
 
 logger = get_logger(__name__)
-click.rich_click.USE_MARKDOWN = True
 
 
-@click.group()
-@click.version_option(importlib.metadata.version("devchat"), '--version',
-                      message='DevChat %(version)s')
-def main():
-    """DevChat CLI: A command-line interface for DevChat."""
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
 
+    parser = argparse.ArgumentParser(description="CLI tool")
+    subparsers = parser.add_subparsers(help='sub-command help')
+    for _1, cmd in commands.items():
+        cmd.register(subparsers)
 
-main.add_command(prompt)
-main.add_command(log)
-main.add_command(run)
-main.add_command(topic)
-main.add_command(route)
+    args = parser.parse_args(argv)
+    if hasattr(args, 'func'):
+        func_args = vars(args).copy()
+        del func_args['func']
+
+        args.func(**func_args)
+    else:
+        parser.print_help()

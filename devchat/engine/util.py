@@ -1,9 +1,8 @@
+# pylint: disable=import-outside-toplevel
 import os
 import sys
 import json
 from typing import List, Dict
-
-import openai
 
 from devchat._cli.utils import init_dir
 from devchat.utils import get_logger
@@ -92,6 +91,7 @@ class ToolUtil:
     def select_function_by_llm(
             history_messages: List[Dict], tools: List[Dict], model: str = DEFAULT_MODEL
         ):
+        import openai
         client = openai.OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY", None),
             base_url=os.environ.get("OPENAI_API_BASE", None)

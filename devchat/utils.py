@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 import logging
 import os
 import re
@@ -7,27 +8,11 @@ import subprocess
 from typing import List, Tuple, Optional
 import datetime
 import hashlib
-import tiktoken
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-os.environ['TIKTOKEN_CACHE_DIR'] = os.path.join(script_dir, 'tiktoken_cache')
-
-try:
-    encoding = tiktoken.get_encoding("cl100k_base")
-except Exception:
-    from tiktoken import registry
-    from tiktoken.registry import _find_constructors
-    from tiktoken.core import Encoding
-
-    def get_encoding(name: str):
-        _find_constructors()
-        constructor = registry.ENCODING_CONSTRUCTORS[name]
-        return Encoding(**constructor(), use_pure_python=True)
-
-    encoding = get_encoding("cl100k_base")
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
+# pylint: disable=invalid-name
+encoding = None
 
 def setup_logger(file_path: Optional[str] = None):
     """Utility function to set up a global file log handler."""
@@ -213,20 +198,33 @@ def update_dict(dict_to_update, key, value) -> dict:
     return dict_to_update
 
 
-def _count_tokens(encoding_tik: tiktoken.Encoding, string: str) -> int:
-    """
-    Count the number of tokens in a string.
-    """
-    try:
-        return len(encoding_tik.encode(string))
-    except Exception:
-        word_count = len(re.findall(r'\w+', string))
-        # Note: This is a rough estimate and may not be accurate
-        return int(word_count / 0.75)
-
-
 def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable=unused-argument
     """Returns the number of tokens used by a message."""
+    if not os.environ.get("USE_TIKTOKEN", False):
+        return len(str(messages))/4
+
+    # pylint: disable=global-statement
+    global encoding
+    if not encoding:
+        import tiktoken
+
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        os.environ['TIKTOKEN_CACHE_DIR'] = os.path.join(script_dir, 'tiktoken_cache')
+
+        try:
+            encoding = tiktoken.get_encoding("cl100k_base")
+        except Exception:
+            from tiktoken import registry
+            from tiktoken.registry import _find_constructors
+            from tiktoken.core import Encoding
+
+            def get_encoding(name: str):
+                _find_constructors()
+                constructor = registry.ENCODING_CONSTRUCTORS[name]
+                return Encoding(**constructor(), use_pure_python=True)
+
+            encoding = get_encoding("cl100k_base")
+
     return len(encoding.encode(str(messages), disallowed_special=()))
 
 

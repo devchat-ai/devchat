@@ -1,19 +1,14 @@
+# pylint: disable=import-outside-toplevel
 import json
 import sys
 from typing import List, Optional
-import rich_click as click
-from devchat.engine import run_command, load_workflow_instruction
-from devchat.assistant import Assistant
-from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
-from devchat.store import Store
-from devchat.utils import parse_files
-from devchat._cli.utils import handle_errors, init_dir, get_model_config
-from devchat._cli.errors import MissContentInPromptException
 
 
 def _get_model_and_config(
         model: Optional[str],
         config_str: Optional[str]):
+    from devchat._cli.utils import init_dir, get_model_config
+
     _1, user_chat_dir = init_dir()
     model, config = get_model_config(user_chat_dir, model)
 
@@ -33,6 +28,9 @@ def _load_tool_functions(functions: Optional[str]):
         return None
 
 def _load_instruction_contents(content: str, instruct: Optional[List[str]]):
+    from devchat.engine import load_workflow_instruction
+    from devchat.utils import parse_files
+
     instruct_contents = parse_files(instruct)
     command_instructions = load_workflow_instruction(content)
     if command_instructions is not None:
@@ -46,10 +44,17 @@ def before_prompt(content: Optional[str], parent: Optional[str], reference: Opti
            model: Optional[str], config_str: Optional[str] = None,
            functions: Optional[str] = None, function_name: Optional[str] = None,
            not_store: Optional[bool] = False):
+    from devchat.assistant import Assistant
+    from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
+    from devchat.store import Store
+    from devchat.utils import parse_files
+    from devchat._cli.utils import init_dir
+    from devchat._cli.errors import MissContentInPromptException
+
     repo_chat_dir, _1 = init_dir()
 
     if content is None:
-        content = click.get_text_stream('stdin').read()
+        content = sys.stdin.read()
 
     if content == '':
         raise MissContentInPromptException()
@@ -83,26 +88,31 @@ def llm_prompt(content: Optional[str], parent: Optional[str], reference: Optiona
            model: Optional[str], config_str: Optional[str] = None,
            functions: Optional[str] = None, function_name: Optional[str] = None,
            not_store: Optional[bool] = False):
+    from devchat._cli.utils import handle_errors
+
     with handle_errors():
         _1, assistant, _3, = before_prompt(
             content, parent, reference, instruct, context,
             model, config_str, functions, function_name, not_store
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         for response in assistant.iterate_response():
-            click.echo(response, nl=False)
+            print(response, end='', flush=True)
 
 
 def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None):
+    from devchat.engine import run_command
+    from devchat._cli.utils import handle_errors
+
     with handle_errors():
         model, assistant, content = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         command_result = run_command(
             model_name = model,
             history_messages = assistant.prompt.messages,
@@ -112,8 +122,8 @@ def llm_commmand(content: Optional[str], parent: Optional[str], reference: Optio
         if command_result is not None:
             sys.exit(0)
 
-        click.echo("run command fail.")
-        click.echo(command_result)
+        print("run command fail.")
+        print(command_result)
     sys.exit(-1)
 
 
@@ -121,12 +131,15 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
            instruct: Optional[List[str]], context: Optional[List[str]],
            model: Optional[str], config_str: Optional[str] = None,
            auto: Optional[bool] = False):
+    from devchat.engine import run_command
+    from devchat._cli.utils import handle_errors
+
     with handle_errors():
         model, assistant, content = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
 
-        click.echo(assistant.prompt.formatted_header())
+        print(assistant.prompt.formatted_header())
         command_result = run_command(
             model_name = model,
             history_messages = assistant.prompt.messages,
@@ -137,4 +150,4 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
             sys.exit(command_result[0])
 
         for response in assistant.iterate_response():
-            click.echo(response, nl=False)
+            print(response, end='', flush=True)

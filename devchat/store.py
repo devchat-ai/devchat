@@ -1,8 +1,8 @@
+# pylint: disable=import-outside-toplevel
 from dataclasses import asdict
+import json
 import os
 from typing import List, Dict, Any, Optional
-from xml.etree.ElementTree import ParseError
-import networkx as nx
 from tinydb import TinyDB, where, Query
 from tinydb.table import Table
 from devchat.chat import Chat
@@ -26,23 +26,71 @@ class Store:
             os.makedirs(store_dir)
 
         self._graph_path = os.path.join(store_dir, 'prompts.graphml')
+        self._chat_list_path = os.path.join(store_dir, 'prompts_list.json')
         self._db_path = os.path.join(store_dir, 'prompts.json')
         self._chat = chat
-
-        if os.path.isfile(self._graph_path):
-            try:
-                self._graph = nx.read_graphml(self._graph_path)
-            except ParseError as error:
-                raise ValueError(f"Invalid file format for graph: {self._graph_path}") from error
-        else:
-            self._graph = nx.DiGraph()
 
         self._db = TinyDB(self._db_path)
         self._db_meta = self._migrate_db()
         self._topics_table = self._db.table('topics')
 
+        if os.path.isfile(self._chat_list_path):
+            with open(self._chat_list_path, 'r', encoding="utf-8") as file:
+                self._chat_lists = json.loads(file.read())
+        elif os.path.isfile(self._graph_path):
+            # convert old graphml to new json
+            from xml.etree.ElementTree import ParseError
+            import networkx as nx
+            try:
+                graph = nx.read_graphml(self._graph_path)
+
+                roots = [node for node in graph.nodes() if graph.out_degree(node) == 0]
+
+                self._chat_lists = []
+                for root in roots:
+                    chat_list = [(root, graph.nodes[root]['timestamp'])]
+
+                    ancestors = nx.ancestors(graph, root)
+                    for ancestor in ancestors:
+                        chat_list.append((ancestor, graph.nodes[ancestor]['timestamp']))
+
+                    self._chat_lists.append(chat_list)
+
+                with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+                    file.write(json.dumps(self._chat_lists))
+
+                # rename graphml to json
+                os.rename(self._graph_path, self._graph_path + '.bak')
+
+                # update topic table, add request and response fields
+                # new fields: user, date, request, responses, hash
+                visible_topics = self._topics_table.all()
+                for topic in visible_topics:
+                    prompt = self.get_prompt(topic['root'])
+                    if not prompt:
+                        continue
+                    self._update_topic_fields(topic, prompt)
+                    self._topics_table.update(topic, doc_ids=[topic.doc_id])
+
+            except ParseError as error:
+                raise ValueError(f"Invalid file format for graph: {self._graph_path}") from error
+        else:
+            self._chat_lists = []
+
         if not self._topics_table or not self._topics_table.all():
             self._initialize_topics_table()
+
+    def _update_topic_fields(self, topic, prompt):
+        topic['user'] = prompt.user_name
+        topic['date'] = prompt.timestamp
+        topic['request'] = prompt.request.content
+        topic['responses'] = prompt.responses[0].content if prompt.responses else ""
+        topic['hash'] = prompt.hash
+        if len(topic['request']) > 100:
+            topic['request'] = topic['request'][:100] + "..."
+        if len(topic['responses']) > 100:
+            topic['responses'] = topic['responses'][:100] + "..."
+
 
     def _migrate_db(self) -> Table:
         """
@@ -67,43 +115,52 @@ class Store:
         return metadata
 
     def _initialize_topics_table(self):
-        roots = [node for node in self._graph.nodes() if self._graph.out_degree(node) == 0]
-        for root in roots:
-            ancestors = nx.ancestors(self._graph, root)
-            if not ancestors:
-                latest_time = self._graph.nodes[root]['timestamp']
-            else:
-                latest_time = max(self._graph.nodes[node]['timestamp'] for node in ancestors)
-            self._topics_table.insert({
-                'root': root,
-                'latest_time': latest_time,
+        for chat_list in self._chat_lists:
+            if not chat_list:
+                continue
+
+            first = chat_list[0]
+            last  = chat_list[-1]
+
+            topic = {
+                'root': first[0],
+                'latest_time': last[1],
                 'title': None,
                 'hidden': False
-            })
+            }
+
+            prompt = self.get_prompt(topic['root'])
+            if not prompt:
+                logger.error("Prompt %s not found while selecting from the store", topic['root'])
+                continue
+            self._update_topic_fields(topic, prompt)
+
+            self._topics_table.insert(topic)
 
     def _update_topics_table(self, prompt: Prompt):
-        if self._graph.in_degree(prompt.hash):
-            logger.error("Prompt %s not a leaf to update topics table", prompt.hash)
-
         if prompt.parent:
-            for topic in self._topics_table.all():
-                if topic['root'] not in self._graph:
-                    self._graph.add_node(topic['root'], timestamp=topic['latest_time'])
-                    logger.warning("Topic %s not found in graph but added", topic['root'])
-                if prompt.parent == topic['root'] or \
-                        prompt.parent in nx.ancestors(self._graph, topic['root']):
-                    topic['latest_time'] = max(topic.get('latest_time', 0), prompt.timestamp)
-                    self._topics_table.update(topic, doc_ids=[topic.doc_id])
+            for chat_list in self._chat_lists:
+                if not chat_list:
+                    continue
+
+                if chat_list[-1][0] == prompt.hash:
+                    topic_hash = chat_list[0][0]
+                    topic = next((t for t in self._topics_table if t['root'] == topic_hash), None)
+                    if topic:
+                        topic['latest_time'] = max(topic.get('latest_time', 0), prompt.timestamp)
+                        self._topics_table.update(topic, doc_ids=[topic.doc_id])
                     break
         else:
-            self._topics_table.insert({
+            topic = {
                 'root': prompt.hash,
                 'latest_time': prompt.timestamp,
                 'title': None,
                 'hidden': False
-            })
+            }
+            self._update_topic_fields(topic, prompt)
+            self._topics_table.insert(topic)
 
-    def store_prompt(self, prompt: Prompt):
+    def store_prompt(self, prompt: Prompt) -> str:
         """
         Store a prompt in the store.
 
@@ -116,24 +173,25 @@ class Store:
         self._db.insert(asdict(prompt))
 
         # Add the prompt to the graph
-        self._graph.add_node(prompt.hash, timestamp=prompt.timestamp)
+        topic_hash = None
+        for chat_list in self._chat_lists:
+            if not chat_list:
+                continue
+            if chat_list[-1][0] == prompt.parent:
+                chat_list.append((prompt.hash, prompt.timestamp))
+                topic_hash = chat_list[0][0]
+                break
 
-        # Add edges for parents and references
-        if prompt.parent:
-            if prompt.parent not in self._graph:
-                logger.error("Parent %s not found while Prompt %s is stored to graph store.",
-                             prompt.parent, prompt.hash)
-            else:
-                self._graph.add_edge(prompt.hash, prompt.parent)
-
+        if not topic_hash:
+            topic_hash = prompt.hash
+            self._chat_lists.append([(prompt.hash, prompt.timestamp)])
         self._update_topics_table(prompt)
 
-        for reference_hash in prompt.references:
-            if reference_hash not in self._graph:
-                logger.error("Reference %s not found while Prompt %s is stored to graph store.",
-                             reference_hash, prompt.hash)
+        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+            file.write(json.dumps(self._chat_lists))
 
-        nx.write_graphml(self._graph, self._graph_path)
+        return topic_hash
+
 
     def get_prompt(self, prompt_hash: str) -> Prompt:
         """
@@ -144,10 +202,6 @@ class Store:
         Returns:
             Prompt: The retrieved prompt. None if the prompt is not found.
         """
-        if prompt_hash not in self._graph:
-            logger.warning("Prompt %s not found while retrieving from graph store.", prompt_hash)
-            return None
-
         # Retrieve the prompt object from TinyDB
         prompt_data = self._db.search(where('_hash') == prompt_hash)
         if not prompt_data:
@@ -170,15 +224,26 @@ class Store:
                 If end is greater than the number of all prompts,
                 the list will contain prompts from start to the end of the list.
         """
-        if topic:
-            ancestors = nx.ancestors(self._graph, topic)
-            nodes_with_data = [(node, self._graph.nodes[node]) for node in ancestors] + \
-                [(topic, self._graph.nodes[topic])]
-            sorted_nodes = sorted(nodes_with_data, key=lambda x: x[1]['timestamp'], reverse=True)
-        else:
-            sorted_nodes = sorted(self._graph.nodes(data=True),
-                                  key=lambda x: x[1]['timestamp'],
-                                  reverse=True)
+
+        if not topic:
+            last_time = 0
+            for chat_list in self._chat_lists:
+                if chat_list and chat_list[-1][1] > last_time:
+                    last_time = chat_list[-1][1]
+                    topic = chat_list[0][0]
+        if not topic:
+            return []
+
+        sorted_nodes = []
+        for chat_list in self._chat_lists:
+            if not chat_list:
+                continue
+
+            if chat_list[0][0] != topic:
+                continue
+
+            sorted_nodes = chat_list.copy()
+            sorted_nodes.reverse()
 
         prompts = []
         for node in sorted_nodes[start:end]:
@@ -207,12 +272,14 @@ class Store:
 
         topics = []
         for topic in sorted_topics[start:end]:
-            prompt = self.get_prompt(topic['root'])
-            if not prompt:
-                logger.error("Topic %s not found while selecting from the store", topic['root'])
-                continue
             topics.append({
-                'root_prompt': prompt,
+                'root_prompt': {
+                    'hash': topic['root'],
+                    'user': topic['user'],
+                    'date': topic['date'],
+                    'request': topic['request'],
+                    'responses': [topic['responses']],
+                },
                 'latest_time': topic['latest_time'],
                 'title': topic['title'],
                 'hidden': topic['hidden'],
@@ -230,12 +297,23 @@ class Store:
             bool: True if the prompt is successfully deleted, False otherwise.
         """
         # Check if the prompt is a leaf
-        if self._graph.in_degree(prompt_hash) != 0:
-            logger.error("Prompt %s is not a leaf, cannot be deleted.", prompt_hash)
-            return False
+        has_deleted = False
+        for chat_list in self._chat_lists:
+            if not chat_list:
+                continue
 
-        # Remove the prompt from the graph
-        self._graph.remove_node(prompt_hash)
+            if chat_list[-1][0] != prompt_hash:
+                continue
+
+            has_deleted = True
+            chat_list.pop()
+
+            # If the chat list is empty, remove it from the list of chat lists
+            if not chat_list:
+                self._chat_lists.remove(chat_list)
+
+        if not has_deleted:
+            return False
 
         # Update the topics table
         self._topics_table.remove(where('root') == prompt_hash)
@@ -244,7 +322,8 @@ class Store:
         self._db.remove(where('_hash') == prompt_hash)
 
         # Save the graph
-        nx.write_graphml(self._graph, self._graph_path)
+        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+            file.write(json.dumps(self._chat_lists))
 
         return True
 

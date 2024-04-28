@@ -9,7 +9,7 @@ class GeneralProviderConfig(BaseModel):
     api_key: Optional[str]
     api_base: Optional[str]
 
-class ModelConfig(BaseModel, extra='forbid'):
+class ModelConfig(BaseModel):
     max_input_tokens: Optional[int] = sys.maxsize
     provider: Optional[str]
 
