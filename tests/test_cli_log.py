@@ -180,7 +180,7 @@ def test_log_insert(git_repo):  # pylint: disable=W0613
     content = get_content(result.output)
     assert content.strip() == "Topic 2" or content.strip() == "2"
 
-    result = runner.invoke(click_main, ['log', '-t', prompt2['hash'], '-n', 100])
+    result = runner.invoke(click_main, ['log', '-t', prompt2['hash'], '-n', '100'])
     assert result.exit_code == 0
     logs = json.loads(result.output)
     assert len(logs) == 2
