@@ -226,6 +226,12 @@ class Store:
         """
 
         if not topic:
+            last_time = 0
+            for chat_list in self._chat_lists:
+                if chat_list and chat_list[-1][1] > last_time:
+                    last_time = chat_list[-1][1]
+                    topic = chat_list[0][0]
+        if not topic:
             return []
 
         sorted_nodes = []
