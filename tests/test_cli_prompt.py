@@ -199,7 +199,7 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
 
 def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
-    max_input_tokens = 2000
+    max_input_tokens = 4000
     config = GeneralModelConfig(
         max_input_tokens=200,
         temperature=0
@@ -223,7 +223,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
 
 def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
     model = "gpt-3.5-turbo"
-    max_input_tokens = 2000
+    max_input_tokens = 4000
     config = GeneralModelConfig(
         max_input_tokens=200,
         temperature=0
