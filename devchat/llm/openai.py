@@ -114,9 +114,7 @@ def chunks_call(chunks):
 
 def content_to_json(content):
     try:
-        # json will format as ```json ... ``` in 1106 model
-        response_content = _try_remove_markdown_block_flag(content)
-        response_obj = json.loads(response_content)
+        response_obj = json.loads(content)
         return response_obj
     except json.JSONDecodeError as err:
         raise RetryException(err) from err
@@ -148,13 +146,22 @@ chat_completion_call = retry(
     pipeline(chat_completion_stream_commit, retry_timeout, chunks_call), times=3
 )
 
-chat_completion_no_stream_return_json = exception_handle(
+chat_completion_no_stream_return_json_with_retry = exception_handle(
     retry(
         pipeline(chat_completion_stream_commit, retry_timeout, chunks_content, content_to_json),
         times=3,
     ),
     exception_output_handle(lambda err: None),
 )
+
+def chat_completion_no_stream_return_json(
+        messages: List[Dict], llm_config: Dict):
+    """call llm without stream, return json object"""
+    llm_config["response_format"]={"type": "json_object"}
+    return chat_completion_no_stream_return_json_with_retry(
+        messages=messages,
+        llm_config=llm_config)
+
 
 chat_completion_stream = exception_handle(
     retry(
