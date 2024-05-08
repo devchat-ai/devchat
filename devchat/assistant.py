@@ -104,7 +104,10 @@ class Assistant:
         if self._chat.config.stream:
             created_time = int(time.time())
             config_params = self._chat.config.dict(exclude_unset=True)
-            for chunk in self._chat.stream_response(self._prompt):
+            stream_responses = self._chat.stream_response(self._prompt)
+            if not stream_responses:
+                raise RuntimeError("No response returned from the chat API")
+            for chunk in stream_responses:
                 try:
                     if hasattr(chunk, "dict"):
                         chunk = chunk.dict()
