@@ -123,7 +123,8 @@ def chunks_call(chunks):
 
 def content_to_json(content):
     try:
-        response_obj = json.loads(content)
+        content_no_block = _try_remove_markdown_block_flag(content)
+        response_obj = json.loads(content_no_block)
         return response_obj
     except json.JSONDecodeError as err:
         raise RetryException(err) from err
