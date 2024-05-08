@@ -1,7 +1,8 @@
 import http.client
 import json
+import os
 import sys
-
+from urllib.parse import urlparse
 
 class LineReader:
     def __init__(self, response):
@@ -55,10 +56,24 @@ def stream_request(api_key, api_base, data):
         raise ValueError("Invalid API base URL")
 
     url = url.split("/")[0]
+    proxy_url = os.environ.get("DEVCHAT_PROXY", "")
+    parsed_url = urlparse(proxy_url)
+    proxy_setting = {
+        "host": parsed_url.hostname,
+        **({"port": parsed_url.port} if parsed_url.port else {}),
+    }
 
     if api_base.startswith("https://"):
-        connection = http.client.HTTPSConnection(url)
+        if proxy_setting["host"]:
+            connection = http.client.HTTPSConnection(**proxy_setting)
+            connection.set_tunnel(url)
+        else:
+            connection = http.client.HTTPSConnection(url)
     else:
-        connection = http.client.HTTPConnection(url)
+        if proxy_setting["host"]:
+            connection = http.client.HTTPConnection(**proxy_setting)
+            connection.set_tunnel(url)
+        else:
+            connection = http.client.HTTPConnection(url)
 
     return stream_response(connection, data, headers)

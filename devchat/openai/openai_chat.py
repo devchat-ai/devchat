@@ -63,6 +63,7 @@ class OpenAIChat(Chat):
 
     def complete_response(self, prompt: OpenAIPrompt) -> str:
         import openai
+        import httpx
 
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
@@ -71,9 +72,13 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = False
 
+        proxy_url = os.environ.get("DEVCHAT_PROXY", "")
+        proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+
         client = openai.OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY", None),
-            base_url=os.environ.get("OPENAI_API_BASE", None)
+            base_url=os.environ.get("OPENAI_API_BASE", None),
+            http_client=httpx.Client(**proxy_setting, trust_env=False)
         )
 
         response = client.chat.completions.create(
@@ -103,6 +108,7 @@ class OpenAIChat(Chat):
             response = stream_request(api_key, base_url, data)
             return response
         import openai
+        import httpx
 
         # Filter the config parameters with set values
         config_params = self.config.dict(exclude_unset=True)
@@ -111,9 +117,13 @@ class OpenAIChat(Chat):
             config_params['function_call'] = 'auto'
         config_params['stream'] = True
 
+        proxy_url = os.environ.get("DEVCHAT_PROXY", "")
+        proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+
         client = openai.OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY", None),
-            base_url=os.environ.get("OPENAI_API_BASE", None)
+            base_url=os.environ.get("OPENAI_API_BASE", None),
+            http_client=httpx.Client(**proxy_setting, trust_env=False)
         )
 
         response = client.chat.completions.create(
