@@ -36,7 +36,8 @@ def stream_response(connection: http.client.HTTPSConnection, data, headers):
     response = connection.getresponse()
 
     if response.status != 200:
-        print(f"Error: {response.status} - {response.reason}")
+        print(f"Error: {response.status} - {response.reason} {response.read()}",
+            end="\n\n", file=sys.stderr)
         return None
     return LineReader(response=response)
 
