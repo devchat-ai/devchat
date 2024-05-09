@@ -1,5 +1,5 @@
 import re
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from pydantic import BaseModel, validator, Extra, ValidationError
 
@@ -38,6 +38,7 @@ class WorkflowConfig(BaseModel):
     input_required: bool = False  # True for required
     hint: Optional[str] = None
     workflow_python: Optional[WorkflowPyConf] = None
+    help: Optional[Union[str, Dict[str, str]]] = None
 
     @validator("input_required", pre=True)
     def to_boolean(cls, value):  # pylint: disable=no-self-argument

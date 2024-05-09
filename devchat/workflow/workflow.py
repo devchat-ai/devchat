@@ -16,6 +16,7 @@ class Workflow:
     # TODO: align args and others with the documentation
 
     TRIGGER_PREFIX = "="
+    HELP_FLAG_PREFIX = "--help"
 
     def __init__(self, config: WorkflowConfig):
         self._config = config
@@ -126,9 +127,6 @@ class Workflow:
         """
         workflow_py = ""
         if self.config.workflow_python:
-            # TODO: 有没有更好的时机判断方法？既保证运行时一定安装了依赖、又不用每次都检查？
-            # TODO: 只在插件(IDE)启动后workflow第一次使用时ensure环境和依赖？
-            # Create workflow python env if set in the config
             pyconf = self.config.workflow_python
             if pyconf.env_name in EXTERNAL_ENVS:
                 # Use the external python set in the user settings
@@ -180,3 +178,36 @@ class Workflow:
             step.run(self.config, self.runtime_param)
 
             print("\n\n")
+
+    def get_help_doc(self, user_input: str) -> str:
+        """
+        Get the help doc content of the workflow.
+        """
+        help_info = self.config.help
+        help_file = None
+
+        if isinstance(help_info, str):
+            # return the only help doc
+            help_file = help_info
+
+        elif isinstance(help_info, dict):
+            first = next(iter(help_info))
+            default_file = help_info.get(first)
+            print(f"default_file: {default_file}")
+
+            # get language code from user input
+            code = user_input.strip().removeprefix(Workflow.HELP_FLAG_PREFIX)
+            code = code.removeprefix(".").strip()
+            help_file = help_info.get(code, default_file)
+
+        if not help_file:
+            return ""
+
+        help_path = os.path.join(self.config.root_path, help_file)
+        if os.path.exists(help_path):
+            with open(help_path, "r", encoding="utf-8") as file:
+                return file.read()
+        return ""
+
+    def should_show_help(self, user_input) -> bool:
+        return user_input.strip().startswith(Workflow.HELP_FLAG_PREFIX)
