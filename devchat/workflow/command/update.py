@@ -1,5 +1,6 @@
 # pylint: disable=invalid-name
 
+import os
 import shutil
 import tempfile
 import zipfile
@@ -10,7 +11,12 @@ from datetime import datetime
 import rich_click as click
 import requests
 
-from devchat.workflow.path import WORKFLOWS_BASE, WORKFLOWS_BASE_NAME
+from devchat.workflow.path import (
+    CHAT_DIR,
+    WORKFLOWS_BASE,
+    WORKFLOWS_BASE_NAME,
+    CUSTOM_BASE,
+)
 from devchat.utils import get_logger
 
 HAS_GIT = False
@@ -291,6 +297,25 @@ def update_by_git(workflow_base: Path):
         return
 
 
+def copy_workflows_usr():
+    """
+    Copy workflows/usr to scripts/custom/usr for engine migration.
+    """
+    old_usr_dir = os.path.join(CHAT_DIR, "workflows", "usr")
+    new_usr_dir = os.path.join(CUSTOM_BASE, "usr")
+
+    old_exists = os.path.exists(old_usr_dir)
+    new_exists = os.path.exists(new_usr_dir)
+
+    if old_exists and not new_exists:
+        shutil.copytree(old_usr_dir, new_usr_dir)
+        click.echo(f"Copied {old_usr_dir} to {new_usr_dir} successfully.")
+    else:
+        click.echo(
+            f"Skip copying usr dir. old exists: {old_exists}, new exists: {new_exists}."
+        )
+
+
 @click.command(help="Update the workflow_base dir.")
 @click.option(
     "-f", "--force", is_flag=True, help="Force update the workflows to the latest main."
@@ -306,3 +331,5 @@ def update(force: bool):
         update_by_git(base_path)
     else:
         update_by_zip(base_path)
+
+    copy_workflows_usr()
