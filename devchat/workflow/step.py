@@ -121,7 +121,9 @@ class WorkflowStep:
                 arg = arg.replace(BuiltInVars.devchat_python, rt_param.devchat_python)
 
             if p.startswith(BuiltInVars.command_path):
-                path_parts = os.path.split(p)
+                # TODO: 在文档中说明 command.yml 中表示路径采用 POSIX 标准
+                # 即，使用 / 分隔路径，而非 \ (Windows) 
+                path_parts = p.split("/")
                 # replace "$command_path" with the root path in path_parts
                 arg = os.path.join(wf_config.root_path, *path_parts[1:])
 
