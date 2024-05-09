@@ -9,7 +9,7 @@ from .schema import WorkflowConfig, RuntimeParameter
 from .path import COMMAND_FILENAMES
 from .namespace import get_prioritized_namespace_path
 
-from .env_manager import PyEnvManager
+from .env_manager import PyEnvManager, EXTERNAL_ENVS
 
 
 class Workflow:
@@ -130,15 +130,30 @@ class Workflow:
             # TODO: 只在插件(IDE)启动后workflow第一次使用时ensure环境和依赖？
             # Create workflow python env if set in the config
             pyconf = self.config.workflow_python
+            if pyconf.env_name in EXTERNAL_ENVS:
+                # Use the external python set in the user settings
+                workflow_py = EXTERNAL_ENVS[pyconf.env_name].python_bin
+                print(
+                    "\n```Step\n# Using exteranl Python from user settings\n",
+                    flush=True,
+                )
+                print(f"env_name: {pyconf.env_name}")
+                print(f"python_bin: {workflow_py}")
+                print(
+                    "\nThis Python environment's version and dependencies should be "
+                    "ensured by the user to meet the requirements.",
+                )
+                print("\n```", flush=True)
 
-            manager = PyEnvManager()
-            workflow_py = manager.ensure(pyconf.env_name, pyconf.version)
+            else:
+                # TODO: 有没有更好的时机判断方法？既保证运行时一定安装了依赖、又不用每次都检查？
+                # TODO: 只在插件(IDE)启动后workflow第一次使用时ensure环境和依赖？
+                # Create workflow python env
+                manager = PyEnvManager()
+                workflow_py = manager.ensure(pyconf.env_name, pyconf.version)
 
-            # r_file = os.path.join(self.config.root_path, pyconf.dependencies)
-            r_file = pyconf.dependencies
-            # print(f"\n\n requirements file: {r_file} \n\n")
-            _ = manager.install(pyconf.env_name, r_file)
-            # print(f"\n\ninstall result: {p}")
+                r_file = pyconf.dependencies
+                _ = manager.install(pyconf.env_name, r_file)
 
         runtime_param = {
             # from user interaction

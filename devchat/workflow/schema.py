@@ -19,6 +19,18 @@ class WorkflowPyConf(BaseModel):
         return value
 
 
+class ExternalPyConf(BaseModel):
+    env_name: str  # the env_name of workflow python to act as
+    python_bin: str  # the python executable path
+
+
+class UserSettings(BaseModel):
+    external_workflow_python: List[ExternalPyConf] = []
+
+    class Config:
+        extra = Extra.ignore
+
+
 class WorkflowConfig(BaseModel):
     description: str
     root_path: str  # the root path of the workflow

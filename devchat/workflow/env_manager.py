@@ -2,10 +2,12 @@
 import os
 import sys
 import subprocess
-from typing import Optional
+from typing import Optional, Dict
 
 from .envs import MAMBA_BIN_PATH
 from .path import MAMBA_PY_ENVS, MAMBA_ROOT
+from .user_setting import USER_SETTINGS
+from .schema import ExternalPyConf
 
 
 # CONDA_FORGE = [
@@ -15,6 +17,18 @@ from .path import MAMBA_PY_ENVS, MAMBA_ROOT
 CONDA_FORGE_TUNA = "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/"
 PYPI_TUNA = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
+
+def _get_external_envs() -> Dict[str, ExternalPyConf]:
+    """
+    Get the external python environments info from the user settings.
+    """
+    external_pythons: Dict[str, ExternalPyConf] = {}
+    for conf in USER_SETTINGS.external_workflow_python:
+        external_pythons[conf.env_name] = conf
+
+    return external_pythons
+
+EXTERNAL_ENVS = _get_external_envs()
 
 class PyEnvManager:
     mamba_bin = MAMBA_BIN_PATH
