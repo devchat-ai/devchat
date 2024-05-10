@@ -2,22 +2,22 @@
 import sys
 from typing import List, Optional
 
-from .command import command, Command
+import click
 
 
-@command('route', help='Route a prompt to the specified LLM')
-@Command.argument('content')
-@Command.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
-@Command.option('-r', '--reference', multiple=True,
+@click.command(help='Route a prompt to the specified LLM')
+@click.argument('content', required=False)
+@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
+@click.option('-r', '--reference', multiple=True,
               help='Input one or more specific previous prompts to include in the current prompt.')
-@Command.option('-i', '--instruct', multiple=True,
+@click.option('-i', '--instruct', multiple=True,
               help='Add one or more files to the prompt as instructions.')
-@Command.option('-c', '--context', multiple=True,
+@click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@Command.option('-m', '--model', help='Specify the model to use for the prompt.')
-@Command.option('--config', dest='config_str',
+@click.option('-m', '--model', help='Specify the model to use for the prompt.')
+@click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
-@Command.option('-a', '--auto', is_flag=True, default=False, required=False,
+@click.option('-a', '--auto', is_flag=True, default=False, required=False,
               help='Answer question by function-calling.')
 def route(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],
