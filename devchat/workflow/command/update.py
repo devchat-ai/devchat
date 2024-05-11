@@ -26,17 +26,7 @@ except ImportError:
     pass
 else:
     HAS_GIT = True
-    # pass
 
-# REPO_NAME = "new_workflows"
-# DEFAULT_BRANCH = "main"
-# REPO_URLS = [
-#     # url, branch
-#     ("git@github.com:kagami-l/new_workflows.git", DEFAULT_BRANCH),
-# ]
-# ZIP_URLS = [
-#     "https://codeload.github.com/kagami-l/new_workflows/zip/refs/heads/main",
-# ]
 
 REPO_NAME = "workflows"
 DEFAULT_BRANCH = "scripts"
@@ -44,9 +34,11 @@ REPO_URLS = [
     # url, branch
     ("git@github.com:devchat-ai/workflows.git", DEFAULT_BRANCH),
     ("https://github.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
+    ("https://gitlab.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
 ]
 ZIP_URLS = [
     "https://codeload.github.com/devchat-ai/workflows/zip/refs/heads/scripts",
+    "https://gitlab.com/devchat-ai/workflows/-/archive/scripts/workflows-scripts.zip",
 ]
 
 
@@ -120,11 +112,7 @@ def _download_zip_to_dir(candidate_urls: List[str], dst_dir: Path) -> bool:
                     zip_f.extractall(tmp_dir_path)
 
                 # move the extracted dir to target dir
-                # TODO: use workflows-main for dev
-                # TODO: will set to the actual zip dir name when the new repo is ready
-                extracted_dir = (
-                    tmp_dir_path / f"{REPO_NAME}-{DEFAULT_BRANCH}"
-                )  # TODO: use Constant
+                extracted_dir = tmp_dir_path / f"{REPO_NAME}-{DEFAULT_BRANCH}"
                 shutil.move(extracted_dir, dst_dir)
                 click.echo(f"Extracted to {dst_dir}")
 
@@ -138,9 +126,6 @@ def _download_zip_to_dir(candidate_urls: List[str], dst_dir: Path) -> bool:
 
 
 def update_by_zip(workflow_base: Path):
-    """
-    # TODO: should return the message to user? or just print/echo?
-    """
     click.echo("Updating by zip file...")
     parent = workflow_base.parent
 
@@ -171,7 +156,6 @@ def update_by_zip(workflow_base: Path):
         backup_zip = _backup(workflow_base)
 
         # rename the new dir to the workflow_base
-        # TODO: handle error?
         shutil.rmtree(workflow_base)
         shutil.move(tmp_new, workflow_base)
 
@@ -196,8 +180,6 @@ def _clone_repo_to_dir(candidates: List[Tuple[str, str]], dst_dir: Path) -> bool
     clone_ok = False
     for url, branch in candidates:
         try:
-            # TODO: What will happen when using an SSH URL without configuring an SSH key
-            # TODO：how to handle it?
             repo = Repo.clone_from(url, to_path=dst_dir, branch=branch)
             click.echo(f"Cloned from {url}|{branch} to {dst_dir}")
             clone_ok = True
@@ -209,9 +191,6 @@ def _clone_repo_to_dir(candidates: List[Tuple[str, str]], dst_dir: Path) -> bool
 
 
 def update_by_git(workflow_base: Path):
-    """
-    # TODO: should return the message to user? or just print/echo?
-    """
     click.echo("Updating by git...")
     parent = workflow_base.parent
 
