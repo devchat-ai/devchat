@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import NamedTuple, List, Set, Tuple, Optional, Dict
 from dataclasses import dataclass, asdict, field
 
-import rich_click as click
+import click
 import oyaml as yaml
 
 from devchat.workflow.namespace import get_prioritized_namespace_path

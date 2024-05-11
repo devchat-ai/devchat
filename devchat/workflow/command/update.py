@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple
 from pathlib import Path
 from datetime import datetime
 
-import rich_click as click
+import click
 import requests
 
 from devchat.workflow.path import (

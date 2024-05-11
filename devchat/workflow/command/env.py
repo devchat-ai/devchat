@@ -7,7 +7,7 @@ Commands for managing the python environment of workflows.
 import sys
 from pathlib import Path
 from typing import Optional, List
-import rich_click as click
+import click
 from devchat.workflow.env_manager import PyEnvManager, MAMBA_PY_ENVS
 
 

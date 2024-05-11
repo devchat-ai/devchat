@@ -1,4 +1,4 @@
-import rich_click as click
+import click
 from devchat.workflow.command.update import update
 from devchat.workflow.command.list import list_cmd
 from devchat.workflow.command.env import env
