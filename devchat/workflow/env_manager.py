@@ -62,7 +62,6 @@ class PyEnvManager:
             requirements: the absolute path to the requirements file.
         """
         py = self.get_py(env_name)
-        # print(f"\n\n py: {py}\n\n")
         if not py:
             # TODO: raise error?
             return False
@@ -71,7 +70,6 @@ class PyEnvManager:
             # TODO: raise error?
             return False
 
-        # TODO: log the installation process
         cmd = [
             py,
             "-m",
@@ -82,17 +80,6 @@ class PyEnvManager:
             "-i",
             PYPI_TUNA,
         ]
-        # cmd = [
-        #     self.mamba_bin,
-        #     "install",
-        #     "-n",
-        #     env_name,
-        #     "-f",
-        #     requirements_file,
-        #     "-r",
-        #     self.mamba_root,
-        #     "--quiet",
-        # ]
         env = os.environ.copy()
         env.pop("PYTHONPATH")
         with subprocess.Popen(
@@ -205,7 +192,6 @@ class PyEnvManager:
         """
         Get the python executable path of the given environment.
         """
-        # TODO:
         env_path = None
         if sys.platform == "win32":
             env_path = os.path.join(MAMBA_PY_ENVS, env_name, "python.exe")

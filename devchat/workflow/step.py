@@ -34,7 +34,6 @@ class BuiltInEnvs(str, Enum):
 
 
 class WorkflowStep:
-    # TODO: algin syntax with the documentation
     def __init__(self, **kwargs):
         """
         Initialize a workflow step with the given configuration.
@@ -53,23 +52,18 @@ class WorkflowStep:
     ) -> Dict[str, str]:
         """
         Setup the environment variables for the subprocess.
-
-        TODO: any validation or error handling?
         """
         command_raw = self.command_raw
 
         env = os.environ.copy()
 
         # set PYTHONPATH for the subprocess
-        # TODO: import env vars from envs.py
         python_path = env.get("PYTHONPATH", "")
         devchat_python_path = env.get("DEVCHAT_PYTHONPATH", python_path)
         new_paths = [WORKFLOWS_BASE]
         if (BuiltInVars.devchat_python in command_raw) and devchat_python_path:
             # only add devchat pythonpath when it's used in the command
             new_paths.append(devchat_python_path)
-        # TODO: set workflow_python path
-        # if (BuiltInVars.workflow_python in command_raw) and wf_config.workflow_python:
 
         paths = [os.path.normpath(p) for p in new_paths]
         paths = [p.replace("\\", "\\\\") for p in paths]
@@ -121,7 +115,7 @@ class WorkflowStep:
                 arg = arg.replace(BuiltInVars.devchat_python, rt_param.devchat_python)
 
             if p.startswith(BuiltInVars.command_path):
-                # TODO: 在文档中说明 command.yml 中表示路径采用 POSIX 标准
+                # NOTE: 在文档中说明 command.yml 中表示路径采用 POSIX 标准
                 # 即，使用 / 分隔路径，而非 \ (Windows) 
                 path_parts = p.split("/")
                 # replace "$command_path" with the root path in path_parts
@@ -142,37 +136,11 @@ class WorkflowStep:
         Run the step in a subprocess.
 
         Returns the return code, stdout, and stderr.
-
-        TODO: any validation or error handling?
         """
-        # command_raw = self.command_raw
-
         # setup the environment variables
         env = self._setup_env(wf_config, rt_param)
 
-        # print(f"\n\n- env: \n\n")
-        # for k, v in env.items():
-        #     print(f"\n\n- {k}: \n\n```\n{v}\n```\n\n")
-
-        # validate the command first
-        # variable interpolation in the command
-        # command = (
-        #     command_raw.replace(BuiltInVars.command_path, wf_config.root_path)
-        #     .replace(BuiltInVars.devchat_python, rt_param.devchat_python)
-        #     .replace(BuiltInVars.user_input, rt_param.user_input)
-        # )
         command_args = self._validate_and_interpolate(wf_config, rt_param)
-
-        # print(f"\n\n- command_raw: {command_raw}")
-        # print(f"- command: {command}\n\n")
-        # print("\n\n```\n\n")
-        # print(shlex.split(command))
-        # print("\n\n")
-        # for k, v in env.items():
-        #     print(f"\n- {k}: {type(v)}")
-        #     print(f"  {v}")
-
-        # print("\n\n```\n\n")
 
         def _pipe_reader(pipe, data, out_file):
             """
@@ -208,17 +176,3 @@ class WorkflowStep:
             return_code = proc.returncode
             return return_code, stdout_data["data"], stderr_data["data"]
 
-        # print(f"\n\n-----\n\n## envs: \n\n")
-        # for k, v in env.items():
-        #     print(f"- {k}: {v}")
-        # print("\n\n\n\n")
-
-        # with subprocess.Popen(
-        #     shlex.split(command),
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.PIPE,
-        # ) as proc:
-        #     out, err = proc.communicate()
-
-        #     print(f"\n\n- out: {out}")
-        #     print(f"- err: {err}\n\n")

@@ -13,9 +13,7 @@ from .env_manager import PyEnvManager, EXTERNAL_ENVS
 
 
 class Workflow:
-    # TODO: align args and others with the documentation
-
-    TRIGGER_PREFIX = "="
+    TRIGGER_PREFIX = "=" # TODO: change to "/"
     HELP_FLAG_PREFIX = "--help"
 
     def __init__(self, config: WorkflowConfig):
@@ -160,14 +158,13 @@ class Workflow:
             "history_messages": history_messages,
             "parent_hash": parent_hash,
             # from user setting or system
-            # TODO: what if the user has not set the python path?
             "devchat_python": sys.executable,
             "workflow_python": workflow_py,
         }
 
         self._runtime_param = RuntimeParameter.parse_obj(runtime_param)
 
-    def run_steps(self):
+    def run_steps(self) -> int:
         """
         Run the steps of the workflow.
         """
@@ -175,9 +172,14 @@ class Workflow:
 
         for s in steps:
             step = WorkflowStep(**s)
-            step.run(self.config, self.runtime_param)
-
+            result = step.run(self.config, self.runtime_param)
+            return_code = result[0]
+            if return_code != 0:
+                # stop the workflow if any step fails
+                return return_code
             print("\n\n")
+
+        return 0
 
     def get_help_doc(self, user_input: str) -> str:
         """

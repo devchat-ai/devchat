@@ -146,24 +146,22 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
         if workflow:
             print(assistant.prompt.formatted_header())
             
+            return_code = 0
             if workflow.should_show_help(user_input):
                 doc = workflow.get_help_doc(user_input)
                 print(doc)
 
             else:
-            
+                # run the workflow
                 workflow.setup(
                     model_name=model,
                     user_input=user_input,
                     history_messages=assistant.prompt.messages,
                     parent_hash=parent,
                 )
-                workflow.run_steps()
+                return_code = workflow.run_steps()
 
-            # TODO: handle multi-steps result
-            # TODO: return or sys.exit?
-            sys.exit(0)
-            # return
+            sys.exit(return_code)
 
         print(assistant.prompt.formatted_header())
         command_result = run_command(
