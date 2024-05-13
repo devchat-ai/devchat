@@ -1,26 +1,26 @@
 # pylint: disable=import-outside-toplevel
 from typing import List, Optional, Tuple
-from .command import command, Command
 
+import click
 
-@command('run',
+@click.command(
     help="The 'command' argument is the name of the command to run or get information about.")
-@Command.argument('command', nargs='?',  default='')
-@Command.option('--list', dest='list_flag', is_flag=True, default=False,
+@click.argument('command', required=False, default='')
+@click.option('--list', 'list_flag', is_flag=True, default=False,
               help='List all specified commands in JSON format.')
-@Command.option('--recursive', '-r', dest='recursive_flag', is_flag=True, default=True,
+@click.option('--recursive', '-r', 'recursive_flag', is_flag=True, default=True,
               help='List commands recursively.')
-@Command.option('--update-sys', dest='update_sys_flag', is_flag=True, default=False,
+@click.option('--update-sys', 'update_sys_flag', is_flag=True, default=False,
               help='Pull the `sys` command directory from the DevChat repository.')
-@Command.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
-@Command.option('--reference', multiple=True,
+@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
+@click.option('-r', '--reference', multiple=True,
               help='Input one or more specific previous prompts to include in the current prompt.')
-@Command.option('-i', '--instruct', multiple=True,
+@click.option('-i', '--instruct', multiple=True,
               help='Add one or more files to the prompt as instructions.')
-@Command.option('-c', '--context', multiple=True,
+@click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@Command.option('-m', '--model', help='Specify the model to use for the prompt.')
-@Command.option('--config', dest='config_str',
+@click.option('-m', '--model', help='Specify the model to use for the prompt.')
+@click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
 # pylint: disable=redefined-outer-name
 def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool,

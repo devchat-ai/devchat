@@ -2,26 +2,26 @@
 import sys
 from typing import List, Optional
 
-from .command import command, Command
+import click
 
 
-@command('prompt', help='Interact with the large language model (LLM).')
-@Command.argument('content')
-@Command.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
-@Command.option('-r', '--reference', multiple=True,
+@click.command(help='Interact with the large language model (LLM).')
+@click.argument('content', required=False)
+@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
+@click.option('-r', '--reference', multiple=True,
               help='Input one or more specific previous prompts to include in the current prompt.')
-@Command.option('-i', '--instruct', multiple=True,
+@click.option('-i', '--instruct', multiple=True,
               help='Add one or more files to the prompt as instructions.')
-@Command.option('-c', '--context', multiple=True,
+@click.option('-c', '--context', multiple=True,
               help='Add one or more files to the prompt as a context.')
-@Command.option('-m', '--model', help='Specify the model to use for the prompt.')
-@Command.option('--config', dest="config_str", required=False,
+@click.option('-m', '--model', help='Specify the model to use for the prompt.')
+@click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
-@Command.option('-f', '--functions',
+@click.option('-f', '--functions', type=click.Path(exists=True),
               help='Path to a JSON file with functions for the prompt.')
-@Command.option('-n', '--function-name',
+@click.option('-n', '--function-name',
               help='Specify the function name when the content is the output of a function.')
-@Command.option('-ns', '--not-store', is_flag=True, default=False, required=False,
+@click.option('-ns', '--not-store', is_flag=True, default=False, required=False,
               help='Do not save the conversation to the store.')
 def prompt(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],

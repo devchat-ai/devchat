@@ -3,7 +3,7 @@ import sys
 import time
 from click.testing import CliRunner
 from devchat.utils import get_prompt_hash
-from devchat._cli.click_main import click_main
+from devchat._cli.main import main
 
 runner = CliRunner()
 
@@ -12,7 +12,7 @@ def test_topic_list(git_repo):  # pylint: disable=W0613
     request = "Complete the sequence 1, 1, 3, 5, 9, ( ). Reply the number only."
     sys.argv = ['prompt', '--model=gpt-3.5-turbo', request]
     result = runner.invoke(
-        click_main,
+        main,
         ['prompt', '--model=gpt-3.5-turbo', request]
     )
     assert result.exit_code == 0
@@ -21,13 +21,13 @@ def test_topic_list(git_repo):  # pylint: disable=W0613
     time.sleep(3)
 
     result = runner.invoke(
-        click_main,
+        main,
         ['prompt', '--model=gpt-4', request]
     )
     assert result.exit_code == 0
     topic2 = get_prompt_hash(result.output)
 
-    result = runner.invoke(click_main, ['topic', '--list'])
+    result = runner.invoke(main, ['topic', '--list'])
     assert result.exit_code == 0
     topics = json.loads(result.output)
     assert len(topics) >= 2

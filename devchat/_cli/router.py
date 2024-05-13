@@ -3,6 +3,8 @@ import json
 import sys
 from typing import List, Optional
 
+from devchat.workflow.workflow import Workflow
+
 
 def _get_model_and_config(
         model: Optional[str],
@@ -138,6 +140,28 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
         model, assistant, content = before_prompt(
             content, parent, reference, instruct, context, model, config_str, None, None, True
 		)
+
+        name, user_input = Workflow.parse_trigger(content)
+        workflow = Workflow.load(name) if name else None
+        if workflow:
+            print(assistant.prompt.formatted_header())
+            
+            return_code = 0
+            if workflow.should_show_help(user_input):
+                doc = workflow.get_help_doc(user_input)
+                print(doc)
+
+            else:
+                # run the workflow
+                workflow.setup(
+                    model_name=model,
+                    user_input=user_input,
+                    history_messages=assistant.prompt.messages,
+                    parent_hash=parent,
+                )
+                return_code = workflow.run_steps()
+
+            sys.exit(return_code)
 
         print(assistant.prompt.formatted_header())
         command_result = run_command(
