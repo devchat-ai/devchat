@@ -13,7 +13,7 @@ from .env_manager import PyEnvManager, EXTERNAL_ENVS
 
 
 class Workflow:
-    TRIGGER_PREFIX = "=" # TODO: change to "/"
+    TRIGGER_PREFIX = "/"
     HELP_FLAG_PREFIX = "--help"
 
     def __init__(self, config: WorkflowConfig):
