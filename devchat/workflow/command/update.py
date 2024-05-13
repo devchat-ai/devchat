@@ -209,8 +209,11 @@ def update_by_git(workflow_base: Path):
         try:
             # check if the workflow base dir is a valid git repo
             repo = Repo(workflow_base)
+            head_name = repo.head.reference.name
         except InvalidGitRepositoryError:
             pass
+        except Exception:
+            repo = None
 
         if repo is None:
             # current workflow base dir is not a valid git repo
@@ -234,7 +237,6 @@ def update_by_git(workflow_base: Path):
             return
 
         # current workflow base dir is a valid git repo
-        head_name = repo.head.reference.name
         if head_name != DEFAULT_BRANCH:
             click.echo(
                 f"Current workflow branch is not the default one[{DEFAULT_BRANCH}]: "
