@@ -53,6 +53,7 @@ class WorkflowStep:
         """
         Setup the environment variables for the subprocess.
         """
+        _1 = wf_config
         command_raw = self.command_raw
 
         env = os.environ.copy()
@@ -98,7 +99,7 @@ class WorkflowStep:
                     "The command uses $workflow_python, "
                     "but the workflow_python is not set yet."
                 )
-        
+
         args = []
         for p in parts:
             arg = p
@@ -116,7 +117,7 @@ class WorkflowStep:
 
             if p.startswith(BuiltInVars.command_path):
                 # NOTE: 在文档中说明 command.yml 中表示路径采用 POSIX 标准
-                # 即，使用 / 分隔路径，而非 \ (Windows) 
+                # 即，使用 / 分隔路径，而非 \ (Windows)
                 path_parts = p.split("/")
                 # replace "$command_path" with the root path in path_parts
                 arg = os.path.join(wf_config.root_path, *path_parts[1:])
@@ -125,9 +126,9 @@ class WorkflowStep:
                 arg = arg.replace(BuiltInVars.user_input, rt_param.user_input)
 
             args.append(arg)
-        
+
         return args
-            
+
 
     def run(
         self, wf_config: WorkflowConfig, rt_param: RuntimeParameter
@@ -175,4 +176,3 @@ class WorkflowStep:
             proc.wait()
             return_code = proc.returncode
             return return_code, stdout_data["data"], stderr_data["data"]
-

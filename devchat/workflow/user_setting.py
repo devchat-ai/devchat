@@ -12,13 +12,12 @@ def _load_user_settings() -> UserSettings:
     if not settings_path.exists():
         return UserSettings()
 
-    with open(settings_path, "r", encoding="utf-8") as f:
-        content = yaml.safe_load(f.read())
-    
+    with open(settings_path, "r", encoding="utf-8") as file:
+        content = yaml.safe_load(file.read())
+
     if content:
         return UserSettings.parse_obj(content)
 
     return UserSettings()
 
 USER_SETTINGS = _load_user_settings()
-

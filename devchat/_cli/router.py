@@ -145,7 +145,7 @@ def llm_route(content: Optional[str], parent: Optional[str], reference: Optional
         workflow = Workflow.load(name) if name else None
         if workflow:
             print(assistant.prompt.formatted_header())
-            
+
             return_code = 0
             if workflow.should_show_help(user_input):
                 doc = workflow.get_help_doc(user_input)

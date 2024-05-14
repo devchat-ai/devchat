@@ -1,14 +1,18 @@
 import json
 from pathlib import Path
-from typing import NamedTuple, List, Set, Tuple, Optional, Dict
+from typing import List, Set, Tuple, Dict
 from dataclasses import dataclass, asdict, field
 
 import click
 import oyaml as yaml
+import yaml as pyyaml
 
 from devchat.workflow.namespace import get_prioritized_namespace_path
 from devchat.workflow.path import COMMAND_FILENAMES
+from devchat.utils import get_logger
 
+
+logger = get_logger(__name__)
 
 @dataclass
 class WorkflowMeta:
@@ -41,28 +45,33 @@ def iter_namespace(
     interest_files = set(COMMAND_FILENAMES)
     result = []
     unique_names = set(existing_names)
-    for f in root.rglob("*"):
-        if f.is_file() and f.name in interest_files:
-            rel_path = f.relative_to(root)
-            parts = rel_path.parts
-            workflow_name = ".".join(parts[:-1])
-            is_first = workflow_name not in unique_names
-            unique_names.add(workflow_name)
+    for file in root.rglob("*"):
+        try:
+            if file.is_file() and file.name in interest_files:
+                rel_path = file.relative_to(root)
+                parts = rel_path.parts
+                workflow_name = ".".join(parts[:-1])
+                is_first = workflow_name not in unique_names
 
-            # load the config content from f
-            with open(f, "r", encoding="utf-8") as fi:
-                yaml_content = fi.read()
-                command_conf = yaml.safe_load(yaml_content)
-                # pop the "steps" field
-                command_conf.pop("steps", None)
+                # load the config content from file
+                with open(file, "r", encoding="utf-8") as file_handle:
+                    yaml_content = file_handle.read()
+                    command_conf = yaml.safe_load(yaml_content)
+                    # pop the "steps" field
+                    command_conf.pop("steps", None)
 
-            workflow = WorkflowMeta(
-                name=workflow_name,
-                namespace=root.name,
-                active=is_first,
-                command_conf=command_conf,
-            )
-            result.append(workflow)
+                workflow = WorkflowMeta(
+                    name=workflow_name,
+                    namespace=root.name,
+                    active=is_first,
+                    command_conf=command_conf,
+                )
+                unique_names.add(workflow_name)
+                result.append(workflow)
+        except pyyaml.scanner.ScannerError as err:
+            logger.error("Failed to load %s: %s", rel_path, err)
+        except Exception as err:
+            logger.error("Unknown error when loading %s: %s", rel_path, err)
 
     return result, unique_names
 
@@ -75,19 +84,19 @@ def list_cmd(in_json: bool):
     workflows: List[WorkflowMeta] = []
     visited_names = set()
     for ns_path in namespace_paths:
-        ws, visited_names = iter_namespace(ns_path, visited_names)
-        workflows.extend(ws)
+        ws_names, visited_names = iter_namespace(ns_path, visited_names)
+        workflows.extend(ws_names)
 
     if not in_json:
         # print basic info
-        active_count = len([w for w in workflows if w.active])
+        active_count = len([workflow for workflow in workflows if workflow.active])
         total_count = len(workflows)
         click.echo(f"workflows (active/total): {active_count}/{total_count}")
-        for w in workflows:
-            click.echo(w)
+        for workflow in workflows:
+            click.echo(workflow)
 
     else:
         # convert workflows to json
-        data = [asdict(w) for w in workflows]
+        data = [asdict(workflow) for workflow in workflows]
         json_format = json.dumps(data)
         click.echo(json_format)
