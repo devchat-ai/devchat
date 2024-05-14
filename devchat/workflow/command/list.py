@@ -5,10 +5,14 @@ from dataclasses import dataclass, asdict, field
 
 import click
 import oyaml as yaml
+import yaml as pyyaml
 
 from devchat.workflow.namespace import get_prioritized_namespace_path
 from devchat.workflow.path import COMMAND_FILENAMES
+from devchat.utils import get_logger
 
+
+logger = get_logger(__name__)
 
 @dataclass
 class WorkflowMeta:
@@ -42,27 +46,32 @@ def iter_namespace(
     result = []
     unique_names = set(existing_names)
     for f in root.rglob("*"):
-        if f.is_file() and f.name in interest_files:
-            rel_path = f.relative_to(root)
-            parts = rel_path.parts
-            workflow_name = ".".join(parts[:-1])
-            is_first = workflow_name not in unique_names
-            unique_names.add(workflow_name)
+        try:
+            if f.is_file() and f.name in interest_files:
+                rel_path = f.relative_to(root)
+                parts = rel_path.parts
+                workflow_name = ".".join(parts[:-1])
+                is_first = workflow_name not in unique_names
 
-            # load the config content from f
-            with open(f, "r", encoding="utf-8") as fi:
-                yaml_content = fi.read()
-                command_conf = yaml.safe_load(yaml_content)
-                # pop the "steps" field
-                command_conf.pop("steps", None)
+                # load the config content from f
+                with open(f, "r", encoding="utf-8") as fi:
+                    yaml_content = fi.read()
+                    command_conf = yaml.safe_load(yaml_content)
+                    # pop the "steps" field
+                    command_conf.pop("steps", None)
 
-            workflow = WorkflowMeta(
-                name=workflow_name,
-                namespace=root.name,
-                active=is_first,
-                command_conf=command_conf,
-            )
-            result.append(workflow)
+                workflow = WorkflowMeta(
+                    name=workflow_name,
+                    namespace=root.name,
+                    active=is_first,
+                    command_conf=command_conf,
+                )
+                unique_names.add(workflow_name)
+                result.append(workflow)
+        except pyyaml.scanner.ScannerError as err:
+            logger.error("Failed to load %s: %s", rel_path, err)
+        except Exception as err:
+            logger.error("Unknown error when loading %s: %s", rel_path, err)
 
     return result, unique_names
 
