@@ -32,13 +32,13 @@ REPO_NAME = "workflows"
 DEFAULT_BRANCH = "scripts"
 REPO_URLS = [
     # url, branch
+    ("https://gitlab.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
     ("git@github.com:devchat-ai/workflows.git", DEFAULT_BRANCH),
     ("https://github.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
-    ("https://gitlab.com/devchat-ai/workflows.git", DEFAULT_BRANCH),
 ]
 ZIP_URLS = [
-    "https://codeload.github.com/devchat-ai/workflows/zip/refs/heads/scripts",
     "https://gitlab.com/devchat-ai/workflows/-/archive/scripts/workflows-scripts.zip",
+    "https://codeload.github.com/devchat-ai/workflows/zip/refs/heads/scripts",
 ]
 
 
