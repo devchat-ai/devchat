@@ -34,14 +34,14 @@ def _load_custom_config() -> CustomConfig:
     if not os.path.exists(CUSTOM_CONFIG_FILE):
         return config
 
-    with open(CUSTOM_CONFIG_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+    with open(CUSTOM_CONFIG_FILE, "r", encoding="utf-8") as file:
+        content = file.read()
         yaml_content = yaml.safe_load(content)
         try:
             if yaml_content:
                 config = CustomConfig.parse_obj(yaml_content)
-        except ValidationError as e:
-            logger.warning(f"Invalid custom config file: {e}")
+        except ValidationError as err:
+            logger.warning("Invalid custom config file: %s", err)
 
     return config
 
@@ -66,8 +66,8 @@ def get_prioritized_namespace_path() -> List[str]:
 
 def main():
     paths = get_prioritized_namespace_path()
-    for p in paths:
-        print(p)
+    for pathv in paths:
+        print(pathv)
 
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ def _backup(workflow_base: Path, n: int = 5) -> Optional[Path]:
     """
 
     if not workflow_base.exists():
-        return
+        return None
 
     backup_dir = workflow_base.parent / ".backup"
     backup_dir.mkdir(exist_ok=True)
@@ -180,7 +180,7 @@ def _clone_repo_to_dir(candidates: List[Tuple[str, str]], dst_dir: Path) -> bool
     clone_ok = False
     for url, branch in candidates:
         try:
-            repo = Repo.clone_from(url, to_path=dst_dir, branch=branch)
+            Repo.clone_from(url, to_path=dst_dir, branch=branch)
             click.echo(f"Cloned from {url}|{branch} to {dst_dir}")
             clone_ok = True
             break
@@ -274,8 +274,6 @@ def update_by_git(workflow_base: Path):
             )
         except GitCommandError as e:
             click.echo(f"Failed to update to the latest main: {e}. Skip update.")
-            return
-        return
 
 
 def copy_workflows_usr():
