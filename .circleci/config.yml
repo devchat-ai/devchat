@@ -15,9 +15,9 @@ jobs:
           command: |
             poetry install
       - run:
-          name: Run Pylint
+          name: Run linter
           command: |
-            poetry run pylint devchat tests
+            make check
       - run:
           name: Run Pytest
           command: |

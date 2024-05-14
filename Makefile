@@ -2,15 +2,16 @@
 
 div = $(shell printf '=%.0s' {1..120})
 
+DIR="."
 check:
 	@echo ${div}
-	ruff check .
-	ruff format . --check
+	poetry run ruff check $(DIR)
+	poetry run ruff format $(DIR) --check
 	@echo "Done!"
 
 fix:
 	@echo ${div}
-	ruff format .
+	poetry run ruff format $(DIR)
 	@echo ${div}
-	ruff check . --fix
+	poetry run ruff check $(DIR) --fix
 	@echo "Done!"
