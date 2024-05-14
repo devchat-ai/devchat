@@ -41,12 +41,12 @@ def chat_completion_stream_commit(
     llm_config: Dict,  # {"model": "...", ...}
 ):
     proxy_url = os.environ.get("DEVCHAT_PROXY", "")
-    proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+    proxy_setting = {"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
 
     client = openai.OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY", None),
         base_url=os.environ.get("OPENAI_API_BASE", None),
-        http_client=httpx.Client(**proxy_setting, trust_env=False)
+        http_client=httpx.Client(**proxy_setting, trust_env=False),
     )
 
     llm_config["stream"] = True
@@ -56,12 +56,12 @@ def chat_completion_stream_commit(
 
 def chat_completion_stream_raw(**kwargs):
     proxy_url = os.environ.get("DEVCHAT_PROXY", "")
-    proxy_setting ={"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
+    proxy_setting = {"proxy": {"https://": proxy_url, "http://": proxy_url}} if proxy_url else {}
 
     client = openai.OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY", None),
         base_url=os.environ.get("OPENAI_API_BASE", None),
-        http_client=httpx.Client(**proxy_setting, trust_env=False)
+        http_client=httpx.Client(**proxy_setting, trust_env=False),
     )
 
     kwargs["stream"] = True
@@ -164,13 +164,13 @@ chat_completion_no_stream_return_json_with_retry = exception_handle(
     exception_output_handle(lambda err: None),
 )
 
-def chat_completion_no_stream_return_json(
-        messages: List[Dict], llm_config: Dict):
+
+def chat_completion_no_stream_return_json(messages: List[Dict], llm_config: Dict):
     """call llm without stream, return json object"""
-    llm_config["response_format"]={"type": "json_object"}
+    llm_config["response_format"] = {"type": "json_object"}
     return chat_completion_no_stream_return_json_with_retry(
-        messages=messages,
-        llm_config=llm_config)
+        messages=messages, llm_config=llm_config
+    )
 
 
 chat_completion_stream = exception_handle(

@@ -1,6 +1,6 @@
 import ast
 import json
-from dataclasses import dataclass, asdict, field, fields
+from dataclasses import asdict, dataclass, field, fields
 from typing import Dict, Optional
 
 from devchat.message import Message
@@ -17,19 +17,21 @@ class OpenAIMessage(Message):
             raise ValueError("Invalid role. Must be one of 'system', 'user', or 'assistant'.")
 
         if not self._validate_name():
-            raise ValueError("Invalid name. Must contain a-z, A-Z, 0-9, and underscores, "
-                             "with a maximum length of 64 characters.")
+            raise ValueError(
+                "Invalid name. Must contain a-z, A-Z, 0-9, and underscores, "
+                "with a maximum length of 64 characters."
+            )
 
     def to_dict(self) -> dict:
         state = asdict(self)
-        if state['name'] is None:
-            del state['name']
-        if not state['function_call'] or len(state['function_call'].keys()) == 0:
-            del state['function_call']
+        if state["name"] is None:
+            del state["name"]
+        if not state["function_call"] or len(state["function_call"].keys()) == 0:
+            del state["function_call"]
         return state
 
     @classmethod
-    def from_dict(cls, message_data: dict) -> 'OpenAIMessage':
+    def from_dict(cls, message_data: dict) -> "OpenAIMessage":
         keys = {f.name for f in fields(cls)}
         kwargs = {k: v for k, v in message_data.items() if k in keys}
         return cls(**kwargs)
@@ -44,24 +46,24 @@ class OpenAIMessage(Message):
         }
         '''
         if not self.function_call:
-            return ''
+            return ""
         function_call_copy = self.function_call.copy()
-        if 'arguments' in function_call_copy:
+        if "arguments" in function_call_copy:
             # arguments field may be not a json string
             # we can try parse it by eval
             try:
-                function_call_copy['arguments'] = ast.literal_eval(function_call_copy['arguments'])
+                function_call_copy["arguments"] = ast.literal_eval(function_call_copy["arguments"])
             except Exception:
                 # if it is not a json string, we can do nothing
                 try:
-                    function_call_copy['arguments'] = json.loads(function_call_copy['arguments'])
+                    function_call_copy["arguments"] = json.loads(function_call_copy["arguments"])
                 except Exception:
                     pass
-        return '```command\n' + json.dumps(function_call_copy) + '\n```'
+        return "```command\n" + json.dumps(function_call_copy) + "\n```"
 
     def stream_from_dict(self, message_data: dict) -> str:
         """Append to the message from a dictionary returned from a streaming chat API."""
-        delta = message_data.get('content', '')
+        delta = message_data.get("content", "")
         if self.content:
             self.content += delta
         else:

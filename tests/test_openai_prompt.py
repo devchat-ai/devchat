@@ -1,9 +1,10 @@
 import json
 import os
+
 import pytest
+
 from devchat.message import Message
-from devchat.openai import OpenAIMessage
-from devchat.openai import OpenAIPrompt
+from devchat.openai import OpenAIMessage, OpenAIPrompt
 from devchat.utils import get_user_info
 
 
@@ -13,7 +14,7 @@ def test_prompt_init_and_set_response():
     assert prompt.model == "gpt-3.5-turbo"
 
     prompt.set_request("Where was the 2020 World Series played?")
-    response_str = '''
+    response_str = """
     {
       "id": "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
       "object": "chat.completion",
@@ -31,7 +32,7 @@ def test_prompt_init_and_set_response():
         }
       ]
     }
-    '''
+    """
     prompt.set_response(response_str)
 
     assert prompt.timestamp == 1677649420
@@ -42,17 +43,17 @@ def test_prompt_init_and_set_response():
     assert prompt.responses[0].content == "The 2020 World Series was played in Arlington, Texas."
 
 
-@pytest.fixture(scope="module", name='responses')
+@pytest.fixture(scope="module", name="responses")
 def fixture_responses():
     current_dir = os.path.dirname(__file__)
     folder_path = os.path.join(current_dir, "stream_responses")
     stream_responses = []
 
     file_names = os.listdir(folder_path)
-    sorted_file_names = sorted(file_names, key=lambda x: int(x.split('.')[0][8:]))
+    sorted_file_names = sorted(file_names, key=lambda x: int(x.split(".")[0][8:]))
 
     for file_name in sorted_file_names:
-        with open(os.path.join(folder_path, file_name), 'r', encoding='utf-8') as file:
+        with open(os.path.join(folder_path, file_name), "r", encoding="utf-8") as file:
             response = json.load(file)
             stream_responses.append(response)
 
@@ -67,8 +68,8 @@ def test_append_response(responses):
         prompt.append_response(json.dumps(response))
 
     expected_messages = [
-        OpenAIMessage(role='assistant', content='Tomorrow.'),
-        OpenAIMessage(role='assistant', content='Tomorrow!')
+        OpenAIMessage(role="assistant", content="Tomorrow."),
+        OpenAIMessage(role="assistant", content="Tomorrow!"),
     ]
 
     assert len(prompt.responses) == len(expected_messages)
@@ -84,15 +85,15 @@ def test_messages_empty():
 
 def test_messages_instruct():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    instruct_message = OpenAIMessage(content='Instructions', role='system')
-    prompt.append_new(Message.INSTRUCT, 'Instructions')
+    instruct_message = OpenAIMessage(content="Instructions", role="system")
+    prompt.append_new(Message.INSTRUCT, "Instructions")
     assert prompt.messages == [instruct_message.to_dict()]
 
 
 def test_messages_context():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    context_message = OpenAIMessage(content='Context', role='system')
-    prompt.append_new(Message.CONTEXT, 'Context')
+    context_message = OpenAIMessage(content="Context", role="system")
+    prompt.append_new(Message.CONTEXT, "Context")
     expected_message = context_message.to_dict()
     expected_message["content"] = "<context>\n" + context_message.content + "\n</context>"
     assert prompt.messages == [expected_message]
@@ -101,26 +102,26 @@ def test_messages_context():
 def test_messages_record():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     with pytest.raises(ValueError):
-        prompt.append_new(Message.CHAT, 'Record')
+        prompt.append_new(Message.CHAT, "Record")
 
 
 def test_messages_request():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    request_message = OpenAIMessage(content='Request', role='user')
-    prompt.set_request('Request')
+    request_message = OpenAIMessage(content="Request", role="user")
+    prompt.set_request("Request")
     expected_message = request_message.to_dict()
     assert prompt.messages == [expected_message]
 
 
 def test_messages_combined():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
-    instruct_message = OpenAIMessage(content='Instructions', role='system')
-    context_message = OpenAIMessage(content='Context', role='system')
-    request_message = OpenAIMessage(content='Request', role='user')
+    instruct_message = OpenAIMessage(content="Instructions", role="system")
+    context_message = OpenAIMessage(content="Context", role="system")
+    request_message = OpenAIMessage(content="Request", role="user")
 
-    prompt.append_new(Message.INSTRUCT, 'Instructions')
-    prompt.append_new(Message.CONTEXT, 'Context')
-    prompt.set_request('Request')
+    prompt.append_new(Message.INSTRUCT, "Instructions")
+    prompt.append_new(Message.CONTEXT, "Context")
+    prompt.set_request("Request")
 
     expected_context_message = context_message.to_dict()
     expected_context_message["content"] = "<context>\n" + context_message.content + "\n</context>"
@@ -131,14 +132,14 @@ def test_messages_combined():
     assert prompt.messages == [
         instruct_message.to_dict(),
         expected_request_message,
-        expected_context_message
+        expected_context_message,
     ]
 
 
 def test_messages_invalid_append():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     with pytest.raises(ValueError):
-        prompt.append_new('invalid', 'Instructions')
+        prompt.append_new("invalid", "Instructions")
 
 
 def test_messages_invalid_request():
@@ -160,7 +161,7 @@ def test_input_messages():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     messages = [
         {"role": "system", "content": "instruction"},
-        {"role": "user", "content": "request"}
+        {"role": "user", "content": "request"},
     ]
     assert prompt.request_tokens == 0
     prompt.input_messages(messages)
@@ -204,7 +205,7 @@ def test_input_messages():
     prompt = OpenAIPrompt("davinci-codex", "John Doe", "john.doe@example.com")
     messages = [
         {"role": "user", "content": "request"},
-        {"role": "system", "content": "<context>context1</context>"}
+        {"role": "system", "content": "<context>context1</context>"},
     ]
     assert prompt.request_tokens == 0
     prompt.input_messages(messages)

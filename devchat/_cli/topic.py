@@ -1,18 +1,21 @@
 import click
 
-@click.command(help='Manage topics')
-@click.option('--list', '-l', 'list_topics', is_flag=True,
-              help='List topics in reverse chronological order.')
-@click.option('--skip', default=0, help='Skip number of topics before showing the list.')
-@click.option('-n', '--max-count', default=100, help='Limit the number of topics to output.')
+
+@click.command(help="Manage topics")
+@click.option(
+    "--list", "-l", "list_topics", is_flag=True, help="List topics in reverse chronological order."
+)
+@click.option("--skip", default=0, help="Skip number of topics before showing the list.")
+@click.option("-n", "--max-count", default=100, help="Limit the number of topics to output.")
 def topic(list_topics: bool, skip: int, max_count: int):
     """
     Manage topics.
     """
     import json
+
+    from devchat._cli.utils import get_model_config, handle_errors, init_dir
+    from devchat.openai import OpenAIChat, OpenAIChatConfig
     from devchat.store import Store
-    from devchat.openai import OpenAIChatConfig, OpenAIChat
-    from devchat._cli.utils import init_dir, handle_errors, get_model_config
 
     repo_chat_dir, user_chat_dir = init_dir()
 

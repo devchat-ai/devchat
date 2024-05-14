@@ -1,6 +1,8 @@
 from typing import Tuple
+
 import pytest
-from devchat.openai import OpenAIChatConfig, OpenAIChat
+
+from devchat.openai import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 
 
@@ -13,7 +15,7 @@ def create_chat_store(tmp_path) -> Tuple[OpenAIChat, Store]:
 
 def _create_response_str(cmpl_id: str, created: int, content: str) -> str:
     """Create a response string from the given parameters."""
-    return f'''
+    return f"""
     {{
       "id": "{cmpl_id}",
       "object": "chat.completion",
@@ -31,14 +33,17 @@ def _create_response_str(cmpl_id: str, created: int, content: str) -> str:
         }}
       ]
     }}
-    '''
+    """
 
 
 def test_get_prompt(chat_store):
     chat, store = chat_store
     prompt = chat.init_prompt("Where was the 2020 World Series played?")
-    response_str = _create_response_str("chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve", 1577649420,
-                                        "The 2020 World Series was played in Arlington, Texas.")
+    response_str = _create_response_str(
+        "chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve",
+        1577649420,
+        "The 2020 World Series was played in Arlington, Texas.",
+    )
     prompt.set_response(response_str)
     store.store_prompt(prompt)
 
@@ -52,8 +57,9 @@ def test_select_recent(chat_store):
     hashes = []
     for index in range(5):
         prompt = chat.init_prompt(f"Question {index}")
-        response_str = _create_response_str(f"chatcmpl-id{index}", 1577649420 + index,
-                                            f"Answer {index}")
+        response_str = _create_response_str(
+            f"chatcmpl-id{index}", 1577649420 + index, f"Answer {index}"
+        )
         prompt.set_response(response_str)
         store.store_prompt(prompt)
         hashes.append(prompt.hash)
@@ -96,8 +102,9 @@ def test_select_recent_with_topic_tree(chat_store):
     for index in range(1):
         grandchild_prompt = chat.init_prompt(f"Grandchild question {index}")
         grandchild_prompt.parent = child_prompt.hash
-        response_str = _create_response_str(f"chatcmpl-grandchild{index}", 1677649402 + index,
-                                            f"Grandchild answer {index}")
+        response_str = _create_response_str(
+            f"chatcmpl-grandchild{index}", 1677649402 + index, f"Grandchild answer {index}"
+        )
         grandchild_prompt.set_response(response_str)
         store.store_prompt(grandchild_prompt)
         grandchild_hashes.append(grandchild_prompt.hash)
@@ -105,7 +112,7 @@ def test_select_recent_with_topic_tree(chat_store):
     # Test selecting topics
     topics = store.select_topics(0, 5)
     assert len(topics) == 1
-    assert topics[0]['root_prompt']['hash'] == root_prompt.hash
+    assert topics[0]["root_prompt"]["hash"] == root_prompt.hash
 
     # Test selecting recent prompts within the nested topic
     recent_prompts = store.select_prompts(1, 3, topic=root_prompt.hash)
@@ -134,15 +141,17 @@ def create_prompt_tree(chat_store):
     # Create and store a grandchild prompt for the child prompt
     grandchild_prompt = chat.init_prompt("Grandchild question")
     grandchild_prompt.parent = child_prompt.hash
-    grandchild_response_str = _create_response_str("chatcmpl-grandchild", 1677649400 + 2,
-                                                   "Grandchild answer")
+    grandchild_response_str = _create_response_str(
+        "chatcmpl-grandchild", 1677649400 + 2, "Grandchild answer"
+    )
     grandchild_prompt.set_response(grandchild_response_str)
     store.store_prompt(grandchild_prompt)
 
     # Create and store another root prompt
     other_root_prompt = chat.init_prompt("Other root question")
-    other_root_response_str = _create_response_str("chatcmpl-other-root", 1677649400 + 3,
-                                                   "Other root answer")
+    other_root_response_str = _create_response_str(
+        "chatcmpl-other-root", 1677649400 + 3, "Other root answer"
+    )
     other_root_prompt.set_response(other_root_response_str)
     store.store_prompt(other_root_prompt)
 
@@ -165,8 +174,8 @@ def test_delete_prompt_grandchild(prompt_tree):
     # Verify the trees after deletion
     topics = store.select_topics(0, 5)
     assert len(topics) == 2
-    assert topics[0]['root_prompt']['hash'] == other_root_prompt.hash
-    assert topics[1]['root_prompt']['hash'] == root_prompt.hash
+    assert topics[0]["root_prompt"]["hash"] == other_root_prompt.hash
+    assert topics[1]["root_prompt"]["hash"] == root_prompt.hash
 
 
 def test_delete_prompt_other_root(prompt_tree):
@@ -178,4 +187,4 @@ def test_delete_prompt_other_root(prompt_tree):
     # Verify the trees after deletion
     topics = store.select_topics(0, 5)
     assert len(topics) == 1
-    assert topics[0]['root_prompt']['hash'] == root_prompt.hash
+    assert topics[0]["root_prompt"]["hash"] == root_prompt.hash

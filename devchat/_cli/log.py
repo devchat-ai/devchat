@@ -1,11 +1,11 @@
-
 import json
 import sys
 import time
-from typing import Optional, List, Dict
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 import click
+
 
 @dataclass
 class PromptData:
@@ -18,28 +18,34 @@ class PromptData:
     response_tokens: int = 0
 
 
-@click.command(help='Process logs')
-@click.option('--skip', default=0, help='Skip number prompts before showing the prompt history.')
-@click.option('-n', '--max-count', default=1, help='Limit the number of commits to output.')
-@click.option('-t', '--topic', 'topic_root', default=None,
-              help='Hash of the root prompt of the topic to select prompts from.')
-@click.option('--insert', default=None, help='JSON string of the prompt to insert into the log.')
-@click.option('--delete', default=None, help='Hash of the leaf prompt to delete from the log.')
+@click.command(help="Process logs")
+@click.option("--skip", default=0, help="Skip number prompts before showing the prompt history.")
+@click.option("-n", "--max-count", default=1, help="Limit the number of commits to output.")
+@click.option(
+    "-t",
+    "--topic",
+    "topic_root",
+    default=None,
+    help="Hash of the root prompt of the topic to select prompts from.",
+)
+@click.option("--insert", default=None, help="JSON string of the prompt to insert into the log.")
+@click.option("--delete", default=None, help="Hash of the leaf prompt to delete from the log.")
 def log(skip, max_count, topic_root, insert, delete):
     """
     Manage the prompt history.
     """
+    from devchat._cli.utils import get_model_config, handle_errors, init_dir
     from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
-
     from devchat.store import Store
-    from devchat._cli.utils import handle_errors, init_dir, get_model_config
     from devchat.utils import get_logger, get_user_info
 
     logger = get_logger(__name__)
 
     if (insert or delete) and (skip != 0 or max_count != 1 or topic_root is not None):
-        print("Error: The --insert or --delete option cannot be used with other options.",
-                   file=sys.stderr)
+        print(
+            "Error: The --insert or --delete option cannot be used with other options.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     repo_chat_dir, user_chat_dir = init_dir()

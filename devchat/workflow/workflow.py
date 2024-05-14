@@ -1,14 +1,14 @@
-
 import os
 import sys
-from typing import Optional, Tuple, List, Dict
-import oyaml as yaml
-from .step import WorkflowStep
-from .schema import WorkflowConfig, RuntimeParameter
-from .path import COMMAND_FILENAMES
-from .namespace import get_prioritized_namespace_path
+from typing import Dict, List, Optional, Tuple
 
-from .env_manager import PyEnvManager, EXTERNAL_ENVS
+import oyaml as yaml
+
+from .env_manager import EXTERNAL_ENVS, PyEnvManager
+from .namespace import get_prioritized_namespace_path
+from .path import COMMAND_FILENAMES
+from .schema import RuntimeParameter, WorkflowConfig
+from .step import WorkflowStep
 
 
 class Workflow:
@@ -46,9 +46,7 @@ class Workflow:
         workflow_name = striped.split()[0][1:]
 
         # remove the trigger prefix and the workflow name
-        actual_input = user_input.replace(
-            f"{Workflow.TRIGGER_PREFIX}{workflow_name}", "", 1
-        )
+        actual_input = user_input.replace(f"{Workflow.TRIGGER_PREFIX}{workflow_name}", "", 1)
         return workflow_name, actual_input
 
     @staticmethod

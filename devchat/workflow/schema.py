@@ -1,7 +1,7 @@
 import re
-from typing import Optional, List, Dict, Union
+from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel, validator, Extra, ValidationError
+from pydantic import BaseModel, Extra, ValidationError, validator
 
 
 class WorkflowPyConf(BaseModel):

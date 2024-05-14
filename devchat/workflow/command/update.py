@@ -1,26 +1,25 @@
-
 import os
 import shutil
 import tempfile
 import zipfile
-from typing import List, Optional, Tuple
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 import click
 import requests
 
+from devchat.utils import get_logger
 from devchat.workflow.path import (
     CHAT_DIR,
+    CUSTOM_BASE,
     WORKFLOWS_BASE,
     WORKFLOWS_BASE_NAME,
-    CUSTOM_BASE,
 )
-from devchat.utils import get_logger
 
 HAS_GIT = False
 try:
-    from git import Repo, InvalidGitRepositoryError, GitCommandError
+    from git import GitCommandError, InvalidGitRepositoryError, Repo
 except ImportError:
     pass
 else:
@@ -253,9 +252,7 @@ def update_by_git(workflow_base: Path):
         remote_main_hash = repo.commit(f"origin/{DEFAULT_BRANCH}").hexsha
 
         if local_main_hash == remote_main_hash:
-            click.echo(
-                f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
-            )
+            click.echo(f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update.")
             return
 
         try:
@@ -289,15 +286,11 @@ def copy_workflows_usr():
         shutil.copytree(old_usr_dir, new_usr_dir)
         click.echo(f"Copied {old_usr_dir} to {new_usr_dir} successfully.")
     else:
-        click.echo(
-            f"Skip copying usr dir. old exists: {old_exists}, new exists: {new_exists}."
-        )
+        click.echo(f"Skip copying usr dir. old exists: {old_exists}, new exists: {new_exists}.")
 
 
 @click.command(help="Update the workflow_base dir.")
-@click.option(
-    "-f", "--force", is_flag=True, help="Force update the workflows to the latest main."
-)
+@click.option("-f", "--force", is_flag=True, help="Force update the workflows to the latest main.")
 def update(force: bool):
     click.echo(f"Updating wf repo... force: {force}")
     click.echo(f"WORKFLOWS_BASE: {WORKFLOWS_BASE}")

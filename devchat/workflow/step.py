@@ -1,13 +1,14 @@
+import json
 import os
+import shlex
+import subprocess
 import sys
 import threading
-import subprocess
-import shlex
-import json
-from typing import Dict, Tuple, List
 from enum import Enum
-from .schema import WorkflowConfig, RuntimeParameter
+from typing import Dict, List, Tuple
+
 from .path import WORKFLOWS_BASE
+from .schema import RuntimeParameter, WorkflowConfig
 
 
 class BuiltInVars(str, Enum):
@@ -45,9 +46,7 @@ class WorkflowStep:
         """
         return self._kwargs.get("run", "")
 
-    def _setup_env(
-        self, wf_config: WorkflowConfig, rt_param: RuntimeParameter
-    ) -> Dict[str, str]:
+    def _setup_env(self, wf_config: WorkflowConfig, rt_param: RuntimeParameter) -> Dict[str, str]:
         """
         Setup the environment variables for the subprocess.
         """
@@ -94,8 +93,7 @@ class WorkflowStep:
         if BuiltInVars.workflow_python in command_raw:
             if not rt_param.workflow_python:
                 raise ValueError(
-                    "The command uses $workflow_python, "
-                    "but the workflow_python is not set yet."
+                    "The command uses $workflow_python, " "but the workflow_python is not set yet."
                 )
 
         args = []
@@ -127,10 +125,7 @@ class WorkflowStep:
 
         return args
 
-
-    def run(
-        self, wf_config: WorkflowConfig, rt_param: RuntimeParameter
-    ) -> Tuple[int, str, str]:
+    def run(self, wf_config: WorkflowConfig, rt_param: RuntimeParameter) -> Tuple[int, str, str]:
         """
         Run the step in a subprocess.
 

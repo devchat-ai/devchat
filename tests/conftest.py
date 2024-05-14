@@ -2,11 +2,12 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+
 import pytest
 from git import Repo
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def git_repo(request):
     # Create a temporary directory
     repo_dir = tempfile.mkdtemp()
@@ -27,19 +28,19 @@ def git_repo(request):
     return repo_dir
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def mock_home_dir(tmp_path, request):
-    home_dir = Path(tmp_path / 'home')
+    home_dir = Path(tmp_path / "home")
     home_dir.mkdir()
 
-    original_home = os.environ.get('HOME')
-    os.environ['HOME'] = str(home_dir)
+    original_home = os.environ.get("HOME")
+    os.environ["HOME"] = str(home_dir)
 
     def cleanup():
         if original_home is not None:
-            os.environ['HOME'] = original_home
+            os.environ["HOME"] = original_home
         else:
-            del os.environ['HOME']
+            del os.environ["HOME"]
         shutil.rmtree(home_dir)
 
     request.addfinalizer(cleanup)

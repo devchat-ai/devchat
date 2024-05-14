@@ -3,9 +3,9 @@ import os
 import sys
 from functools import wraps
 
-from devchat.memory import ChatMemory
 from devchat.chatmark import Form, Radio, TextEditor
 from devchat.ide import IDEService
+from devchat.memory import ChatMemory
 
 from .openai import chat_call_completion_stream
 

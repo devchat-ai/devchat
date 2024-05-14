@@ -1,14 +1,13 @@
 import json
 import sys
 import time
-from typing import Optional, List, Iterator
+from typing import Iterator, List, Optional
 
-from devchat.message import Message
 from devchat.chat import Chat
+from devchat.message import Message
 from devchat.openai.openai_prompt import OpenAIPrompt
 from devchat.store import Store
 from devchat.utils import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -37,14 +36,20 @@ class Assistant:
 
     def _check_limit(self):
         if self._prompt.request_tokens > self.token_limit:
-            raise ValueError(f"Prompt tokens {self._prompt.request_tokens} "
-                             f"beyond limit {self.token_limit}.")
+            raise ValueError(
+                f"Prompt tokens {self._prompt.request_tokens} " f"beyond limit {self.token_limit}."
+            )
 
-    def make_prompt(self, request: str,
-                    instruct_contents: Optional[List[str]], context_contents: Optional[List[str]],
-                    functions: Optional[List[dict]],
-                    parent: Optional[str] = None, references: Optional[List[str]] = None,
-                    function_name: Optional[str] = None):
+    def make_prompt(
+        self,
+        request: str,
+        instruct_contents: Optional[List[str]],
+        context_contents: Optional[List[str]],
+        functions: Optional[List[dict]],
+        parent: Optional[str] = None,
+        references: Optional[List[str]] = None,
+        function_name: Optional[str] = None,
+    ):
         """
         Make a prompt for the chat API.
 
@@ -59,7 +64,7 @@ class Assistant:
         self._check_limit()
         # Add instructions to the prompt
         if instruct_contents:
-            combined_instruct = ''.join(instruct_contents)
+            combined_instruct = "".join(instruct_contents)
             self._prompt.append_new(Message.INSTRUCT, combined_instruct)
             self._check_limit()
         # Add context to the prompt
@@ -77,8 +82,9 @@ class Assistant:
             for reference_hash in references:
                 prompt = self._store.get_prompt(reference_hash)
                 if not prompt:
-                    logger.error("Reference %s not retrievable while making prompt.",
-                                 reference_hash)
+                    logger.error(
+                        "Reference %s not retrievable while making prompt.", reference_hash
+                    )
                     continue
                 self._prompt.references.append(reference_hash)
                 self._prompt.prepend_history(prompt, self.token_limit)
@@ -111,8 +117,10 @@ class Assistant:
                 try:
                     if hasattr(chunk, "dict"):
                         chunk = chunk.dict()
-                    if "function_call" in chunk["choices"][0]["delta"] and \
-                            not chunk["choices"][0]["delta"]["function_call"]:
+                    if (
+                        "function_call" in chunk["choices"][0]["delta"]
+                        and not chunk["choices"][0]["delta"]["function_call"]
+                    ):
                         del chunk["choices"][0]["delta"]["function_call"]
                         if not chunk["choices"][0]["delta"]["content"]:
                             chunk["choices"][0]["delta"]["content"] = ""
@@ -123,8 +131,8 @@ class Assistant:
                         chunk["model"] = config_params["model"]
                         chunk["choices"][0]["index"] = 0
                         chunk["choices"][0]["finish_reason"] = "stop"
-                    if "role" not in chunk['choices'][0]['delta']:
-                        chunk['choices'][0]['delta']['role']='assistant'
+                    if "role" not in chunk["choices"][0]["delta"]:
+                        chunk["choices"][0]["delta"]["role"] = "assistant"
 
                     delta = self._prompt.append_response(json.dumps(chunk))
                     yield delta
@@ -136,9 +144,9 @@ class Assistant:
                 raise RuntimeError("No responses returned from the chat API")
             if self._need_store:
                 self._store.store_prompt(self._prompt)
-                yield self._prompt.formatted_footer(0) + '\n'
+                yield self._prompt.formatted_footer(0) + "\n"
             for index in range(1, len(self._prompt.responses)):
-                yield self._prompt.formatted_full_response(index) + '\n'
+                yield self._prompt.formatted_full_response(index) + "\n"
         else:
             response_str = self._chat.complete_response(self._prompt)
             self._prompt.set_response(response_str)
@@ -147,4 +155,4 @@ class Assistant:
             if self._need_store:
                 self._store.store_prompt(self._prompt)
             for index in range(len(self._prompt.responses)):
-                yield self._prompt.formatted_full_response(index) + '\n'
+                yield self._prompt.formatted_full_response(index) + "\n"

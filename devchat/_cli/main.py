@@ -1,15 +1,11 @@
 """
 This module contains the main function for the DevChat CLI.
 """
+
 import click
 
+from devchat._cli import log, prompt, route, run, topic
 from devchat.utils import get_logger
-from devchat._cli import log
-from devchat._cli import prompt
-from devchat._cli import run
-from devchat._cli import topic
-from devchat._cli import route
-
 from devchat.workflow.cli import workflow
 
 logger = get_logger(__name__)

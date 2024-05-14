@@ -1,6 +1,7 @@
 """
 Explicitly define the environment variables used in the workflow engine.
 """
+
 import os
 
 PYTHON_PATH = os.environ.get("PYTHONPATH", "")

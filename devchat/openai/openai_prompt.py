@@ -1,11 +1,12 @@
-from dataclasses import dataclass
 import json
 import sys
+from dataclasses import dataclass
 from typing import List, Optional
-from devchat.prompt import Prompt
+
 from devchat.message import Message
-from devchat.utils import update_dict, get_logger
-from devchat.utils import openai_message_tokens, openai_response_tokens
+from devchat.prompt import Prompt
+from devchat.utils import get_logger, openai_message_tokens, openai_response_tokens, update_dict
+
 from .openai_message import OpenAIMessage
 
 logger = get_logger(__name__)
@@ -31,9 +32,10 @@ class OpenAIPrompt(Prompt):
             combined += [msg.to_dict() for msg in self._new_messages[Message.INSTRUCT]]
         # History context
         if self._history_messages[Message.CONTEXT]:
-            combined += [update_dict(msg.to_dict(), 'content',
-                                     f"<context>\n{msg.content}\n</context>")
-                         for msg in self._history_messages[Message.CONTEXT]]
+            combined += [
+                update_dict(msg.to_dict(), "content", f"<context>\n{msg.content}\n</context>")
+                for msg in self._history_messages[Message.CONTEXT]
+            ]
         # History chat
         if self._history_messages[Message.CHAT]:
             combined += [msg.to_dict() for msg in self._history_messages[Message.CHAT]]
@@ -42,9 +44,10 @@ class OpenAIPrompt(Prompt):
             combined += [self.request.to_dict()]
         # New context
         if self.new_context:
-            combined += [update_dict(msg.to_dict(), 'content',
-                                     f"<context>\n{msg.content}\n</context>")
-                         for msg in self.new_context]
+            combined += [
+                update_dict(msg.to_dict(), "content", f"<context>\n{msg.content}\n</context>")
+                for msg in self.new_context
+            ]
         return combined
 
     def input_messages(self, messages: List[dict]):
@@ -94,12 +97,13 @@ class OpenAIPrompt(Prompt):
                     continue
                 self._history_messages[Message.CHAT].append(last_message)
 
-    def append_new(self, message_type: str, content: str,
-                   available_tokens: int = sys.maxsize) -> bool:
+    def append_new(
+        self, message_type: str, content: str, available_tokens: int = sys.maxsize
+    ) -> bool:
         if message_type not in (Message.INSTRUCT, Message.CONTEXT):
             raise ValueError(f"Current messages cannot be of type {message_type}.")
         # New instructions and context are of the system role
-        message = OpenAIMessage(content=content, role='system')
+        message = OpenAIMessage(content=content, role="system")
 
         num_tokens = openai_message_tokens(message.to_dict(), self.model)
         if num_tokens > available_tokens:
@@ -121,8 +125,9 @@ class OpenAIPrompt(Prompt):
     def get_functions(self):
         return self._new_messages.get(Message.FUNCTION, None)
 
-    def _prepend_history(self, message_type: str, message: Message,
-                         token_limit: int = sys.maxsize) -> bool:
+    def _prepend_history(
+        self, message_type: str, message: Message, token_limit: int = sys.maxsize
+    ) -> bool:
         if message_type == Message.INSTRUCT:
             raise ValueError("History messages cannot be of type INSTRUCT.")
         num_tokens = openai_message_tokens(message.to_dict(), self.model)
@@ -132,7 +137,7 @@ class OpenAIPrompt(Prompt):
         self._request_tokens += num_tokens
         return True
 
-    def prepend_history(self, prompt: 'OpenAIPrompt', token_limit: int = sys.maxsize) -> bool:
+    def prepend_history(self, prompt: "OpenAIPrompt", token_limit: int = sys.maxsize) -> bool:
         # Prepend the first response and the request of the prompt
         if not self._prepend_history(Message.CHAT, prompt.responses[0], token_limit):
             return False
@@ -148,9 +153,9 @@ class OpenAIPrompt(Prompt):
     def set_request(self, content: str, function_name: Optional[str] = None) -> int:
         if not content.strip():
             raise ValueError("The request cannot be empty.")
-        message = OpenAIMessage(content=content,
-                                role=('user' if not function_name else 'function'),
-                                name=function_name)
+        message = OpenAIMessage(
+            content=content, role=("user" if not function_name else "function"), name=function_name
+        )
         self.request = message
         self._request_tokens += openai_message_tokens(message.to_dict(), self.model)
 
@@ -166,17 +171,17 @@ class OpenAIPrompt(Prompt):
         self._timestamp_from_dict(response_data)
         self._id_from_dict(response_data)
 
-        self._request_tokens = response_data['usage']['prompt_tokens']
-        self._response_tokens = response_data['usage']['completion_tokens']
+        self._request_tokens = response_data["usage"]["prompt_tokens"]
+        self._response_tokens = response_data["usage"]["completion_tokens"]
 
-        for choice in response_data['choices']:
-            index = choice['index']
+        for choice in response_data["choices"]:
+            index = choice["index"]
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
                 self._response_reasons.extend([None] * (index - len(self._response_reasons) + 1))
-            self.responses[index] = OpenAIMessage.from_dict(choice['message'])
-            if choice['finish_reason']:
-                self._response_reasons[index] = choice['finish_reason']
+            self.responses[index] = OpenAIMessage.from_dict(choice["message"])
+            if choice["finish_reason"]:
+                self._response_reasons[index] = choice["finish_reason"]
 
     def append_response(self, delta_str: str) -> str:
         """
@@ -193,11 +198,11 @@ class OpenAIPrompt(Prompt):
         self._timestamp_from_dict(response_data)
         self._id_from_dict(response_data)
 
-        delta_content = ''
-        for choice in response_data['choices']:
-            delta = choice['delta']
-            index = choice['index']
-            finish_reason = choice['finish_reason']
+        delta_content = ""
+        for choice in response_data["choices"]:
+            delta = choice["delta"]
+            index = choice["index"]
+            finish_reason = choice["finish_reason"]
 
             if index >= len(self.responses):
                 self.responses.extend([None] * (index - len(self.responses) + 1))
@@ -206,22 +211,24 @@ class OpenAIPrompt(Prompt):
             if not self.responses[index]:
                 self.responses[index] = OpenAIMessage.from_dict(delta)
                 if index == 0:
-                    delta_content = self.responses[0].content if self.responses[0].content else ''
+                    delta_content = self.responses[0].content if self.responses[0].content else ""
             else:
                 if index == 0:
                     delta_content = self.responses[0].stream_from_dict(delta)
                 else:
                     self.responses[index].stream_from_dict(delta)
 
-                if 'function_call' in delta:
-                    if 'name' in delta['function_call'] and \
-                            self.responses[index].function_call.get('name', '') == '':
-                        self.responses[index].function_call['name'] = \
-                            delta['function_call']['name']
-                    if 'arguments' in delta['function_call']:
-                        self.responses[index].function_call['arguments'] = \
-                            self.responses[index].function_call.get('arguments', '') + \
-                            delta['function_call']['arguments']
+                if "function_call" in delta:
+                    if (
+                        "name" in delta["function_call"]
+                        and self.responses[index].function_call.get("name", "") == ""
+                    ):
+                        self.responses[index].function_call["name"] = delta["function_call"]["name"]
+                    if "arguments" in delta["function_call"]:
+                        self.responses[index].function_call["arguments"] = (
+                            self.responses[index].function_call.get("arguments", "")
+                            + delta["function_call"]["arguments"]
+                        )
 
             if finish_reason:
                 self._response_reasons[index] = finish_reason
@@ -231,19 +238,19 @@ class OpenAIPrompt(Prompt):
         return sum(openai_response_tokens(resp.to_dict(), self.model) for resp in self.responses)
 
     def _validate_model(self, response_data: dict):
-        if not response_data['model'].startswith(self.model):
-            logger.warning("Model mismatch: expected '%s', got '%s'",
-                           self.model, response_data['model'])
+        if not response_data["model"].startswith(self.model):
+            logger.warning(
+                "Model mismatch: expected '%s', got '%s'", self.model, response_data["model"]
+            )
 
     def _timestamp_from_dict(self, response_data: dict):
         if not self._timestamp:
-            self._timestamp = response_data['created']
-        elif self._timestamp != response_data['created']:
-            self._timestamp = response_data['created']
+            self._timestamp = response_data["created"]
+        elif self._timestamp != response_data["created"]:
+            self._timestamp = response_data["created"]
 
     def _id_from_dict(self, response_data: dict):
         if self._id is None:
-            self._id = response_data['id']
-        elif self._id != response_data['id']:
-            raise ValueError(f"ID mismatch: expected {self._id}, "
-                             f"got {response_data['id']}")
+            self._id = response_data["id"]
+        elif self._id != response_data["id"]:
+            raise ValueError(f"ID mismatch: expected {self._id}, " f"got {response_data['id']}")

@@ -1,7 +1,9 @@
 from pathlib import Path
+
 import oyaml as yaml
+
+from .path import USER_SETTINGS_FILENAME, WORKFLOWS_BASE
 from .schema import UserSettings
-from .path import WORKFLOWS_BASE, USER_SETTINGS_FILENAME
 
 
 def _load_user_settings() -> UserSettings:
@@ -19,5 +21,6 @@ def _load_user_settings() -> UserSettings:
         return UserSettings.parse_obj(content)
 
     return UserSettings()
+
 
 USER_SETTINGS = _load_user_settings()

@@ -4,6 +4,7 @@ import os
 import sys
 from urllib.parse import urlparse
 
+
 class LineReader:
     def __init__(self, response):
         self.response = response
@@ -18,7 +19,7 @@ class LineReader:
         line = line.strip()
         if not line:
             return self.__next__()
-        line = line.decode('utf-8')
+        line = line.decode("utf-8")
         if not line.startswith("data:"):
             print("Receive invalid line: {line}", end="\n\n", file=sys.stderr)
             raise ValueError(f"Invalid line: {line}")
@@ -31,13 +32,17 @@ class LineReader:
             print(f"Error decoding JSON: {err}", end="\n\n", file=sys.stderr)
             raise ValueError(f"Invalid line: {line}") from err
 
+
 def stream_response(connection: http.client.HTTPSConnection, data, headers):
     connection.request("POST", "/v1/chat/completions", body=json.dumps(data), headers=headers)
     response = connection.getresponse()
 
     if response.status != 200:
-        print(f"Error: {response.status} - {response.reason} {response.read()}",
-            end="\n\n", file=sys.stderr)
+        print(
+            f"Error: {response.status} - {response.reason} {response.read()}",
+            end="\n\n",
+            file=sys.stderr,
+        )
         return None
     return LineReader(response=response)
 

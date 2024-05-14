@@ -4,24 +4,45 @@ from typing import List, Optional
 import click
 
 
-@click.command(help='Route a prompt to the specified LLM')
-@click.argument('content', required=False)
-@click.option('-p', '--parent', help='Input the parent prompt hash to continue the conversation.')
-@click.option('-r', '--reference', multiple=True,
-              help='Input one or more specific previous prompts to include in the current prompt.')
-@click.option('-i', '--instruct', multiple=True,
-              help='Add one or more files to the prompt as instructions.')
-@click.option('-c', '--context', multiple=True,
-              help='Add one or more files to the prompt as a context.')
-@click.option('-m', '--model', help='Specify the model to use for the prompt.')
-@click.option('--config', 'config_str',
-              help='Specify a JSON string to overwrite the default configuration for this prompt.')
-@click.option('-a', '--auto', is_flag=True, default=False, required=False,
-              help='Answer question by function-calling.')
-def route(content: Optional[str], parent: Optional[str], reference: Optional[List[str]],
-           instruct: Optional[List[str]], context: Optional[List[str]],
-           model: Optional[str], config_str: Optional[str] = None,
-           auto: Optional[bool] = False):
+@click.command(help="Route a prompt to the specified LLM")
+@click.argument("content", required=False)
+@click.option("-p", "--parent", help="Input the parent prompt hash to continue the conversation.")
+@click.option(
+    "-r",
+    "--reference",
+    multiple=True,
+    help="Input one or more specific previous prompts to include in the current prompt.",
+)
+@click.option(
+    "-i", "--instruct", multiple=True, help="Add one or more files to the prompt as instructions."
+)
+@click.option(
+    "-c", "--context", multiple=True, help="Add one or more files to the prompt as a context."
+)
+@click.option("-m", "--model", help="Specify the model to use for the prompt.")
+@click.option(
+    "--config",
+    "config_str",
+    help="Specify a JSON string to overwrite the default configuration for this prompt.",
+)
+@click.option(
+    "-a",
+    "--auto",
+    is_flag=True,
+    default=False,
+    required=False,
+    help="Answer question by function-calling.",
+)
+def route(
+    content: Optional[str],
+    parent: Optional[str],
+    reference: Optional[List[str]],
+    instruct: Optional[List[str]],
+    context: Optional[List[str]],
+    model: Optional[str],
+    config_str: Optional[str] = None,
+    auto: Optional[bool] = False,
+):
     """
     This command performs interactions with the specified large language model (LLM)
     by sending prompts and receiving responses.
@@ -57,14 +78,5 @@ def route(content: Optional[str], parent: Optional[str], reference: Optional[Lis
     """
     from devchat._cli.router import llm_route
 
-    llm_route(
-        content,
-        parent,
-        reference,
-        instruct,
-        context,
-        model,
-        config_str,
-        auto
-	)
+    llm_route(content, parent, reference, instruct, context, model, config_str, auto)
     sys.exit(0)

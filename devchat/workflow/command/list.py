@@ -1,18 +1,18 @@
 import json
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import List, Set, Tuple, Dict
-from dataclasses import dataclass, asdict, field
+from typing import Dict, List, Set, Tuple
 
 import click
 import oyaml as yaml
 import yaml as pyyaml
 
+from devchat.utils import get_logger
 from devchat.workflow.namespace import get_prioritized_namespace_path
 from devchat.workflow.path import COMMAND_FILENAMES
-from devchat.utils import get_logger
-
 
 logger = get_logger(__name__)
+
 
 @dataclass
 class WorkflowMeta:
@@ -27,9 +27,7 @@ class WorkflowMeta:
         return f"{'*' if self.active else ' '} {self.name} ({self.namespace})"
 
 
-def iter_namespace(
-    ns_path: str, existing_names: Set[str]
-) -> Tuple[List[WorkflowMeta], Set[str]]:
+def iter_namespace(ns_path: str, existing_names: Set[str]) -> Tuple[List[WorkflowMeta], Set[str]]:
     """
     Get all workflows under the namespace path.
 
