@@ -19,8 +19,7 @@ def retry(func, times):
                     raise err.error
                 continue
             except Exception as err:
-                raise err
-        raise err.error
+                raise err.error
 
     return wrapper
 
