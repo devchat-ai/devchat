@@ -1,18 +1,16 @@
-# pylint: disable=import-outside-toplevel
+import datetime
+import getpass
+import hashlib
 import logging
 import os
 import re
-import getpass
 import socket
 import subprocess
-from typing import List, Tuple, Optional
-import datetime
-import hashlib
+from typing import List, Optional, Tuple
 
-
-log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# pylint: disable=invalid-name
+log_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 encoding = None
+
 
 def setup_logger(file_path: Optional[str] = None):
     """Utility function to set up a global file log handler."""
@@ -28,7 +26,7 @@ def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Log
     local_logger = logging.getLogger(name)
 
     # Default to 'INFO' if 'LOG_LEVEL' env is not set
-    log_level_str = os.getenv('LOG_LEVEL', 'INFO')
+    log_level_str = os.getenv("LOG_LEVEL", "INFO")
     log_level = getattr(logging, log_level_str.upper(), logging.INFO)
     local_logger.setLevel(log_level)
 
@@ -55,9 +53,13 @@ def find_root_dir() -> Tuple[Optional[str], Optional[str]]:
 
     repo_dir = None
     try:
-        repo_dir = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                                  capture_output=True, text=True, check=True,
-                                  encoding='utf-8').stdout.strip()
+        repo_dir = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding="utf-8",
+        ).stdout.strip()
         if not os.path.isdir(repo_dir):
             repo_dir = None
         else:
@@ -66,8 +68,9 @@ def find_root_dir() -> Tuple[Optional[str], Optional[str]]:
         repo_dir = None
 
     try:
-        result = subprocess.run(["svn", "info"],
-                                capture_output=True, text=True, check=True, encoding='utf-8')
+        result = subprocess.run(
+            ["svn", "info"], capture_output=True, text=True, check=True, encoding="utf-8"
+        )
         if result.returncode == 0:
             for line in result.stdout.splitlines():
                 if line.startswith("Working Copy Root Path: "):
@@ -81,10 +84,10 @@ def find_root_dir() -> Tuple[Optional[str], Optional[str]]:
 
 
 def add_gitignore(target_dir: str, *ignore_entries: str) -> None:
-    gitignore_path = os.path.join(target_dir, '.gitignore')
+    gitignore_path = os.path.join(target_dir, ".gitignore")
 
     if os.path.exists(gitignore_path):
-        with open(gitignore_path, 'r', encoding='utf-8') as gitignore_file:
+        with open(gitignore_path, "r", encoding="utf-8") as gitignore_file:
             gitignore_content = gitignore_file.read()
 
         new_entries = []
@@ -93,15 +96,15 @@ def add_gitignore(target_dir: str, *ignore_entries: str) -> None:
                 new_entries.append(entry)
 
         if new_entries:
-            with open(gitignore_path, 'a', encoding='utf-8') as gitignore_file:
-                gitignore_file.write('\n# devchat\n')
+            with open(gitignore_path, "a", encoding="utf-8") as gitignore_file:
+                gitignore_file.write("\n# devchat\n")
                 for entry in new_entries:
-                    gitignore_file.write(f'{entry}\n')
+                    gitignore_file.write(f"{entry}\n")
     else:
-        with open(gitignore_path, 'w', encoding='utf-8') as gitignore_file:
-            gitignore_file.write('# devchat\n')
+        with open(gitignore_path, "w", encoding="utf-8") as gitignore_file:
+            gitignore_file.write("# devchat\n")
             for entry in ignore_entries:
-                gitignore_file.write(f'{entry}\n')
+                gitignore_file.write(f"{entry}\n")
 
 
 def unix_to_local_datetime(unix_time) -> datetime.datetime:
@@ -116,8 +119,8 @@ def unix_to_local_datetime(unix_time) -> datetime.datetime:
 
 def get_user_info() -> Tuple[str, str]:
     try:
-        cmd = ['git', 'config', 'user.name']
-        user_name = subprocess.check_output(cmd, encoding='utf-8').strip()
+        cmd = ["git", "config", "user.name"]
+        user_name = subprocess.check_output(cmd, encoding="utf-8").strip()
     except Exception:
         try:
             user_name = getpass.getuser()
@@ -126,17 +129,17 @@ def get_user_info() -> Tuple[str, str]:
             user_name = user_dir.split(os.sep)[-1]
 
     try:
-        cmd = ['git', 'config', 'user.email']
-        user_email = subprocess.check_output(cmd, encoding='utf-8').strip()
+        cmd = ["git", "config", "user.email"]
+        user_email = subprocess.check_output(cmd, encoding="utf-8").strip()
     except Exception:
-        user_email = user_name + '@' + socket.gethostname()
+        user_email = user_name + "@" + socket.gethostname()
 
     return user_name, user_email
 
 
 def user_id(user_name, user_email) -> Tuple[str, str]:
     user_str = f"{user_name} <{user_email}>"
-    user_hash = hashlib.sha1(user_str.encode('utf-8')).hexdigest()
+    user_hash = hashlib.sha1(user_str.encode("utf-8")).hexdigest()
     return user_str, user_hash
 
 
@@ -151,7 +154,7 @@ def parse_files(file_paths: List[str]) -> List[str]:
 
     contents = []
     for file_path in file_paths:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
             if not content:
                 raise ValueError(f"File {file_path} is empty.")
@@ -161,7 +164,7 @@ def parse_files(file_paths: List[str]) -> List[str]:
 
 def valid_hash(hash_str):
     """Check if a string is a valid hash value."""
-    pattern = re.compile(r'^[a-f0-9]{64}$')  # for SHA-256 hash
+    pattern = re.compile(r"^[a-f0-9]{64}$")  # for SHA-256 hash
     return bool(pattern.match(hash_str))
 
 
@@ -198,25 +201,24 @@ def update_dict(dict_to_update, key, value) -> dict:
     return dict_to_update
 
 
-def openai_message_tokens(messages: dict, model: str) -> int:  # pylint: disable=unused-argument
+def openai_message_tokens(messages: dict, model: str) -> int:
     """Returns the number of tokens used by a message."""
     if not os.environ.get("USE_TIKTOKEN", False):
-        return len(str(messages))/4
+        return len(str(messages)) / 4
 
-    # pylint: disable=global-statement
     global encoding
     if not encoding:
         import tiktoken
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
-        os.environ['TIKTOKEN_CACHE_DIR'] = os.path.join(script_dir, 'tiktoken_cache')
+        os.environ["TIKTOKEN_CACHE_DIR"] = os.path.join(script_dir, "tiktoken_cache")
 
         try:
             encoding = tiktoken.get_encoding("cl100k_base")
         except Exception:
             from tiktoken import registry
-            from tiktoken.registry import _find_constructors
             from tiktoken.core import Encoding
+            from tiktoken.registry import _find_constructors
 
             def get_encoding(name: str):
                 _find_constructors()

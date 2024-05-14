@@ -19,8 +19,7 @@ def retry(func, times):
                     raise err.error
                 continue
             except Exception as err:
-                raise err
-        raise err.error
+                raise err.error
 
     return wrapper
 
@@ -62,9 +61,8 @@ def pipeline(*funcs):
     def wrapper(*args, **kwargs):
         for index, func in enumerate(funcs):
             if index > 0:
-                # pylint: disable=E1101
                 if isinstance(args, Dict) and args.get("__type__", None) == "parallel":
-                    args = func(*args["value"]) # pylint: disable=E1126
+                    args = func(*args["value"])
                 else:
                     args = func(args)
             else:

@@ -1,17 +1,9 @@
-# disable pylint
-# pylint: disable=W0613
-# pylint: disable=E1133
-# pylint: disable=R1710
-# pylint: disable=W0719
-# pylint: disable=W3101
-# pylint: disable=C0103
-
 from typing import List
 
-from .rpc import rpc_method
-from .types import Location, SymbolNode, LocationWithText
-from .vscode_services import selected_range, visible_range
 from .idea_services import IdeaIDEService
+from .rpc import rpc_method
+from .types import Location, LocationWithText, SymbolNode
+from .vscode_services import selected_range, visible_range
 
 
 class IDEService:
@@ -39,7 +31,7 @@ class IDEService:
     @rpc_method
     def install_python_env(self, command_name: str, requirements_file: str) -> str:
         """
-        A method to install a Python environment with the provided command name 
+        A method to install a Python environment with the provided command name
         and requirements file, returning python path installed.
         Command name is the name of the environment to be installed.
         """
@@ -136,7 +128,7 @@ class IDEService:
         Determines and returns the visible range of code in the current IDE.
 
         Returns:
-            A tuple denoting the visible range if the IDE is VSCode, or defers to 
+            A tuple denoting the visible range if the IDE is VSCode, or defers to
             IdeaIDEService's get_visible_range method for other IDEs.
         """
         if self.ide_name() == "vscode":

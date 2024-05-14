@@ -1,12 +1,13 @@
 import sys
+
 from tinydb import TinyDB
 
 
 def remove_topic_table(file_path: str):
     try:
         db = TinyDB(file_path)
-        if 'topics' in db.tables():
-            db.drop_table('topics')
+        if "topics" in db.tables():
+            db.drop_table("topics")
             print("The 'topics' table has been removed.")
         else:
             print("The file does not contain a 'topics' table.")

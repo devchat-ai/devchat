@@ -38,10 +38,23 @@ importlib-resources = "^6.1.1"
 devchat = "devchat._cli.main:main"
 
 [tool.poetry.group.dev.dependencies]
-pylint = "^2.17.4"
 pytest = "^7.4.0"
-gitpython = "^3.1.32"
+ruff = "^0.4.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",  # Error
+    "W",  # Warning
+    "F",  # pyflakes
+    "I",  # isort
+]
+fixable = ["ALL"]
+

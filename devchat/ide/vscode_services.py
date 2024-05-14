@@ -5,12 +5,12 @@ from .types import LocationWithText
 
 
 @rpc_call
-def run_code(code: str): # pylint: disable=unused-argument
+def run_code(code: str):
     pass
 
 
 @rpc_call
-def diff_apply(filepath, content): # pylint: disable=unused-argument
+def diff_apply(filepath, content):
     pass
 
 
@@ -110,6 +110,7 @@ def visible_lines():
         "visibleRange": [start_line, end_line],
     }
 
+
 def visible_range() -> LocationWithText:
     visible_range_text = visible_lines()
     return LocationWithText(
@@ -124,7 +125,7 @@ def visible_range() -> LocationWithText:
                 "line": visible_range_text["visibleRange"][1],
                 "character": 0,
             },
-        }
+        },
     )
 
 
@@ -159,6 +160,7 @@ def selected_lines():
         "selectedRange": [start_line, start_col, end_line, end_col],
     }
 
+
 def selected_range() -> LocationWithText:
     selected_range_text = selected_lines()
     return LocationWithText(
@@ -173,5 +175,5 @@ def selected_range() -> LocationWithText:
                 "line": selected_range_text["selectedRange"][2],
                 "character": selected_range_text["selectedRange"][3],
             },
-        }
+        },
     )

@@ -1,10 +1,11 @@
-# pylint: disable=import-outside-toplevel
-from dataclasses import asdict
 import json
 import os
-from typing import List, Dict, Any, Optional
-from tinydb import TinyDB, where, Query
+from dataclasses import asdict
+from typing import Any, Dict, List, Optional
+
+from tinydb import Query, TinyDB, where
 from tinydb.table import Table
+
 from devchat.chat import Chat
 from devchat.prompt import Prompt
 from devchat.utils import get_logger
@@ -25,22 +26,24 @@ class Store:
         if not os.path.isdir(store_dir):
             os.makedirs(store_dir)
 
-        self._graph_path = os.path.join(store_dir, 'prompts.graphml')
-        self._chat_list_path = os.path.join(store_dir, 'prompts_list.json')
-        self._db_path = os.path.join(store_dir, 'prompts.json')
+        self._graph_path = os.path.join(store_dir, "prompts.graphml")
+        self._chat_list_path = os.path.join(store_dir, "prompts_list.json")
+        self._db_path = os.path.join(store_dir, "prompts.json")
         self._chat = chat
 
         self._db = TinyDB(self._db_path)
         self._db_meta = self._migrate_db()
-        self._topics_table = self._db.table('topics')
+        self._topics_table = self._db.table("topics")
 
         if os.path.isfile(self._chat_list_path):
-            with open(self._chat_list_path, 'r', encoding="utf-8") as file:
+            with open(self._chat_list_path, "r", encoding="utf-8") as file:
                 self._chat_lists = json.loads(file.read())
         elif os.path.isfile(self._graph_path):
             # convert old graphml to new json
             from xml.etree.ElementTree import ParseError
+
             import networkx as nx
+
             try:
                 graph = nx.read_graphml(self._graph_path)
 
@@ -48,25 +51,25 @@ class Store:
 
                 self._chat_lists = []
                 for root in roots:
-                    chat_list = [(root, graph.nodes[root]['timestamp'])]
+                    chat_list = [(root, graph.nodes[root]["timestamp"])]
 
                     ancestors = nx.ancestors(graph, root)
                     for ancestor in ancestors:
-                        chat_list.append((ancestor, graph.nodes[ancestor]['timestamp']))
+                        chat_list.append((ancestor, graph.nodes[ancestor]["timestamp"]))
 
                     self._chat_lists.append(chat_list)
 
-                with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+                with open(self._chat_list_path, "w", encoding="utf-8") as file:
                     file.write(json.dumps(self._chat_lists))
 
                 # rename graphml to json
-                os.rename(self._graph_path, self._graph_path + '.bak')
+                os.rename(self._graph_path, self._graph_path + ".bak")
 
                 # update topic table, add request and response fields
                 # new fields: user, date, request, responses, hash
                 visible_topics = self._topics_table.all()
                 for topic in visible_topics:
-                    prompt = self.get_prompt(topic['root'])
+                    prompt = self.get_prompt(topic["root"])
                     if not prompt:
                         continue
                     self._update_topic_fields(topic, prompt)
@@ -81,37 +84,38 @@ class Store:
             self._initialize_topics_table()
 
     def _update_topic_fields(self, topic, prompt):
-        topic['user'] = prompt.user_name
-        topic['date'] = prompt.timestamp
-        topic['request'] = prompt.request.content
-        topic['responses'] = prompt.responses[0].content if prompt.responses else ""
-        topic['hash'] = prompt.hash
-        if len(topic['request']) > 100:
-            topic['request'] = topic['request'][:100] + "..."
-        if len(topic['responses']) > 100:
-            topic['responses'] = topic['responses'][:100] + "..."
-
+        topic["user"] = prompt.user_name
+        topic["date"] = prompt.timestamp
+        topic["request"] = prompt.request.content
+        topic["responses"] = prompt.responses[0].content if prompt.responses else ""
+        topic["hash"] = prompt.hash
+        if len(topic["request"]) > 100:
+            topic["request"] = topic["request"][:100] + "..."
+        if len(topic["responses"]) > 100:
+            topic["responses"] = topic["responses"][:100] + "..."
 
     def _migrate_db(self) -> Table:
         """
         Migrate the database to the latest version.
         """
-        metadata = self._db.table('metadata')
+        metadata = self._db.table("metadata")
 
-        result = metadata.get(where('version').exists())
-        if not result or result['version'].startswith('0.1.'):
+        result = metadata.get(where("version").exists())
+        if not result or result["version"].startswith("0.1."):
+
             def replace_response():
                 def transform(doc):
-                    if '_new_messages' not in doc or 'response' not in doc['_new_messages']:
-                        logger.error("Prompt %s does not match '_new_messages.response'",
-                                     doc['_hash'])
-                    doc['_new_messages']['responses'] = doc['_new_messages'].pop('response')
+                    if "_new_messages" not in doc or "response" not in doc["_new_messages"]:
+                        logger.error(
+                            "Prompt %s does not match '_new_messages.response'", doc["_hash"]
+                        )
+                    doc["_new_messages"]["responses"] = doc["_new_messages"].pop("response")
+
                 return transform
 
             logger.info("Migrating database from %s to 0.2.0", result)
-            self._db.update(replace_response(),
-                            Query()._new_messages.response.exists())  # pylint: disable=W0212
-            metadata.insert({'version': '0.2.0'})
+            self._db.update(replace_response(), Query()._new_messages.response.exists())
+            metadata.insert({"version": "0.2.0"})
         return metadata
 
     def _initialize_topics_table(self):
@@ -120,18 +124,13 @@ class Store:
                 continue
 
             first = chat_list[0]
-            last  = chat_list[-1]
+            last = chat_list[-1]
 
-            topic = {
-                'root': first[0],
-                'latest_time': last[1],
-                'title': None,
-                'hidden': False
-            }
+            topic = {"root": first[0], "latest_time": last[1], "title": None, "hidden": False}
 
-            prompt = self.get_prompt(topic['root'])
+            prompt = self.get_prompt(topic["root"])
             if not prompt:
-                logger.error("Prompt %s not found while selecting from the store", topic['root'])
+                logger.error("Prompt %s not found while selecting from the store", topic["root"])
                 continue
             self._update_topic_fields(topic, prompt)
 
@@ -145,17 +144,17 @@ class Store:
 
                 if chat_list[-1][0] == prompt.hash:
                     topic_hash = chat_list[0][0]
-                    topic = next((t for t in self._topics_table if t['root'] == topic_hash), None)
+                    topic = next((t for t in self._topics_table if t["root"] == topic_hash), None)
                     if topic:
-                        topic['latest_time'] = max(topic.get('latest_time', 0), prompt.timestamp)
+                        topic["latest_time"] = max(topic.get("latest_time", 0), prompt.timestamp)
                         self._topics_table.update(topic, doc_ids=[topic.doc_id])
                     break
         else:
             topic = {
-                'root': prompt.hash,
-                'latest_time': prompt.timestamp,
-                'title': None,
-                'hidden': False
+                "root": prompt.hash,
+                "latest_time": prompt.timestamp,
+                "title": None,
+                "hidden": False,
             }
             self._update_topic_fields(topic, prompt)
             self._topics_table.insert(topic)
@@ -187,11 +186,10 @@ class Store:
             self._chat_lists.append([(prompt.hash, prompt.timestamp)])
         self._update_topics_table(prompt)
 
-        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+        with open(self._chat_list_path, "w", encoding="utf-8") as file:
             file.write(json.dumps(self._chat_lists))
 
         return topic_hash
-
 
     def get_prompt(self, prompt_hash: str) -> Prompt:
         """
@@ -203,7 +201,7 @@ class Store:
             Prompt: The retrieved prompt. None if the prompt is not found.
         """
         # Retrieve the prompt object from TinyDB
-        prompt_data = self._db.search(where('_hash') == prompt_hash)
+        prompt_data = self._db.search(where("_hash") == prompt_hash)
         if not prompt_data:
             logger.warning("Prompt %s not found while retrieving from object store.", prompt_hash)
             return None
@@ -266,24 +264,25 @@ class Store:
             List[Dict[str, Any]]: A list of dictionaries containing root prompts
                 with latest_time, and title fields.
         """
-        visible_topics = self._topics_table.search(
-            where('hidden') == False)  # pylint: disable=C0121
-        sorted_topics = sorted(visible_topics, key=lambda x: x['latest_time'], reverse=True)
+        visible_topics = self._topics_table.search(where("hidden") == False)  # noqa: E712
+        sorted_topics = sorted(visible_topics, key=lambda x: x["latest_time"], reverse=True)
 
         topics = []
         for topic in sorted_topics[start:end]:
-            topics.append({
-                'root_prompt': {
-                    'hash': topic['root'],
-                    'user': topic['user'],
-                    'date': topic['date'],
-                    'request': topic['request'],
-                    'responses': [topic['responses']],
-                },
-                'latest_time': topic['latest_time'],
-                'title': topic['title'],
-                'hidden': topic['hidden'],
-            })
+            topics.append(
+                {
+                    "root_prompt": {
+                        "hash": topic["root"],
+                        "user": topic["user"],
+                        "date": topic["date"],
+                        "request": topic["request"],
+                        "responses": [topic["responses"]],
+                    },
+                    "latest_time": topic["latest_time"],
+                    "title": topic["title"],
+                    "hidden": topic["hidden"],
+                }
+            )
         return topics
 
     def delete_prompt(self, prompt_hash: str) -> bool:
@@ -316,13 +315,13 @@ class Store:
             return False
 
         # Update the topics table
-        self._topics_table.remove(where('root') == prompt_hash)
+        self._topics_table.remove(where("root") == prompt_hash)
 
         # Remove the prompt from the database
-        self._db.remove(where('_hash') == prompt_hash)
+        self._db.remove(where("_hash") == prompt_hash)
 
         # Save the graph
-        with open(self._chat_list_path, 'w', encoding="utf-8") as file:
+        with open(self._chat_list_path, "w", encoding="utf-8") as file:
             file.write(json.dumps(self._chat_lists))
 
         return True

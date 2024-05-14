@@ -1,14 +1,12 @@
-# pylint: disable=invalid-name
 import os
-import sys
 import subprocess
-from typing import Optional, Dict
+import sys
+from typing import Dict, Optional
 
 from .envs import MAMBA_BIN_PATH
 from .path import MAMBA_PY_ENVS, MAMBA_ROOT
-from .user_setting import USER_SETTINGS
 from .schema import ExternalPyConf
-
+from .user_setting import USER_SETTINGS
 
 # CONDA_FORGE = [
 #     "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/",
@@ -28,7 +26,9 @@ def _get_external_envs() -> Dict[str, ExternalPyConf]:
 
     return external_pythons
 
+
 EXTERNAL_ENVS = _get_external_envs()
+
 
 class PyEnvManager:
     mamba_bin = MAMBA_BIN_PATH
@@ -82,15 +82,11 @@ class PyEnvManager:
         ]
         env = os.environ.copy()
         env.pop("PYTHONPATH")
-        with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
-        ) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env) as proc:
             proc.wait()
 
             if proc.returncode != 0:
-                print(
-                    f"Failed to install requirements: {requirements_file}", flush=True
-                )
+                print(f"Failed to install requirements: {requirements_file}", flush=True)
                 return False
 
             return True
@@ -149,9 +145,7 @@ class PyEnvManager:
             f"python={py_version}",
             "-y",
         ]
-        with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             proc.wait()
 
             if proc.returncode != 0:
@@ -178,9 +172,7 @@ class PyEnvManager:
             self.mamba_root,
             "-y",
         ]
-        with subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             proc.wait()
 
             if proc.returncode != 0:

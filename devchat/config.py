@@ -1,17 +1,20 @@
 import os
 import sys
-from typing import List, Dict, Tuple, Optional
-from pydantic import BaseModel
+from typing import Dict, List, Optional, Tuple
+
 import oyaml as yaml
+from pydantic import BaseModel
 
 
 class GeneralProviderConfig(BaseModel):
     api_key: Optional[str]
     api_base: Optional[str]
 
+
 class ModelConfig(BaseModel):
     max_input_tokens: Optional[int] = sys.maxsize
     provider: Optional[str]
+
 
 class GeneralModelConfig(ModelConfig):
     max_tokens: Optional[int]
@@ -30,7 +33,7 @@ class ChatConfig(BaseModel):
 
 class ConfigManager:
     def __init__(self, dir_path: str):
-        self.config_path = os.path.join(dir_path, 'config.yml')
+        self.config_path = os.path.join(dir_path, "config.yml")
         if not os.path.exists(self.config_path):
             self._create_sample_file()
             self._file_is_new = True
@@ -47,14 +50,14 @@ class ConfigManager:
         return os.path.getmtime(self.config_path)
 
     def _load_and_validate_config(self) -> ChatConfig:
-        with open(self.config_path, 'r', encoding='utf-8') as file:
+        with open(self.config_path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
 
-        if 'providers' in data:
-            for provider, config in data['providers'].items():
-                data['providers'][provider] = GeneralProviderConfig(**config)
-        for model, config in data['models'].items():
-            data['models'][model] = GeneralModelConfig(**config)
+        if "providers" in data:
+            for provider, config in data["providers"].items():
+                data["providers"][provider] = GeneralProviderConfig(**config)
+        for model, config in data["models"].items():
+            data["models"][model] = GeneralModelConfig(**config)
 
         return ChatConfig(**data)
 
@@ -70,9 +73,7 @@ class ConfigManager:
         return model_id, self.config.models[model_id]
 
     def update_model_config(
-        self,
-        model_id: str,
-        new_config: GeneralModelConfig
+        self, model_id: str, new_config: GeneralModelConfig
     ) -> GeneralModelConfig:
         _, old_config = self.model_config(model_id)
         if new_config.max_input_tokens is not None:
@@ -83,46 +84,29 @@ class ConfigManager:
         return self.config.models[model_id]
 
     def sync(self):
-        with open(self.config_path, 'w', encoding='utf-8') as file:
+        with open(self.config_path, "w", encoding="utf-8") as file:
             yaml.dump(self.config.dict(exclude_unset=True), file)
 
     def _create_sample_file(self):
         sample_config = ChatConfig(
             providers={
-                "devchat.ai": GeneralProviderConfig(
-                    api_key=""
-                ),
-                "openai.com": GeneralProviderConfig(
-                    api_key=""
-                ),
-                "general": GeneralProviderConfig(
-                )
+                "devchat.ai": GeneralProviderConfig(api_key=""),
+                "openai.com": GeneralProviderConfig(api_key=""),
+                "general": GeneralProviderConfig(),
             },
             models={
                 "gpt-4": GeneralModelConfig(
-                    max_input_tokens=6000,
-                    provider='devchat.ai',
-                    temperature=0,
-                    stream=True
+                    max_input_tokens=6000, provider="devchat.ai", temperature=0, stream=True
                 ),
                 "gpt-3.5-turbo-16k": GeneralModelConfig(
-                    max_input_tokens=12000,
-                    provider='devchat.ai',
-                    temperature=0,
-                    stream=True
+                    max_input_tokens=12000, provider="devchat.ai", temperature=0, stream=True
                 ),
                 "gpt-3.5-turbo": GeneralModelConfig(
-                    max_input_tokens=3000,
-                    provider='devchat.ai',
-                    temperature=0,
-                    stream=True
+                    max_input_tokens=3000, provider="devchat.ai", temperature=0, stream=True
                 ),
-                "claude-2": GeneralModelConfig(
-                    provider='general',
-                    max_tokens=20000
-                )
+                "claude-2": GeneralModelConfig(provider="general", max_tokens=20000),
             },
-            default_model="gpt-3.5-turbo"
+            default_model="gpt-3.5-turbo",
         )
-        with open(self.config_path, 'w', encoding='utf-8') as file:
+        with open(self.config_path, "w", encoding="utf-8") as file:
             yaml.dump(sample_config.dict(exclude_unset=True), file)

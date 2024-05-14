@@ -1,17 +1,16 @@
 import os
-from typing import List, Optional
 import re
+from typing import List, Optional
 
 
 class Namespace:
-    def __init__(self, root_path: str,
-                 branches: List[str] = None):
+    def __init__(self, root_path: str, branches: List[str] = None):
         """
         :param root_path: The root path of the namespace.
         :param branches: The hidden branches with ascending order of priority.
         """
         self.root_path = root_path
-        self.branches = branches if branches else ['sys', 'org', 'usr']
+        self.branches = branches if branches else ["sys", "org", "usr"]
 
     @staticmethod
     def is_valid_name(name: str) -> bool:
@@ -28,7 +27,7 @@ class Namespace:
         # The regular expression pattern for a valid name
         if name is None:
             return False
-        pattern = r'^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$'
+        pattern = r"^$|^(?!.*\.\.)[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*$"
         return bool(re.match(pattern, name))
 
     def get_file(self, name: str, file: str) -> Optional[str]:
@@ -40,7 +39,7 @@ class Namespace:
         if not self.is_valid_name(name):
             return None
         # Convert the dot-separated name to a path
-        path = os.path.join(*name.split('.'))
+        path = os.path.join(*name.split("."))
         for branch in reversed(self.branches):
             full_path = os.path.join(self.root_path, branch, path)
             if os.path.isdir(full_path):
@@ -60,7 +59,7 @@ class Namespace:
         if not self.is_valid_name(name):
             raise ValueError(f"Invalid name to list files: {name}")
         # Convert the dot-separated name to a path
-        path = os.path.join(*name.split('.'))
+        path = os.path.join(*name.split("."))
         files = {}
         path_found = False
         for branch in self.branches:
@@ -77,7 +76,7 @@ class Namespace:
         # Sort the files in alphabetical order before returning
         return sorted(files.values()) if files else []
 
-    def list_names(self, name: str = '', recursive: bool = False) -> List[str]:
+    def list_names(self, name: str = "", recursive: bool = False) -> List[str]:
         """
         :param name: The command name in the namespace. Defaults to the root.
         :param recursive: Whether to list all descendant names or only child names.
@@ -86,7 +85,7 @@ class Namespace:
         if not self.is_valid_name(name):
             raise ValueError(f"Invalid name to list names: {name}")
         commands = set()
-        path = os.path.join(*name.split('.'))
+        path = os.path.join(*name.split("."))
         found = False
         for branch in self.branches:
             full_path = os.path.join(self.root_path, branch, path)
@@ -101,10 +100,10 @@ class Namespace:
 
     def _add_dirnames_to_commands(self, full_path: str, name: str, commands: set):
         for dirname in os.listdir(full_path):
-            if dirname.startswith('.'):
+            if dirname.startswith("."):
                 continue
             if os.path.isdir(os.path.join(full_path, dirname)):
-                command_name = '.'.join([name, dirname]) if name else dirname
+                command_name = ".".join([name, dirname]) if name else dirname
                 commands.add(command_name)
 
     def _add_recursive_dirnames_to_commands(self, full_path: str, name: str, commands: set):
@@ -112,10 +111,10 @@ class Namespace:
 
     def _recursive_dir_walk(self, full_path: str, name: str, commands: set):
         for dirname in os.listdir(full_path):
-            if dirname.startswith('.'):
+            if dirname.startswith("."):
                 continue
             dir_path = os.path.join(full_path, dirname)
             if os.path.isdir(dir_path):
-                command_name = '.'.join([name, dirname]) if name else dirname
+                command_name = ".".join([name, dirname]) if name else dirname
                 commands.add(command_name)
                 self._recursive_dir_walk(dir_path, command_name, commands)

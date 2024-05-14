@@ -2,13 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-__all__ = [
-    "Position",
-    "Range",
-    "Location",
-    "SymbolNode",
-    "LocationWithText"
-]
+__all__ = ["Position", "Range", "Location", "SymbolNode", "LocationWithText"]
 
 
 class Position(BaseModel):

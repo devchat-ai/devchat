@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
 import hashlib
-from datetime import datetime
 import sys
+from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from typing import Dict, List
-from devchat.message import Message
-from devchat.utils import unix_to_local_datetime, get_logger, user_id
 
+from devchat.message import Message
+from devchat.utils import get_logger, unix_to_local_datetime, user_id
 
 logger = get_logger(__name__)
 
@@ -33,16 +33,17 @@ class Prompt(ABC):
     model: str
     user_name: str
     user_email: str
-    _new_messages: Dict = field(default_factory=lambda: {
-        Message.INSTRUCT: [],
-        'request': None,
-        Message.CONTEXT: [],
-        'responses': []
-    })
-    _history_messages: Dict[str, Message] = field(default_factory=lambda: {
-        Message.CONTEXT: [],
-        Message.CHAT: []
-    })
+    _new_messages: Dict = field(
+        default_factory=lambda: {
+            Message.INSTRUCT: [],
+            "request": None,
+            Message.CONTEXT: [],
+            "responses": [],
+        }
+    )
+    _history_messages: Dict[str, Message] = field(
+        default_factory=lambda: {Message.CONTEXT: [], Message.CHAT: []}
+    )
     parent: str = None
     references: List[str] = field(default_factory=list)
     _timestamp: int = 0
@@ -59,8 +60,9 @@ class Prompt(ABC):
             bool: Whether the prompt is complete.
         """
         if not self.request or not self.responses:
-            logger.warning("Incomplete prompt: request = %s, response = %s",
-                           self.request, self.responses)
+            logger.warning(
+                "Incomplete prompt: request = %s, response = %s", self.request, self.responses
+            )
             return False
 
         if not self.timestamp:
@@ -78,15 +80,15 @@ class Prompt(ABC):
 
     @property
     def request(self) -> Message:
-        return self._new_messages['request']
+        return self._new_messages["request"]
 
     @request.setter
     def request(self, value: Message):
-        self._new_messages['request'] = value
+        self._new_messages["request"] = value
 
     @property
     def responses(self) -> List[Message]:
-        return self._new_messages['responses']
+        return self._new_messages["responses"]
 
     @property
     def timestamp(self) -> int:
@@ -142,8 +144,9 @@ class Prompt(ABC):
         """
 
     @abstractmethod
-    def append_new(self, message_type: str, content: str,
-                   available_tokens: int = sys.maxsize) -> bool:
+    def append_new(
+        self, message_type: str, content: str, available_tokens: int = sys.maxsize
+    ) -> bool:
         """
         Append a new message provided by the user to this prompt.
 
@@ -215,9 +218,9 @@ class Prompt(ABC):
         self._response_tokens = self._count_response_tokens()
 
         data = asdict(self)
-        data.pop('_hash')
+        data.pop("_hash")
         string = str(tuple(sorted(data.items())))
-        self._hash = hashlib.sha256(string.encode('utf-8')).hexdigest()
+        self._hash = hashlib.sha256(string.encode("utf-8")).hexdigest()
         return self._hash
 
     def formatted_header(self) -> str:
@@ -238,12 +241,12 @@ class Prompt(ABC):
         note = None
         formatted_str = "\n\n"
         reason = self._response_reasons[index]
-        if reason == 'length':
+        if reason == "length":
             note = "Incomplete model output due to max_tokens parameter or token limit"
-        elif reason == 'function_call':
+        elif reason == "function_call":
             formatted_str += self.responses[index].function_call_to_json() + "\n\n"
             note = "The model decided to call a function"
-        elif reason == 'content_filter':
+        elif reason == "content_filter":
             note = "Omitted content due to a flag from our content filters"
 
         if note:
@@ -262,8 +265,12 @@ class Prompt(ABC):
             str: The formatted response string. None if the response is invalid.
         """
         if index >= len(self.responses) or not self.responses[index]:
-            logger.error("Response index %d is invalid to format: request = %s, response = %s",
-                         index, self.request, self.responses)
+            logger.error(
+                "Response index %d is invalid to format: request = %s, response = %s",
+                index,
+                self.request,
+                self.responses,
+            )
             return None
 
         formatted_str = ""
@@ -280,8 +287,9 @@ class Prompt(ABC):
 
         responses = []
         for message in self.responses:
-            responses.append((message.content if message.content else "")
-                             + message.function_call_to_json())
+            responses.append(
+                (message.content if message.content else "") + message.function_call_to_json()
+            )
 
         return {
             "user": user_id(self.user_name, self.user_email)[0],
@@ -292,5 +300,5 @@ class Prompt(ABC):
             "request_tokens": self._request_tokens,
             "response_tokens": self._response_tokens,
             "hash": self.hash,
-            "parent": self.parent
+            "parent": self.parent,
         }

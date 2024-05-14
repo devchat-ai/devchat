@@ -7,6 +7,7 @@ class Message(ABC):
     """
     The basic unit of information in a prompt.
     """
+
     content: str = ""
 
     INSTRUCT = "instruct"
@@ -22,7 +23,7 @@ class Message(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, message_data: dict) -> 'Message':
+    def from_dict(cls, message_data: dict) -> "Message":
         """
         Convert the message from a dictionary.
         """

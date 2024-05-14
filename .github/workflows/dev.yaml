@@ -1,0 +1,31 @@
+name: Dev
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Run linter and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+      - uses: abatilo/actions-poetry@v2
+      - name: Install Python dependencies
+        run: |
+          poetry install
+
+      - name: Run linter
+        run: |
+          make check
+
+      - name: Run Pytest
+        run: |
+          poetry run pytest
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_FOR_TEST }}

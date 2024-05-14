@@ -1,14 +1,14 @@
-# pylint: disable=invalid-name
-
 """
 Commands for managing the python environment of workflows.
 """
 
 import sys
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
+
 import click
-from devchat.workflow.env_manager import PyEnvManager, MAMBA_PY_ENVS
+
+from devchat.workflow.env_manager import MAMBA_PY_ENVS, PyEnvManager
 
 
 def _get_all_env_names() -> List[str]:
@@ -19,11 +19,7 @@ def _get_all_env_names() -> List[str]:
     excludes = ["devchat", "devchat-ask", "devchat-commands"]
 
     envs_path = Path(MAMBA_PY_ENVS)
-    envs = [
-        env.name
-        for env in envs_path.iterdir()
-        if env.is_dir() and env.name not in excludes
-    ]
+    envs = [env.name for env in envs_path.iterdir() if env.is_dir() and env.name not in excludes]
     return envs
 
 
@@ -42,9 +38,7 @@ def list_envs():
     required=False,
     type=str,
 )
-@click.option(
-    "--all", "all_flag", help="Remove all the python envs of workflows.", is_flag=True
-)
+@click.option("--all", "all_flag", help="Remove all the python envs of workflows.", is_flag=True)
 def remove(env_name: Optional[str] = None, all_flag: bool = False):
     if not env_name and not all_flag:
         click.echo("Please provide the name of the python env to remove.")

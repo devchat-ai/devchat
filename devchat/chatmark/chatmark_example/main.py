@@ -1,7 +1,6 @@
 import time
 
-
-from devchat.chatmark import Button, Checkbox, Form, Radio, Step, TextEditor  # pylint: disable=E402
+from devchat.chatmark import Button, Checkbox, Form, Radio, Step, TextEditor
 
 
 def main():

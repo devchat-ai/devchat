@@ -3,9 +3,9 @@ import os
 import sys
 from functools import wraps
 
-from devchat.memory import ChatMemory
 from devchat.chatmark import Form, Radio, TextEditor
 from devchat.ide import IDEService
+from devchat.memory import ChatMemory
 
 from .openai import chat_call_completion_stream
 
@@ -140,7 +140,7 @@ def chat_tools(
 ):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs): # pylint: disable=unused-argument
+        def wrapper(*args, **kwargs):
             nonlocal prompt, memory, model, tools, call_confirm_fun, llm_config
             prompt = prompt.format(**kwargs)
             if not tools:

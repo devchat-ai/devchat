@@ -1,4 +1,5 @@
 import pytest
+
 from devchat.openai import OpenAIMessage
 
 
@@ -45,10 +46,7 @@ def test_none_name():
 
 
 def test_from_dict():
-    message_data = {
-        "content": "Welcome to the chat.",
-        "role": "system"
-    }
+    message_data = {"content": "Welcome to the chat.", "role": "system"}
     message = OpenAIMessage.from_dict(message_data)
     assert message.role == "system"
     assert message.content == "Welcome to the chat."
@@ -56,11 +54,7 @@ def test_from_dict():
 
 
 def test_from_dict_with_name():
-    message_data = {
-        "content": "Hello, Assistant!",
-        "role": "user",
-        "name": "JohnDoe"
-    }
+    message_data = {"content": "Hello, Assistant!", "role": "user", "name": "JohnDoe"}
     message = OpenAIMessage.from_dict(message_data)
     assert message.role == "user"
     assert message.content == "Hello, Assistant!"
