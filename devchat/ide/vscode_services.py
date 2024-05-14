@@ -5,12 +5,12 @@ from .types import LocationWithText
 
 
 @rpc_call
-def run_code(code: str): # pylint: disable=unused-argument
+def run_code(code: str):
     pass
 
 
 @rpc_call
-def diff_apply(filepath, content): # pylint: disable=unused-argument
+def diff_apply(filepath, content):
     pass
 
 

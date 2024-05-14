@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 from typing import List, Optional, Tuple
 
 import click
@@ -22,7 +21,6 @@ import click
 @click.option('-m', '--model', help='Specify the model to use for the prompt.')
 @click.option('--config', 'config_str',
               help='Specify a JSON string to overwrite the default configuration for this prompt.')
-# pylint: disable=redefined-outer-name
 def run(command: str, list_flag: bool, recursive_flag: bool, update_sys_flag: bool,
         parent: Optional[str], reference: Optional[List[str]],
            instruct: Optional[List[str]], context: Optional[List[str]],

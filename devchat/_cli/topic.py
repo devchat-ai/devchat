@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 import click
 
 @click.command(help='Manage topics')

@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 from contextlib import contextmanager
 import os
 import sys
@@ -69,7 +68,6 @@ def init_dir() -> Tuple[str, str]:
         REPO_CHAT_DIR: The chat directory in the repository.
         USER_CHAT_DIR: The chat directory in the user's home.
     """
-    # pylint: disable=global-statement
     global REPO_CHAT_DIR
     global USER_CHAT_DIR
     if REPO_CHAT_DIR and USER_CHAT_DIR:

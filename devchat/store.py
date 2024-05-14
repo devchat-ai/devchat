@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 from dataclasses import asdict
 import json
 import os
@@ -110,7 +109,7 @@ class Store:
 
             logger.info("Migrating database from %s to 0.2.0", result)
             self._db.update(replace_response(),
-                            Query()._new_messages.response.exists())  # pylint: disable=W0212
+                            Query()._new_messages.response.exists())
             metadata.insert({'version': '0.2.0'})
         return metadata
 
@@ -267,7 +266,7 @@ class Store:
                 with latest_time, and title fields.
         """
         visible_topics = self._topics_table.search(
-            where('hidden') == False)  # pylint: disable=C0121
+            where('hidden') == False)
         sorted_topics = sorted(visible_topics, key=lambda x: x['latest_time'], reverse=True)
 
         topics = []

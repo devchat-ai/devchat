@@ -10,12 +10,12 @@ from devchat.utils import check_format, get_content, get_prompt_hash
 runner = CliRunner()
 
 
-# def test_prompt_no_args(git_repo):  # pylint: disable=W0613
+# def test_prompt_no_args(git_repo):
 #     result = runner.invoke(main, ['prompt'])
 #     assert result.exit_code == 0
 
 
-def test_prompt_with_content(git_repo):  # pylint: disable=W0613
+def test_prompt_with_content(git_repo):
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     print(result.output)
@@ -94,7 +94,7 @@ def fixture_functions_file(tmpdir):
     return str(functions_file)
 
 
-def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
+def test_prompt_with_instruct(git_repo, temp_files):
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[1],
                                   "It is really scorching."])
@@ -102,7 +102,7 @@ def test_prompt_with_instruct(git_repo, temp_files):  # pylint: disable=W0613
     assert get_content(result.output).find("hot\n") >= 0
 
 
-def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disable=W0613
+def test_prompt_with_instruct_and_context(git_repo, temp_files):
     result = runner.invoke(main, ['prompt', '-m', 'gpt-4',
                                   '-i', temp_files[0], '-i', temp_files[2],
                                   '--context', temp_files[3],
@@ -111,7 +111,7 @@ def test_prompt_with_instruct_and_context(git_repo, temp_files):  # pylint: disa
     assert get_content(result.output).find("hot summer\n") >= 0
 
 
-def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W0613
+def test_prompt_with_functions(git_repo, functions_file):
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   "What is the weather like in Boston?"])
@@ -133,7 +133,7 @@ def test_prompt_with_functions(git_repo, functions_file):  # pylint: disable=W06
     assert 'command' not in content
 
 
-def test_prompt_log_with_functions(git_repo, functions_file):  # pylint: disable=W0613
+def test_prompt_log_with_functions(git_repo, functions_file):
     # call with -f option
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo', '-f', functions_file,
                                   'What is the weather like in Boston?'])
@@ -166,7 +166,7 @@ def test_prompt_log_compatibility():
 
 
 # test prompt with function replay
-def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disable=W0613
+def test_prompt_with_function_replay(git_repo, functions_file):
     result = runner.invoke(main, ['prompt', '-m', 'gpt-3.5-turbo',
                                   '-f', functions_file,
                                   '-n', 'get_current_weather',
@@ -189,7 +189,7 @@ def test_prompt_with_function_replay(git_repo, functions_file):  # pylint: disab
         or 'getCurrentWeather' in content
 
 
-def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
+def test_prompt_without_repo(mock_home_dir):
     content = "What is the capital of France?"
     result = runner.invoke(main, ['prompt', content])
     assert result.exit_code == 0
@@ -197,7 +197,7 @@ def test_prompt_without_repo(mock_home_dir):  # pylint: disable=W0613
     assert "Paris" in result.output
 
 
-def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
+def test_prompt_tokens_exceed_config(mock_home_dir):
     model = "gpt-3.5-turbo"
     max_input_tokens = 4000
     config = GeneralModelConfig(
@@ -221,7 +221,7 @@ def test_prompt_tokens_exceed_config(mock_home_dir):  # pylint: disable=W0613
     assert "beyond limit" in result.output
 
 
-def test_file_tokens_exceed_config(mock_home_dir, tmpdir):  # pylint: disable=W0613
+def test_file_tokens_exceed_config(mock_home_dir, tmpdir):
     model = "gpt-3.5-turbo"
     max_input_tokens = 4000
     config = GeneralModelConfig(

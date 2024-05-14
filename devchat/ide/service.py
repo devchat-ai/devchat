@@ -1,10 +1,3 @@
-# disable pylint
-# pylint: disable=W0613
-# pylint: disable=E1133
-# pylint: disable=R1710
-# pylint: disable=W0719
-# pylint: disable=W3101
-# pylint: disable=C0103
 
 from typing import List
 

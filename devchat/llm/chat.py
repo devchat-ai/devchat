@@ -47,7 +47,7 @@ def chat(
 ):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs): # pylint: disable=unused-argument
+        def wrapper(*args, **kwargs):
             nonlocal prompt, memory, model, llm_config
             prompt_new = prompt.format(**kwargs)
             messages = memory.contexts() if memory else []
@@ -86,7 +86,7 @@ def chat_json(
 ):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs): # pylint: disable=unused-argument
+        def wrapper(*args, **kwargs):
             nonlocal prompt, memory, model, llm_config
             prompt_new = prompt.format(**kwargs)
             messages = memory.contexts() if memory else []

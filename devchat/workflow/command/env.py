@@ -1,5 +1,3 @@
-# pylint: disable=invalid-name
-
 """
 Commands for managing the python environment of workflows.
 """

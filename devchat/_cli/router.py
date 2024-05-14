@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 import json
 import sys
 from typing import List, Optional

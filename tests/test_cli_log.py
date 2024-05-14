@@ -6,14 +6,14 @@ from devchat._cli.main import main
 runner = CliRunner()
 
 
-def test_log_no_args(git_repo):  # pylint: disable=W0613
+def test_log_no_args(git_repo):
     result = runner.invoke(main, ['log'])
     assert result.exit_code == 0
     logs = json.loads(result.output)
     assert isinstance(logs, list)
 
 
-def test_log_with_skip_and_max_count(git_repo):  # pylint: disable=W0613
+def test_log_with_skip_and_max_count(git_repo):
     result = runner.invoke(main, ['log', '--skip', '1', '--max-count', '2'])
     assert result.exit_code == 0
     logs = json.loads(result.output)
@@ -37,7 +37,7 @@ def _within_range(num1: int, num2: int) -> bool:
     return False
 
 
-def test_tokens_with_log(git_repo):  # pylint: disable=W0613
+def test_tokens_with_log(git_repo):
     request1 = "Translate the following paragraph to Chinese. " \
         "Reply only such translation without any other words: " \
         "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, " \
@@ -88,7 +88,7 @@ def test_tokens_with_log(git_repo):  # pylint: disable=W0613
     assert len(logs) > 0
 
 
-def test_log_insert(git_repo):  # pylint: disable=W0613
+def test_log_insert(git_repo):
     chat1 = """{
         "model": "gpt-3.5-turbo",
         "messages": [
