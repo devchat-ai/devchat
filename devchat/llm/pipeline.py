@@ -1,7 +1,10 @@
 import sys
+import time
 from typing import Dict
 
 import openai
+
+from devchat.ide import IDEService
 
 
 class RetryException(Exception):
@@ -17,8 +20,10 @@ def retry(func, times):
             except RetryException as err:
                 if index + 1 == times:
                     raise err.error
+                IDEService().ide_logging("debug", f"has retries: {index + 1}")
                 continue
             except Exception as err:
+                IDEService().ide_logging("info", f"exception: {err}")
                 raise err.error
 
     return wrapper
@@ -59,6 +64,7 @@ def exception_handle(func, handler):
 
 def pipeline(*funcs):
     def wrapper(*args, **kwargs):
+        start_time = time.time()
         for index, func in enumerate(funcs):
             if index > 0:
                 if isinstance(args, Dict) and args.get("__type__", None) == "parallel":
@@ -67,6 +73,8 @@ def pipeline(*funcs):
                     args = func(args)
             else:
                 args = func(*args, **kwargs)
+        end_time = time.time()
+        IDEService().ide_logging("debug", f"time on pipeline: {end_time-start_time}")
         return args
 
     return wrapper
