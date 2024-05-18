@@ -3,7 +3,9 @@ import time
 from typing import Dict
 
 import openai
+
 from devchat.ide import IDEService
+
 
 class RetryException(Exception):
     def __init__(self, err):

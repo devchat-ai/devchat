@@ -7,6 +7,8 @@ from typing import Dict, List
 import httpx
 import openai
 
+from devchat.ide import IDEService
+
 from .pipeline import (
     RetryException,
     exception_handle,
@@ -16,8 +18,6 @@ from .pipeline import (
     retry,
 )
 
-
-from devchat.ide import IDEService
 
 def _try_remove_markdown_block_flag(content):
     """
