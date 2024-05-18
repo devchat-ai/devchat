@@ -17,6 +17,8 @@ from .pipeline import (
 )
 
 
+from devchat.ide import IDEService
+
 def _try_remove_markdown_block_flag(content):
     """
     如果content是一个markdown块，则删除它的头部```xxx和尾部```
@@ -83,6 +85,7 @@ def retry_timeout(chunks):
         for chunk in chunks:
             yield chunk
     except (openai.APIConnectionError, openai.APITimeoutError) as err:
+        IDEService().ide_logging("info", f"in retry_timeout: err: {err}")
         raise RetryException(err) from err
 
 
@@ -127,8 +130,10 @@ def content_to_json(content):
         response_obj = json.loads(content_no_block)
         return response_obj
     except json.JSONDecodeError as err:
+        IDEService().ide_logging("info", f"in content_to_json: json decode error: {err}")
         raise RetryException(err) from err
     except Exception as err:
+        IDEService().ide_logging("info", f"in content_to_json: other error: {err}")
         raise err
 
 
