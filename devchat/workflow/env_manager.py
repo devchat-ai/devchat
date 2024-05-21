@@ -48,9 +48,7 @@ class PyEnvManager:
         Get the version of the python executable.
         """
         py_version_cmd = [py, "--version"]
-        with subprocess.Popen(
-            py_version_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ) as proc:
+        with subprocess.Popen(py_version_cmd, stdout=subprocess.PIPE, stderr=None) as proc:
             proc.wait()
 
             if proc.returncode != 0:
@@ -93,15 +91,15 @@ class PyEnvManager:
             requirements_file,
             "-i",
             PYPI_TUNA,
+            "--no-warn-script-location",
         ]
         env = os.environ.copy()
         env.pop("PYTHONPATH")
-        # with subprocess.Popen(cmd, stdout=None, stderr=None, env=env) as proc:
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=None, env=env) as proc:
             proc.wait()
 
             if proc.returncode != 0:
-                logger.warning(f"Failed to install requirements: {requirements_file}", flush=True)
+                logger.warning(f"Failed to install requirements: {requirements_file}")
                 return False
 
             return True
@@ -164,10 +162,10 @@ class PyEnvManager:
         # install the requirements
         if reqirements_file:
             filename = os.path.basename(reqirements_file)
-            print(f"- Installing requirements from {filename}...", flush=True)
+            print(f"- Installing dependencies from {filename}...", flush=True)
             install_ok = self.install(env_name, reqirements_file)
             if not install_ok:
-                print(f"- Failed to install requirements from {filename}", flush=True)
+                print(f"- Failed to install dependencies from {filename}", flush=True)
                 print("\n```", flush=True)
                 # TODO: handle the error, show a user-friendly message
                 return None
@@ -235,7 +233,7 @@ class PyEnvManager:
             f"python={py_version}",
             "-y",
         ]
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=None) as proc:
             proc.wait()
 
             if proc.returncode != 0:
@@ -262,7 +260,7 @@ class PyEnvManager:
             self.mamba_root,
             "-y",
         ]
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=None) as proc:
             proc.wait()
 
             if proc.returncode != 0:
