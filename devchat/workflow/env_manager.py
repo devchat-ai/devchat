@@ -58,66 +58,15 @@ class PyEnvManager:
             return out.split()[1]
 
     @staticmethod
-    def _get_dep_hash(reqirements_file: str) -> str:
+    def get_dep_hash(reqirements_file: str) -> str:
         """
         Get the hash of the requirements file content.
+
+        Used to check if the requirements file has been changed.
         """
         with open(reqirements_file, "r", encoding="utf-8") as f:
             content = f.read()
             return hashlib.md5(content.encode("utf-8")).hexdigest()
-
-    def install(self, env_name: str, requirements_file: str) -> Tuple[bool, str]:
-        """
-        Install requirements into the python environment.
-
-        Args:
-            requirements: the absolute path to the requirements file.
-        """
-        py = self.get_py(env_name)
-        if not py:
-            # TODO: raise error?
-            return False, "Python executable not found."
-
-        if not os.path.exists(requirements_file):
-            # TODO: raise error?
-            return False, "Dependencies file not found."
-
-        cmd = [
-            py,
-            "-m",
-            "pip",
-            "install",
-            "-r",
-            requirements_file,
-            "-i",
-            PYPI_TUNA,
-            "--no-warn-script-location",
-        ]
-        env = os.environ.copy()
-        env.pop("PYTHONPATH")
-        with subprocess.Popen(
-            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env
-        ) as proc:
-            _, err = proc.communicate()
-
-            if proc.returncode != 0:
-                return False, err.decode("utf-8")
-
-            return True, ""
-
-    def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
-        """
-        Check if the requirements file has been changed.
-        """
-        cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
-        if not os.path.exists(cache_file):
-            return True
-
-        dep_hash = self._get_dep_hash(requirements_file)
-        with open(cache_file, "r", encoding="utf-8") as f:
-            cache_hash = f.read()
-
-        return dep_hash != cache_hash
 
     def ensure(
         self, env_name: str, py_version: str, reqirements_file: Optional[str] = None
@@ -164,7 +113,7 @@ class PyEnvManager:
             )
             logger.warning(f"Failed to create {env_name}: {msg}")
             sys.exit(0)
-            return None
+            # return None
 
         # install the requirements
         if reqirements_file:
@@ -181,10 +130,10 @@ class PyEnvManager:
                 )
                 logger.warning(f"Failed to install dependencies: {msg}")
                 sys.exit(0)
-                return None
+                # return None
 
             # save the hash of the requirements file content
-            dep_hash = self._get_dep_hash(reqirements_file)
+            dep_hash = self.get_dep_hash(reqirements_file)
             cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
             with open(cache_file, "w", encoding="utf-8") as f:
                 f.write(dep_hash)
@@ -192,38 +141,56 @@ class PyEnvManager:
         print("\n```", flush=True)
         return self.get_py(env_name)
 
-    # def ensure(self, env_name: str, py_version: str) -> Optional[str]:
-    #     """
-    #     Ensure the python environment exists with the given name and version.
+    def install(self, env_name: str, requirements_file: str) -> Tuple[bool, str]:
+        """
+        Install requirements into the python environment.
 
-    #     return the python executable path.
-    #     """
-    #     py = self.get_py(env_name)
-    #     should_remove = False
+        Args:
+            requirements: the absolute path to the requirements file.
+        """
+        py = self.get_py(env_name)
+        if not py:
+            return False, "Python executable not found."
 
-    #     if py:
-    #         # check the version of the python executable
-    #         current_version = self.get_py_version(py)
+        if not os.path.exists(requirements_file):
+            return False, "Dependencies file not found."
 
-    #         if current_version == py_version:
-    #             return py
+        cmd = [
+            py,
+            "-m",
+            "pip",
+            "install",
+            "-r",
+            requirements_file,
+            "-i",
+            PYPI_TUNA,
+            "--no-warn-script-location",
+        ]
+        env = os.environ.copy()
+        env.pop("PYTHONPATH")
+        with subprocess.Popen(
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env
+        ) as proc:
+            _, err = proc.communicate()
 
-    #         should_remove = True
+            if proc.returncode != 0:
+                return False, err.decode("utf-8")
 
-    #     print("\n```Step\n# Setting up workflow environment", flush=True)
-    #     print(f"\nenv_name: {env_name}")
-    #     print(f"python: {py_version}", flush=True)
+            return True, ""
 
-    #     if should_remove:
-    #         self.remove(env_name)
+    def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
+        """
+        Check if the requirements file has been changed.
+        """
+        cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
+        if not os.path.exists(cache_file):
+            return True
 
-    #     # create the environment
-    #     create_ok = self.create(env_name, py_version)
-    #     print("\n```", flush=True)
+        dep_hash = self.get_dep_hash(requirements_file)
+        with open(cache_file, "r", encoding="utf-8") as f:
+            cache_hash = f.read()
 
-    #     if not create_ok:
-    #         return None
-    #     return self.get_py(env_name)
+        return dep_hash != cache_hash
 
     def create(self, env_name: str, py_version: str) -> Tuple[bool, str]:
         """
