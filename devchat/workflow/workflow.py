@@ -139,14 +139,8 @@ class Workflow:
                 print("\n```", flush=True)
 
             else:
-                # TODO: 有没有更好的时机判断方法？既保证运行时一定安装了依赖、又不用每次都检查？
-                # TODO: 只在插件(IDE)启动后workflow第一次使用时ensure环境和依赖？
-                # Create workflow python env
                 manager = PyEnvManager()
-                workflow_py = manager.ensure(pyconf.env_name, pyconf.version)
-
-                r_file = pyconf.dependencies
-                _ = manager.install(pyconf.env_name, r_file)
+                workflow_py = manager.ensure(pyconf.env_name, pyconf.version, pyconf.dependencies)
 
         runtime_param = {
             # from user interaction
