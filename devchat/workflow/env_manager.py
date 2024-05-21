@@ -2,7 +2,7 @@ import hashlib
 import os
 import subprocess
 import sys
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from devchat.utils import get_logger
 
@@ -66,7 +66,7 @@ class PyEnvManager:
             content = f.read()
             return hashlib.md5(content.encode("utf-8")).hexdigest()
 
-    def install(self, env_name: str, requirements_file: str) -> bool:
+    def install(self, env_name: str, requirements_file: str) -> Tuple[bool, str]:
         """
         Install requirements into the python environment.
 
@@ -76,11 +76,11 @@ class PyEnvManager:
         py = self.get_py(env_name)
         if not py:
             # TODO: raise error?
-            return False
+            return False, "Python executable not found."
 
         if not os.path.exists(requirements_file):
             # TODO: raise error?
-            return False
+            return False, "Dependencies file not found."
 
         cmd = [
             py,
@@ -95,14 +95,15 @@ class PyEnvManager:
         ]
         env = os.environ.copy()
         env.pop("PYTHONPATH")
-        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=None, env=env) as proc:
-            proc.wait()
+        with subprocess.Popen(
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env
+        ) as proc:
+            _, err = proc.communicate()
 
             if proc.returncode != 0:
-                logger.warning(f"Failed to install requirements: {requirements_file}")
-                return False
+                return False, err.decode("utf-8")
 
-            return True
+            return True, ""
 
     def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
         """
@@ -152,22 +153,34 @@ class PyEnvManager:
 
         # create the environment
         print(f"- Creating {env_name} with {py_version}...", flush=True)
-        create_ok = self.create(env_name, py_version)
+        create_ok, msg = self.create(env_name, py_version)
         if not create_ok:
             print(f"- Failed to create {env_name}", flush=True)
             print("\n```", flush=True)
-            # TODO: handle the error, show a user-friendly message
+            print(
+                f"\n\nFailed to create {env_name}, the workflow will not run."
+                f"\n\nPlease try again later.",
+                flush=True,
+            )
+            logger.warning(f"Failed to create {env_name}: {msg}")
+            sys.exit(0)
             return None
 
         # install the requirements
         if reqirements_file:
             filename = os.path.basename(reqirements_file)
             print(f"- Installing dependencies from {filename}...", flush=True)
-            install_ok = self.install(env_name, reqirements_file)
+            install_ok, msg = self.install(env_name, reqirements_file)
             if not install_ok:
                 print(f"- Failed to install dependencies from {filename}", flush=True)
                 print("\n```", flush=True)
-                # TODO: handle the error, show a user-friendly message
+                print(
+                    "\n\nFailed to install dependencies, the workflow will not run."
+                    "\n\nPlease try again later.",
+                    flush=True,
+                )
+                logger.warning(f"Failed to install dependencies: {msg}")
+                sys.exit(0)
                 return None
 
             # save the hash of the requirements file content
@@ -212,7 +225,7 @@ class PyEnvManager:
     #         return None
     #     return self.get_py(env_name)
 
-    def create(self, env_name: str, py_version: str) -> bool:
+    def create(self, env_name: str, py_version: str) -> Tuple[bool, str]:
         """
         Create a new python environment using mamba.
         """
@@ -233,13 +246,13 @@ class PyEnvManager:
             f"python={py_version}",
             "-y",
         ]
-        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=None) as proc:
-            proc.wait()
+        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as proc:
+            _, err = proc.communicate()
 
             if proc.returncode != 0:
-                return False
+                return False, err.decode("utf-8")
 
-            return True
+            return True, ""
 
     def remove(self, env_name: str) -> bool:
         """
