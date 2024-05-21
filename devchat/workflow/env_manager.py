@@ -213,12 +213,12 @@ class PyEnvManager:
             f"python={py_version}",
             "-y",
         ]
-        with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as proc:
-            _, err = proc.communicate()
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            out, err = proc.communicate()
+            msg = f"err: {err.decode()}\n-----\nout: {out.decode()}"
 
             if proc.returncode != 0:
-                return False, err.decode("utf-8")
-
+                return False, msg
             return True, ""
 
     def remove(self, env_name: str) -> bool:
