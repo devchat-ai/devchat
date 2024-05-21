@@ -21,6 +21,14 @@ COMMAND_FILENAMES = ["command.yml", "command.yaml"]
 
 
 # -------------------------------
+# workflow related cache data
+# -------------------------------
+CACHE_DIR = os.path.join(WORKFLOWS_BASE, "cache")
+ENV_CACHE_DIR = os.path.join(CACHE_DIR, "env_cache")
+os.makedirs(ENV_CACHE_DIR, exist_ok=True)
+
+
+# -------------------------------
 # config & settings files paths
 # -------------------------------
 CUSTOM_BASE = os.path.join(WORKFLOWS_BASE, "custom")

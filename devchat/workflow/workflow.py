@@ -143,10 +143,10 @@ class Workflow:
                 # TODO: 只在插件(IDE)启动后workflow第一次使用时ensure环境和依赖？
                 # Create workflow python env
                 manager = PyEnvManager()
-                workflow_py = manager.ensure(pyconf.env_name, pyconf.version)
+                workflow_py = manager.ensure(pyconf.env_name, pyconf.version, pyconf.dependencies)
 
-                r_file = pyconf.dependencies
-                _ = manager.install(pyconf.env_name, r_file)
+                # r_file = pyconf.dependencies
+                # _ = manager.install(pyconf.env_name, r_file)
 
         runtime_param = {
             # from user interaction

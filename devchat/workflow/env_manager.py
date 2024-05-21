@@ -1,10 +1,13 @@
+import hashlib
 import os
 import subprocess
 import sys
 from typing import Dict, Optional
 
+from devchat.utils import get_logger
+
 from .envs import MAMBA_BIN_PATH
-from .path import MAMBA_PY_ENVS, MAMBA_ROOT
+from .path import ENV_CACHE_DIR, MAMBA_PY_ENVS, MAMBA_ROOT
 from .schema import ExternalPyConf
 from .user_setting import USER_SETTINGS
 
@@ -14,6 +17,8 @@ from .user_setting import USER_SETTINGS
 # ]
 CONDA_FORGE_TUNA = "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/"
 PYPI_TUNA = "https://pypi.tuna.tsinghua.edu.cn/simple"
+
+logger = get_logger(__name__)
 
 
 def _get_external_envs() -> Dict[str, ExternalPyConf]:
@@ -54,6 +59,15 @@ class PyEnvManager:
             out = proc.stdout.read().decode("utf-8")
             return out.split()[1]
 
+    @staticmethod
+    def _get_dep_hash(reqirements_file: str) -> str:
+        """
+        Get the hash of the requirements file content.
+        """
+        with open(reqirements_file, "r", encoding="utf-8") as f:
+            content = f.read()
+            return hashlib.md5(content.encode("utf-8")).hexdigest()
+
     def install(self, env_name: str, requirements_file: str) -> bool:
         """
         Install requirements into the python environment.
@@ -82,47 +96,123 @@ class PyEnvManager:
         ]
         env = os.environ.copy()
         env.pop("PYTHONPATH")
+        # with subprocess.Popen(cmd, stdout=None, stderr=None, env=env) as proc:
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env) as proc:
             proc.wait()
 
             if proc.returncode != 0:
-                print(f"Failed to install requirements: {requirements_file}", flush=True)
+                logger.warning(f"Failed to install requirements: {requirements_file}", flush=True)
                 return False
 
             return True
 
-    def ensure(self, env_name: str, py_version: str) -> Optional[str]:
+    def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
+        """
+        Check if the requirements file has been changed.
+        """
+        cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
+        if not os.path.exists(cache_file):
+            return True
+
+        dep_hash = self._get_dep_hash(requirements_file)
+        with open(cache_file, "r", encoding="utf-8") as f:
+            cache_hash = f.read()
+
+        return dep_hash != cache_hash
+
+    def ensure(
+        self, env_name: str, py_version: str, reqirements_file: Optional[str] = None
+    ) -> Optional[str]:
         """
         Ensure the python environment exists with the given name and version.
+        And install the requirements if provided.
 
         return the python executable path.
         """
         py = self.get_py(env_name)
-        should_remove = False
+
+        should_remove_old = False
 
         if py:
             # check the version of the python executable
             current_version = self.get_py_version(py)
 
-            if current_version == py_version:
+            if current_version != py_version:
+                should_remove_old = True
+
+            if reqirements_file and self.should_reinstall(env_name, reqirements_file):
+                should_remove_old = True
+
+            if not should_remove_old:
                 return py
 
-            should_remove = True
-
-        print("\n```Step\n# Setting up workflow environment", flush=True)
-        print(f"\nenv_name: {env_name}")
-        print(f"python: {py_version}", flush=True)
-
-        if should_remove:
+        print("\n```Step\n# Setting up workflow environment\n", flush=True)
+        if should_remove_old:
+            print(f"- Dependencies of {env_name} have been changed.", flush=True)
+            print(f"- Removing the old {env_name}...", flush=True)
             self.remove(env_name)
 
         # create the environment
+        print(f"- Creating {env_name} with {py_version}...", flush=True)
         create_ok = self.create(env_name, py_version)
-        print("\n```", flush=True)
-
         if not create_ok:
+            print(f"- Failed to create {env_name}", flush=True)
+            print("\n```", flush=True)
+            # TODO: handle the error, show a user-friendly message
             return None
+
+        # install the requirements
+        if reqirements_file:
+            filename = os.path.basename(reqirements_file)
+            print(f"- Installing requirements from {filename}...", flush=True)
+            install_ok = self.install(env_name, reqirements_file)
+            if not install_ok:
+                print(f"- Failed to install requirements from {filename}", flush=True)
+                print("\n```", flush=True)
+                # TODO: handle the error, show a user-friendly message
+                return None
+
+            # save the hash of the requirements file content
+            dep_hash = self._get_dep_hash(reqirements_file)
+            cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
+            with open(cache_file, "w", encoding="utf-8") as f:
+                f.write(dep_hash)
+
+        print("\n```", flush=True)
         return self.get_py(env_name)
+
+    # def ensure(self, env_name: str, py_version: str) -> Optional[str]:
+    #     """
+    #     Ensure the python environment exists with the given name and version.
+
+    #     return the python executable path.
+    #     """
+    #     py = self.get_py(env_name)
+    #     should_remove = False
+
+    #     if py:
+    #         # check the version of the python executable
+    #         current_version = self.get_py_version(py)
+
+    #         if current_version == py_version:
+    #             return py
+
+    #         should_remove = True
+
+    #     print("\n```Step\n# Setting up workflow environment", flush=True)
+    #     print(f"\nenv_name: {env_name}")
+    #     print(f"python: {py_version}", flush=True)
+
+    #     if should_remove:
+    #         self.remove(env_name)
+
+    #     # create the environment
+    #     create_ok = self.create(env_name, py_version)
+    #     print("\n```", flush=True)
+
+    #     if not create_ok:
+    #         return None
+    #     return self.get_py(env_name)
 
     def create(self, env_name: str, py_version: str) -> bool:
         """
