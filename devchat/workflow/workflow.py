@@ -127,7 +127,7 @@ class Workflow:
                 # Use the external python set in the user settings
                 workflow_py = EXTERNAL_ENVS[pyconf.env_name].python_bin
                 print(
-                    "\n```Step\n# Using exteranl Python from user settings\n",
+                    "\n```Step\n# Using external Python from user settings\n",
                     flush=True,
                 )
                 print(f"env_name: {pyconf.env_name}")
