@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import time
 from dataclasses import dataclass, field
@@ -40,6 +41,17 @@ def log(skip, max_count, topic_root, insert, delete):
     from devchat.utils import get_logger, get_user_info
 
     logger = get_logger(__name__)
+
+    # handler insert
+    # if insert is a file path, then read file content as "insert" value, then delete that file
+    try:
+        if os.path.isfile(insert):
+            insert_file = insert
+            with open(insert_file, "r", encoding="utf-8") as f:
+                insert = f.read()
+            os.remove(insert_file)
+    except Exception:
+        pass
 
     if (insert or delete) and (skip != 0 or max_count != 1 or topic_root is not None):
         print(
