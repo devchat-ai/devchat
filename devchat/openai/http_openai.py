@@ -1,6 +1,7 @@
 import http.client
 import json
 import os
+import ssl
 import sys
 from urllib.parse import urlparse
 
@@ -71,10 +72,12 @@ def stream_request(api_key, api_base, data):
 
     if api_base.startswith("https://"):
         if proxy_setting["host"]:
-            connection = http.client.HTTPSConnection(**proxy_setting)
+            connection = http.client.HTTPSConnection(
+                **proxy_setting, context=ssl._create_unverified_context()
+            )
             connection.set_tunnel(url)
         else:
-            connection = http.client.HTTPSConnection(url)
+            connection = http.client.HTTPSConnection(url, context=ssl._create_unverified_context())
     else:
         if proxy_setting["host"]:
             connection = http.client.HTTPConnection(**proxy_setting)
