@@ -99,7 +99,10 @@ class OpenAIChat(Chat):
         api_key = os.environ.get("OPENAI_API_KEY", None)
         base_url = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1/")
 
-        if not os.environ.get("USE_TIKTOKEN", False) and base_url != "https://api.openai.com/v1/":
+        if (
+            not os.environ.get("USE_TIKTOKEN", False)
+            and base_url.find("https://api.openai.com/v1") == -1
+        ):
             config_params = self.config.dict(exclude_unset=True)
             if prompt.get_functions():
                 config_params["functions"] = prompt.get_functions()
