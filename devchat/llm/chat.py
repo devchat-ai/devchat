@@ -3,8 +3,6 @@ import os
 import sys
 from functools import wraps
 
-import openai
-
 from devchat.memory import ChatMemory
 
 from .openai import (

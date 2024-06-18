@@ -80,8 +80,7 @@ def stream_request(api_key, api_base, data):
                 connection.set_tunnel(url)
             else:
                 connection = http.client.HTTPSConnection(
-                    url,
-                    context=ssl._create_unverified_context()
+                    url, context=ssl._create_unverified_context()
                 )
         else:
             if proxy_setting["host"]:
