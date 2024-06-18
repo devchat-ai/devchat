@@ -2,8 +2,6 @@ import sys
 import time
 from typing import Dict
 
-import openai
-
 from devchat.ide import IDEService
 
 
@@ -19,12 +17,12 @@ def retry(func, times):
                 return func(*args, **kwargs)
             except RetryException as err:
                 if index + 1 == times:
-                    raise err.error
+                    raise err
                 IDEService().ide_logging("debug", f"has retries: {index + 1}")
                 continue
             except Exception as err:
                 IDEService().ide_logging("info", f"exception: {err}")
-                raise err.error
+                raise err
 
     return wrapper
 
@@ -42,10 +40,7 @@ def exception_err(func):
 
 def exception_output_handle(func):
     def wrapper(err):
-        if isinstance(err, openai.APIError):
-            print(err.type, file=sys.stderr, flush=True)
-        else:
-            print(err, file=sys.stderr, flush=True)
+        print(err, file=sys.stderr, flush=True)
         return func(err)
 
     return wrapper

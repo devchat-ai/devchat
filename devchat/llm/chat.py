@@ -3,8 +3,6 @@ import os
 import sys
 from functools import wraps
 
-import openai
-
 from devchat.memory import ChatMemory
 
 from .openai import (
@@ -33,7 +31,7 @@ chat_completion_stream_out = exception_handle(
         "content": None,
         "function_name": None,
         "parameters": "",
-        "error": err.type if isinstance(err, openai.APIError) else err,
+        "error": err,
     },
 )
 
@@ -63,7 +61,7 @@ def chat(
             else:
                 response = chat_completion_stream_out(messages, llm_config=llm_config)
             if not response.get("content", None):
-                print(f"call {func.__name__} failed:", response["error"], file=sys.stderr)
+                print(response["error"], file=sys.stderr)
                 return None
 
             if memory:
