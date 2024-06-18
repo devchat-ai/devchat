@@ -192,7 +192,7 @@ chat_completion_stream = exception_handle(
         "content": None,
         "function_name": None,
         "parameters": "",
-        "error": err.type if isinstance(err, openai.APIError) else err,
+        "error": err
     },
 )
 
@@ -212,6 +212,6 @@ chat_call_completion_stream = exception_handle(
         "function_name": None,
         "parameters": "",
         "tool_calls": [],
-        "error": err.type if isinstance(err, openai.APIError) else err,
+        "error": err
     },
 )
