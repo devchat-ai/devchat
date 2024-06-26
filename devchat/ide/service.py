@@ -146,12 +146,12 @@ class IDEService:
         if self.ide_name() == "vscode":
             return selected_range()
         return IdeaIDEService().get_selected_range()
-    
+
     @rpc_method
     def get_diagnostics_in_range(self, fileName: str, startLine: int, endLine: int) -> List[str]:
         """
         Retrieves diagnostics for a specific range of code in the current IDE.
-        
+
         Returns:
             A list of diagnostic messages for the specified range.
         """
@@ -166,7 +166,7 @@ class IDEService:
             The collapsed code.
         """
         return self._result
-    
+
     @rpc_method
     def get_extension_tools_path(self) -> str:
         """
