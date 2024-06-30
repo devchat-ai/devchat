@@ -4,6 +4,16 @@ from typing import List, Optional
 import click
 
 
+# 目前接口在devchat中插件中使用。
+# 用途：根据用户输入，自动判断是否为工作流命令或者普通聊天，执行对应的操作。
+# 相当于是run,和prompt命令的自动路由接口。
+#
+# -r: 用于指定需要引用的某个聊天上下文（用户问题，AI回答），目前没有被使用，实际命令行交互中更难被使用。
+#     预期未来不会被使用到。
+# -i: 基于工作流的机制，AI角色描述会在工作流中实现，如果仅仅有角色描述，那么就是很简单的工作流，自定义
+#     角色描述。
+# --config: 预期保留用于命令行交互使用，目前IDE插件中没有对应的使用。
+# -a: 没有被使用。
 @click.command(help="Route a prompt to the specified LLM")
 @click.argument("content", required=False)
 @click.option("-p", "--parent", help="Input the parent prompt hash to continue the conversation.")
