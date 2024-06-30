@@ -18,13 +18,15 @@ class PromptData:
     request_tokens: int = 0
     response_tokens: int = 0
 
+
 # log子命令目前处于使用中。
 # 主要有三类场景：
 # 1. 查询topic的聊天历史；
 # 2. 在指定topic中插入新的聊天记录；
 # 3. 在指定topic中删除最后一条聊天记录。
 # 这三个场景都在使用中。
-# 插入聊天记录时，没有指定topic（-t参数）的情况下，最初是获取不同topic下的聊天历史记录（按插入时间排序），
+# 插入聊天记录时，没有指定topic（-t参数）的情况下，最初是获取不同topic下的聊天历史记录（
+# 按插入时间排序），
 #   后来修改为查询最后修改topic下的聊天历史记录，脱离了topic，聊天历史完全没有了意义。
 @click.command(help="Process logs")
 @click.option("--skip", default=0, help="Skip number prompts before showing the prompt history.")

@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+
 # TODO: delete
 # Initially, it was hoped to support multiple different model services within
 #  the devchat core, but later it was realized that providing a unified
