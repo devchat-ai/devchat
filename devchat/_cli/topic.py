@@ -1,6 +1,12 @@
 import click
 
 
+# 目前接口在devchat中插件中使用。
+# 意图是对topic数据进行管理
+# 其中--list参数被使用了。
+# 从实际使用情况来说，没有用户会关注很久之前的topic，
+# 所以--skip, --max-count参数实际不会被使用，没有实际意义，
+# 但从接口完整性角度来说，有理论意义。
 @click.command(help="Manage topics")
 @click.option(
     "--list", "-l", "list_topics", is_flag=True, help="List topics in reverse chronological order."
