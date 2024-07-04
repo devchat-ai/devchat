@@ -1,29 +1,17 @@
-import time
-import json
-from concurrent.futures import ProcessPoolExecutor
+from typing import Optional
 
-from typing import Dict, Optional, List, Iterator
 from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
-
 from pydantic import BaseModel, Field
 
-from devchat.msg.logm import gen_log_prompt, insert_log_prompt, delete_log_prompt
+from devchat.msg.log_util import delete_log_prompt, gen_log_prompt, insert_log_prompt
 
 router = APIRouter()
-
-
-@router.get("/hello")
-async def hello():
-    return {"hello": "devchat log"}
 
 
 class InsertLogRequest(BaseModel):
     workspace: Optional[str] = Field(None, description="absolute path to the workspace/repository")
     jsondata: Optional[str] = Field(None, description="data to insert in json format")
-    filepath: Optional[str] = Field(
-        None, description="file path to insert data in json format"
-    )
+    filepath: Optional[str] = Field(None, description="file path to insert data in json format")
 
 
 class InsertLogResponse(BaseModel):
@@ -35,17 +23,11 @@ class InsertLogResponse(BaseModel):
 async def insert(
     request: InsertLogRequest,
 ):
-    print(f"\n\ncheck insert log request: \n{request}")
     # TODO: handle error
     error_msg = None
     prompt = gen_log_prompt(request.jsondata, request.filepath)
 
     insert_log_prompt(prompt, request.workspace)
-
-    # # execute the insert in a separate process?
-    # with ProcessPoolExecutor() as executor:
-    #     executor.submit(insert_log_promt, prompt)
-
     return InsertLogResponse(hash=prompt.hash, error=error_msg)
 
 

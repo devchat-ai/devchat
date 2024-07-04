@@ -1,24 +1,15 @@
-import time
-import json
 import os
+from typing import Iterator, Optional
 
-from typing import Dict, Optional, List, Iterator
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
+from devchat.msg.chatting import chatting
+from devchat.msg.schema import MessageRequest, MessageResponseChunk
+from devchat.msg.util import MessageType, mk_meta, route_message
+from devchat.workflow.workflow import Workflow
 
 router = APIRouter()
-
-
-@router.get("/hello")
-async def hello():
-    return {"hello": "devchat message"}
-
-
-from devchat.msg.util import mk_meta, route_message, MessageType
-from devchat.msg.schema import MessageRequest, MessageResponseChunk
-from devchat.msg.chatting import chatting
-from devchat.workflow.workflow import Workflow
 
 
 @router.post("/msg")
@@ -38,7 +29,13 @@ async def msg(
     if message_type == MessageType.CHATTING:
 
         def gen_chat_response() -> Iterator[MessageResponseChunk]:
-            for res in chatting(request):
+            for res in chatting(
+                content=request.content,
+                model_name=request.model_name,
+                parent=request.parent,
+                workspace=request.workspace,
+                context_files=request.context,
+            ):
                 chunk = MessageResponseChunk(user=user_str, date=date_str, content=res)
                 yield chunk.json()
 
@@ -51,13 +48,10 @@ async def msg(
         workflow, wf_name, wf_input = extra
 
         if workflow.should_show_help(wf_input):
-
             doc = workflow.get_help_doc(wf_input)
 
             def _gen_res_help() -> Iterator[MessageResponseChunk]:
-                yield MessageResponseChunk(
-                    user=user_str, date=date_str, content=doc
-                ).json()
+                yield MessageResponseChunk(user=user_str, date=date_str, content=doc).json()
 
             return StreamingResponse(_gen_res_help(), media_type="application/json")
         else:
@@ -80,6 +74,4 @@ async def msg(
     else:
         # TODO: Should not reach here
         chunk = MessageResponseChunk(user=user_str, date=date_str, content="")
-        return StreamingResponse(
-            (chunk.json() for _ in [1]), media_type="application/json"
-        )
+        return StreamingResponse((chunk.json() for _ in [1]), media_type="application/json")

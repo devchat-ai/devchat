@@ -1,22 +1,17 @@
-from typing import Optional, Iterator
 import json
-import os
+from typing import Iterator, List, Optional
 
-from devchat._cli.utils import init_dir
+from devchat._cli.utils import get_model_config
 from devchat.assistant import Assistant
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
 from devchat.store import Store
 from devchat.utils import parse_files
 
-from .schema import MessageRequest
 from .path import USER_CHAT_DIR
 from .util import get_workspace_chat_dir
 
-from devchat._cli.utils import get_model_config
-
 
 def _get_model_and_config(model: Optional[str], config_str: Optional[str]):
-
     model, config = get_model_config(USER_CHAT_DIR, model)
 
     parameters_data = config.dict(exclude_unset=True)
@@ -26,24 +21,24 @@ def _get_model_and_config(model: Optional[str], config_str: Optional[str]):
     return model, parameters_data
 
 
-def chatting(msg: MessageRequest) -> Iterator[str]:
-    context = msg.context
-    content = msg.content
-    parent = msg.parent
-    model = msg.model_name
+def chatting(
+    content: str,
+    model_name: str,
+    parent: Optional[str],
+    workspace: Optional[str],
+    context_files: Optional[List[str]],
+) -> Iterator[str]:
+    workspace_chat_dir = get_workspace_chat_dir(workspace)
 
-    workspace_chat_dir = get_workspace_chat_dir(msg.workspace)
+    context_contents = parse_files(context_files)
 
-    context_contents = parse_files(context)
-
-    model, parameters_data = _get_model_and_config(model, None)
+    model, parameters_data = _get_model_and_config(model_name, None)
     max_input_tokens = parameters_data.get("max_input_tokens", 4000)
 
     openai_config = OpenAIChatConfig(model=model, **parameters_data)
     chat = OpenAIChat(openai_config)
     chat_store = Store(workspace_chat_dir, chat)
 
-    # assistant = Assistant(chat, chat_store, max_input_tokens, not not_store)
     assistant = Assistant(
         chat=chat,
         store=chat_store,
@@ -61,6 +56,5 @@ def chatting(msg: MessageRequest) -> Iterator[str]:
     )
 
     for res in assistant.iterate_response():
-        # for res in _mock_txt_res():
         print(res, end="", flush=True)
         yield res

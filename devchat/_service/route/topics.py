@@ -1,12 +1,10 @@
-import time
-import json
+from typing import Dict, List, Optional
 
-from typing import Dict, Optional, List, Iterator
 from fastapi import APIRouter, Query
-
 from pydantic import BaseModel, Field
-from devchat.msg.logm import get_topic_shortlogs, get_topics, delete_topic as del_topic
-from pprint import pprint
+
+from devchat.msg.topic_util import delete_topic as del_topic
+from devchat.msg.topic_util import get_topic_shortlogs, get_topics
 
 router = APIRouter()
 
@@ -33,9 +31,7 @@ async def get_topic_logs(
     topic_root_hash: str,
     limit: int = Query(1, gt=0, description="maximum number of records to return"),
     offset: int = Query(0, ge=0, description="offset of the first record to return"),
-    workspace: Optional[str] = Query(
-        None, description="absolute path to the workspace/repository"
-    ),
+    workspace: Optional[str] = Query(None, description="absolute path to the workspace/repository"),
 ):
     # TODO: handle error in the http way
     records, error = get_topic_shortlogs(topic_root_hash, limit, offset, workspace)
@@ -51,12 +47,8 @@ class TopicSummary(BaseModel):
     root_prompt_hash: str = Field(..., description="hash of the log summary")
     root_prompt_user: str = Field(..., description="root hash of the log")
     root_prompt_date: int = Field(..., description="timestamp")
-    root_prompt_request: str = Field(
-        ..., description="truncated request content(message)"
-    )
-    root_prompt_response: str = Field(
-        ..., description="truncated response content(message)"
-    )
+    root_prompt_request: str = Field(..., description="truncated request content(message)")
+    root_prompt_response: str = Field(..., description="truncated response content(message)")
     title: Optional[str] = Field(None, description="title of the topic")
 
 
@@ -64,13 +56,9 @@ class TopicSummary(BaseModel):
 def list_topics(
     limit: int = Query(1, gt=0, description="maximum number of records to return"),
     offset: int = Query(0, ge=0, description="offset of the first record to return"),
-    workspace: Optional[str] = Query(
-        None, description="absolute path to the workspace/repository"
-    ),
+    workspace: Optional[str] = Query(None, description="absolute path to the workspace/repository"),
 ):
-    topics = get_topics(
-        limit=limit, offset=offset, workspace_path=workspace, with_deleted=False
-    )
+    topics = get_topics(limit=limit, offset=offset, workspace_path=workspace, with_deleted=False)
 
     summaries = [
         TopicSummary(
@@ -90,9 +78,7 @@ def list_topics(
 
 class DeleteTopicResquest(BaseModel):
     topic_hash: str = Field(..., description="hash of the topic to delete")
-    workspace: Optional[str] = Field(
-        None, description="absolute path to the workspace/repository"
-    )
+    workspace: Optional[str] = Field(None, description="absolute path to the workspace/repository")
 
 
 class DeleteTopicResponse(BaseModel):
@@ -110,6 +96,4 @@ def delete_topic(
         del_topic(request.topic_hash, request.workspace)
         return DeleteTopicResponse(topic_hash=request.topic_hash, success=True)
     except Exception as e:
-        return DeleteTopicResponse(
-            topic_hash=request.topic_hash, success=False, error=str(e)
-        )
+        return DeleteTopicResponse(topic_hash=request.topic_hash, success=False, error=str(e))

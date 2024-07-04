@@ -1,12 +1,11 @@
-from typing import Tuple, Optional
-import subprocess
 import getpass
-import socket
 import os
+import socket
+import subprocess
+from typing import Optional, Tuple
 
 
 class UserInfo:
-
     def __init__(self):
         self._name = None
         self._email = None
