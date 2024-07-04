@@ -4,8 +4,8 @@ from typing import List
 import oyaml as yaml
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 
+from devchat._service.schema import response
 from devchat.workflow.namespace import (
     WorkflowMeta,
     get_prioritized_namespace_path,
@@ -55,13 +55,8 @@ async def get_config():
     return JSONResponse(content=config_content)
 
 
-class UpdateWorkflows(BaseModel):
-    updated: bool = Field(..., description="Whether the workflows are updated.")
-    message: str = Field(..., description="The message of the update.")
-
-
 # TODO: set time out? what if the update takes too long due to user's network?
-@router.post("/update", response_model=UpdateWorkflows)
+@router.post("/update", response_model=response.UpdateWorkflows)
 async def update_workflows():
     base_path = Path(WORKFLOWS_BASE)
 
@@ -72,4 +67,4 @@ async def update_workflows():
 
     copy_workflows_usr()
 
-    return UpdateWorkflows(updated=updated, message=message)
+    return response.UpdateWorkflows(updated=updated, message=message)

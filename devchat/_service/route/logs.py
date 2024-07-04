@@ -1,52 +1,29 @@
-from typing import Optional
-
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
 
+from devchat._service.schema import request, response
 from devchat.msg.log_util import delete_log_prompt, gen_log_prompt, insert_log_prompt
 
 router = APIRouter()
 
 
-class InsertLogRequest(BaseModel):
-    workspace: Optional[str] = Field(None, description="absolute path to the workspace/repository")
-    jsondata: Optional[str] = Field(None, description="data to insert in json format")
-    filepath: Optional[str] = Field(None, description="file path to insert data in json format")
-
-
-class InsertLogResponse(BaseModel):
-    hash: Optional[str] = Field(None, description="hash of the inserted data")
-    error: Optional[str] = Field(None, description="error message")
-
-
-@router.post("/insert", response_model=InsertLogResponse)
+@router.post("/insert", response_model=response.InsertLog)
 async def insert(
-    request: InsertLogRequest,
+    item: request.InsertLog,
 ):
     # TODO: handle error
     error_msg = None
-    prompt = gen_log_prompt(request.jsondata, request.filepath)
+    prompt = gen_log_prompt(item.jsondata, item.filepath)
 
-    insert_log_prompt(prompt, request.workspace)
-    return InsertLogResponse(hash=prompt.hash, error=error_msg)
-
-
-class DeleteLogRequest(BaseModel):
-    hash: str = Field(..., description="hash of the prompt to delete")
-    workspace: Optional[str] = Field(None, description="absolute path to the workspace/repository")
-
-
-class DeleteLogResponse(BaseModel):
-    success: bool = Field(..., description="success status")
-    error: Optional[str] = Field(None, description="error message")
+    insert_log_prompt(prompt, item.workspace)
+    return response.InsertLog(hash=prompt.hash, error=error_msg)
 
 
 @router.post("/delete")
 async def delete(
-    request: DeleteLogRequest,
+    item: request.DeleteLog,
 ):
-    print(f"\n\ncheck delete log request: \n{request}")
+    print(f"\n\ncheck delete log request: \n{item}")
 
-    success, error_msg = delete_log_prompt(request.hash, request.workspace)
+    success, error_msg = delete_log_prompt(item.hash, item.workspace)
 
-    return DeleteLogResponse(success=success, error=error_msg)
+    return response.DeleteLog(success=success, error=error_msg)

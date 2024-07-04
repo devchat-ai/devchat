@@ -47,13 +47,13 @@ def get_workspace_chat_dir(workspace_path: Optional[str]) -> str:
     return workspace_chat_dir
 
 
-def route_message(msg_req: MessageRequest) -> Tuple[MessageType, Any]:
+def route_message_by_content(message_content: str) -> Tuple[MessageType, Any]:
     """
     Route the message to the correct handler
     1. trigger a workflow
     2. chat with LLM directly
     """
-    content = msg_req.content
+    content = message_content
     print(f"check content: {content}")
 
     wf_name, wf_input = Workflow.parse_trigger(content)

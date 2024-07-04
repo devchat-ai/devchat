@@ -4,9 +4,9 @@ from typing import Iterator, Optional
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
+from devchat._service.schema import request, response
 from devchat.msg.chatting import chatting
-from devchat.msg.schema import MessageRequest, MessageResponseChunk
-from devchat.msg.util import MessageType, mk_meta, route_message
+from devchat.msg.util import MessageType, mk_meta, route_message_by_content
 from devchat.workflow.workflow import Workflow
 
 router = APIRouter()
@@ -14,29 +14,33 @@ router = APIRouter()
 
 @router.post("/msg")
 async def msg(
-    request: MessageRequest,
+    message: request.UserMessage,
 ):
-    if request.api_key:
-        os.environ["OPENAI_API_KEY"] = request.api_key
-    if request.api_base:
-        os.environ["OPENAI_API_BASE"] = request.api_base
+    if message.api_key:
+        os.environ["OPENAI_API_KEY"] = message.api_key
+    if message.api_base:
+        os.environ["OPENAI_API_BASE"] = message.api_base
 
     user_str, date_str = mk_meta()
 
-    message_type, extra = route_message(request)
+    message_type, extra = route_message_by_content(message.content)
     print(f"message type: {message_type}")
 
     if message_type == MessageType.CHATTING:
 
-        def gen_chat_response() -> Iterator[MessageResponseChunk]:
+        def gen_chat_response() -> Iterator[response.MessageCompletionChunk]:
             for res in chatting(
-                content=request.content,
-                model_name=request.model_name,
-                parent=request.parent,
-                workspace=request.workspace,
-                context_files=request.context,
+                content=message.content,
+                model_name=message.model_name,
+                parent=message.parent,
+                workspace=message.workspace,
+                context_files=message.context,
             ):
-                chunk = MessageResponseChunk(user=user_str, date=date_str, content=res)
+                chunk = response.MessageCompletionChunk(
+                    user=user_str,
+                    date=date_str,
+                    content=res,
+                )
                 yield chunk.json()
 
         return StreamingResponse(gen_chat_response(), media_type="application/json")
@@ -50,15 +54,17 @@ async def msg(
         if workflow.should_show_help(wf_input):
             doc = workflow.get_help_doc(wf_input)
 
-            def _gen_res_help() -> Iterator[MessageResponseChunk]:
-                yield MessageResponseChunk(user=user_str, date=date_str, content=doc).json()
+            def _gen_res_help() -> Iterator[response.MessageCompletionChunk]:
+                yield response.MessageCompletionChunk(
+                    user=user_str, date=date_str, content=doc
+                ).json()
 
             return StreamingResponse(_gen_res_help(), media_type="application/json")
         else:
             # return "should run workflow" response
             # then the client will trigger the workflow by devchat cli
-            def _gen_res_run_workflow() -> Iterator[MessageResponseChunk]:
-                yield MessageResponseChunk(
+            def _gen_res_run_workflow() -> Iterator[response.MessageCompletionChunk]:
+                yield response.MessageCompletionChunk(
                     user=user_str,
                     date=date_str,
                     content="",
@@ -73,5 +79,9 @@ async def msg(
 
     else:
         # TODO: Should not reach here
-        chunk = MessageResponseChunk(user=user_str, date=date_str, content="")
+        chunk = response.MessageCompletionChunk(
+            user=user_str,
+            date=date_str,
+            content="",
+        )
         return StreamingResponse((chunk.json() for _ in [1]), media_type="application/json")
