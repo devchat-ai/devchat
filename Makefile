@@ -15,3 +15,12 @@ fix:
 	@echo ${div}
 	poetry run ruff check $(DIR) --fix
 	@echo "Done!"
+
+
+run-dev-svc:
+	@echo "Running dev service on port 22222..."
+	@uvicorn devchat._service.main:api_app --reload --port 22222
+
+run-svc:
+	@echo "Running service on port 22222..."
+	@gunicorn devchat._service.main:api_app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:22222
