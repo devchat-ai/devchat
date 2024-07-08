@@ -56,5 +56,5 @@ def chatting(
     )
 
     for res in assistant.iterate_response():
-        print(res, end="", flush=True)
+        # print(res, end="", flush=True)
         yield res

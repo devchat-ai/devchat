@@ -22,10 +22,20 @@ class PromptData:
     response_tokens: int = 0
 
 
-def gen_log_prompt(jsondata: Optional[str], filepath: Optional[str]) -> OpenAIPrompt:
+def gen_log_prompt(
+    jsondata: Optional[str] = None, filepath: Optional[str] = None
+) -> OpenAIPrompt:
     """
     Generate a hash for a chat record
     """
+    assert (
+        jsondata is not None or filepath is not None
+    ), "Either jsondata or filepath is required."
+
+    if jsondata is None:
+        with open(filepath, "r", encoding="utf-8") as f:
+            jsondata = f.read()
+
     prompt_data = PromptData(**json.loads(jsondata))
     name = user_info.name
     email = user_info.email
@@ -75,7 +85,9 @@ def insert_log_prompt(
     return inserted_hash, error_msg
 
 
-def delete_log_prompt(hash: str, workspace_path: Optional[str]) -> Tuple[bool, Optional[str]]:
+def delete_log_prompt(
+    hash: str, workspace_path: Optional[str]
+) -> Tuple[bool, Optional[str]]:
     """
     Delete a chat record
 
