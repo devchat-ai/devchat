@@ -48,7 +48,6 @@ async def get_config():
     return JSONResponse(content=config_content)
 
 
-# TODO: set time out? what if the update takes too long due to user's network?
 @router.post("/update", response_model=response.UpdateWorkflows)
 async def update_workflows():
     base_path = Path(WORKFLOWS_BASE)
