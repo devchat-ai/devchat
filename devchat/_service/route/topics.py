@@ -8,12 +8,6 @@ from devchat.msg.topic_util import get_topic_shortlogs, get_topics
 
 router = APIRouter()
 
-
-@router.get("/hello")
-async def hello():
-    return {"hello": "devchat topic"}
-
-
 @router.get("/{topic_root_hash}/logs", response_model=List[response.ShortLog])
 async def get_topic_logs(
     topic_root_hash: str,

@@ -7,6 +7,12 @@ from .workflow import router as workflow_router
 
 router = APIRouter()
 
+
+@router.get("/ping")
+def ping():
+    return {"message": "pong"}
+
+
 router.include_router(workflow_router, prefix="/workflow", tags=["Workflow"])
 router.include_router(message_router, prefix="/message", tags=["Message"])
 router.include_router(log_router, prefix="/logs", tags=["LogManagement"])

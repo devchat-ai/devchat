@@ -24,13 +24,6 @@ from devchat.workflow.update_util import (
 
 router = APIRouter()
 
-
-@router.get("/")
-async def hello():
-    return {"hello": "devchat workflow"}
-
-
-# TODO: handle errors
 @router.get("/list", response_model=List[WorkflowMeta])
 async def list_workflow():
     namespace_paths = get_prioritized_namespace_path()
