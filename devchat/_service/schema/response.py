@@ -20,12 +20,10 @@ class MessageCompletionChunk(BaseModel):
 
 class InsertLog(BaseModel):
     hash: Optional[str] = Field(None, description="hash of the inserted data")
-    error: Optional[str] = Field(None, description="error message")
 
 
 class DeleteLog(BaseModel):
     success: bool = Field(..., description="success status")
-    error: Optional[str] = Field(None, description="error message")
 
 
 class ShortLog(BaseModel):
@@ -54,8 +52,6 @@ class TopicSummary(BaseModel):
 
 class DeleteTopic(BaseModel):
     topic_hash: str = Field(..., description="hash of the deleted topic")
-    success: bool = Field(..., description="success status")
-    error: Optional[str] = Field(None, description="error message")
 
 
 class UpdateWorkflows(BaseModel):
