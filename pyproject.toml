@@ -33,6 +33,9 @@ colorama = "^0.4.6"
 tenacity = "^8.2.3"
 pathspec = "^0.12.1"
 importlib-resources = "^6.1.1"
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.30.1"}
+gunicorn = "^22.0.0"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli.main:main"
