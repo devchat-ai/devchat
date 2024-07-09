@@ -10,31 +10,27 @@ from .util import USER_CHAT_DIR, get_workspace_chat_dir
 
 def get_topic_shortlogs(
     topic_root_hash: str, limit: int, offset: int, workspace_path: Optional[str]
-) -> Tuple[List[Dict], Optional[str]]:
+) -> List[Dict]:
     short_logs = []
-    error_msg = None
-    try:
-        user_chat_dir = USER_CHAT_DIR
-        workspace_chat_dir = get_workspace_chat_dir(workspace_path)
 
-        model, config = get_model_config(user_chat_dir)
-        openai_config = OpenAIChatConfig(model=model, **config.dict(exclude_unset=True))
+    user_chat_dir = USER_CHAT_DIR
+    workspace_chat_dir = get_workspace_chat_dir(workspace_path)
 
-        chat = OpenAIChat(openai_config)
-        store = Store(workspace_chat_dir, chat)
+    model, config = get_model_config(user_chat_dir)
+    openai_config = OpenAIChatConfig(model=model, **config.dict(exclude_unset=True))
 
-        logs = store.select_prompts(offset, offset + limit, topic_root_hash)
-        for log in logs:
-            try:
-                short_logs.append(log.shortlog())
-            except Exception:
-                # TODO: log the error
-                continue
+    chat = OpenAIChat(openai_config)
+    store = Store(workspace_chat_dir, chat)
 
-    except Exception as e:
-        error_msg = str(e)
+    logs = store.select_prompts(offset, offset + limit, topic_root_hash)
+    for log in logs:
+        try:
+            short_logs.append(log.shortlog())
+        except Exception:
+            # TODO: log the error
+            continue
 
-    return short_logs, error_msg
+    return short_logs
 
 
 def get_topics(
@@ -54,11 +50,15 @@ def get_topics(
     topics = store.select_topics(offset, offset + limit)
 
     if not with_deleted:
+        # filter out deleted topics
         record_file = os.path.join(workspace_chat_dir, ".deletedTopics")
         if os.path.exists(record_file):
             with open(record_file, "r") as f:
                 deleted_topics = f.read().split("\n")
-            topics = [t for t in topics if t["root_prompt"]["hash"] not in deleted_topics]
+
+            topics = [
+                t for t in topics if t["root_prompt"]["hash"] not in deleted_topics
+            ]
 
     return topics
 
