@@ -22,7 +22,7 @@ async def insert(
     return response.InsertLog(hash=prompt_hash)
 
 
-@router.post("/delete")
+@router.post("/delete", response_model=response.DeleteLog)
 async def delete(
     item: request.DeleteLog,
 ):
