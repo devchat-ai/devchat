@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from devchat._cli.utils import get_model_config
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig
@@ -56,9 +56,7 @@ def get_topics(
             with open(record_file, "r") as f:
                 deleted_topics = f.read().split("\n")
 
-            topics = [
-                t for t in topics if t["root_prompt"]["hash"] not in deleted_topics
-            ]
+            topics = [t for t in topics if t["root_prompt"]["hash"] not in deleted_topics]
 
     return topics
 

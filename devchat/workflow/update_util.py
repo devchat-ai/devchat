@@ -12,7 +12,6 @@ from devchat.utils import get_logger
 from devchat.workflow.path import (
     CHAT_DIR,
     CUSTOM_BASE,
-    WORKFLOWS_BASE,
     WORKFLOWS_BASE_NAME,
 )
 
@@ -261,9 +260,7 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
         remote_main_hash = repo.commit(f"origin/{DEFAULT_BRANCH}").hexsha
 
         if local_main_hash == remote_main_hash:
-            msg = (
-                f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
-            )
+            msg = f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
             logger.info(msg)
             return False, msg
 
@@ -305,6 +302,4 @@ def copy_workflows_usr():
         shutil.copytree(old_usr_dir, new_usr_dir)
         logger.info(f"Copied {old_usr_dir} to {new_usr_dir} successfully.")
     else:
-        logger.info(
-            f"Skip copying usr dir. old exists: {old_exists}, new exists: {new_exists}."
-        )
+        logger.info(f"Skip copying usr dir. old exists: {old_exists}, new exists: {new_exists}.")

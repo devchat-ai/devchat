@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Query, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from devchat._service.schema import request, response
 from devchat.msg.topic_util import delete_topic as del_topic
@@ -14,9 +14,7 @@ async def get_topic_logs(
     topic_root_hash: str,
     limit: int = Query(1, gt=0, description="maximum number of records to return"),
     offset: int = Query(0, ge=0, description="offset of the first record to return"),
-    workspace: Optional[str] = Query(
-        None, description="absolute path to the workspace/repository"
-    ),
+    workspace: Optional[str] = Query(None, description="absolute path to the workspace/repository"),
 ):
     records = get_topic_shortlogs(topic_root_hash, limit, offset, workspace)
 
@@ -28,9 +26,7 @@ async def get_topic_logs(
 def list_topics(
     limit: int = Query(1, gt=0, description="maximum number of records to return"),
     offset: int = Query(0, ge=0, description="offset of the first record to return"),
-    workspace: Optional[str] = Query(
-        None, description="absolute path to the workspace/repository"
-    ),
+    workspace: Optional[str] = Query(None, description="absolute path to the workspace/repository"),
 ):
     topics = get_topics(
         limit=limit,
@@ -64,8 +60,6 @@ def delete_topic(
 
     except Exception as e:
         detail = f"Failed to delete topic <{item.topic_hash}>: {str(e)}"
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
     return response.DeleteTopic(topic_hash=item.topic_hash)

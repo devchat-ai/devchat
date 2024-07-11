@@ -7,7 +7,6 @@ from devchat.utils import unix_to_local_datetime, user_id
 from devchat.workflow.workflow import Workflow
 
 from .path import USER_CHAT_DIR
-from .schema import MessageRequest
 from .user_info import user_info
 
 
@@ -85,7 +84,7 @@ def route_message_by_content(message_content: str) -> Tuple[MessageType, Any]:
     workflow = Workflow.load(wf_name) if wf_name else None
 
     if workflow:
-        # TODO: the message should be handled by the workflow engine
+        # the message should be handled by the workflow engine
         return MessageType.WORKFLOW, (workflow, wf_name, wf_input)
 
     else:
