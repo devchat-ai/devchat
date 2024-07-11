@@ -22,5 +22,5 @@ run-dev-svc:
 	@uvicorn devchat._service.main:api_app --reload --port 22222
 
 run-svc:
-	@echo "Running service on port 22222..."
-	@gunicorn devchat._service.main:api_app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:22222
+	@echo "Running service..."
+	@python devchat/_service/main.py

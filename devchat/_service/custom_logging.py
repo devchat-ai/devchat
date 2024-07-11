@@ -1,4 +1,3 @@
-import os
 import logging
 import sys
 
@@ -6,9 +5,7 @@ from gunicorn.app.base import BaseApplication
 from gunicorn.glogging import Logger
 from loguru import logger
 
-LOG_LEVEL = logging.getLevelName(os.environ.get("LOG_LEVEL", "DEBUG"))
-JSON_LOGS = True if os.environ.get("JSON_LOGS", "0") == "1" else False
-WORKERS = int(os.environ.get("GUNICORN_WORKERS", "5"))
+from devchat._service.config import config
 
 
 class InterceptHandler(logging.Handler):
@@ -25,9 +22,7 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 class StubbedGunicornLogger(Logger):
@@ -37,8 +32,8 @@ class StubbedGunicornLogger(Logger):
         self.error_logger.addHandler(handler)
         self.access_logger = logging.getLogger("gunicorn.access")
         self.access_logger.addHandler(handler)
-        self.error_logger.setLevel(LOG_LEVEL)
-        self.access_logger.setLevel(LOG_LEVEL)
+        self.error_logger.setLevel(config.LOG_LEVEL)
+        self.access_logger.setLevel(config.LOG_LEVEL)
 
 
 class StandaloneApplication(BaseApplication):
@@ -62,3 +57,4 @@ class StandaloneApplication(BaseApplication):
         return self.application
 
 
+# https://pawamoy.github.io/posts/unify-logging-for-a-gunicorn-uvicorn-app/

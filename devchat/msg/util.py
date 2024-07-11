@@ -39,7 +39,6 @@ def route_message_by_content(message_content: str) -> Tuple[MessageType, Any]:
     2. chat with LLM directly
     """
     content = message_content
-    print(f"check content: {content}")
 
     wf_name, wf_input = Workflow.parse_trigger(content)
     workflow = Workflow.load(wf_name) if wf_name else None
