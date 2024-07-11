@@ -24,24 +24,33 @@ async def msg(
     user_str, date_str = mk_meta()
 
     message_type, extra = route_message_by_content(message.content)
-    print(f"message type: {message_type}")
 
     if message_type == MessageType.CHATTING:
 
         def gen_chat_response() -> Iterator[response.MessageCompletionChunk]:
-            for res in chatting(
-                content=message.content,
-                model_name=message.model_name,
-                parent=message.parent,
-                workspace=message.workspace,
-                context_files=message.context,
-            ):
+            try:
+                for res in chatting(
+                    content=message.content,
+                    model_name=message.model_name,
+                    parent=message.parent,
+                    workspace=message.workspace,
+                    context_files=message.context,
+                ):
+                    chunk = response.MessageCompletionChunk(
+                        user=user_str,
+                        date=date_str,
+                        content=res,
+                    )
+                    yield chunk.json()
+            except Exception as e:
                 chunk = response.MessageCompletionChunk(
                     user=user_str,
                     date=date_str,
-                    content=res,
+                    content=str(e),
+                    isError=True,
                 )
                 yield chunk.json()
+                raise e
 
         return StreamingResponse(gen_chat_response(), media_type="application/json")
 
@@ -78,7 +87,7 @@ async def msg(
             )
 
     else:
-        # TODO: Should not reach here
+        # Should not reach here
         chunk = response.MessageCompletionChunk(
             user=user_str,
             date=date_str,

@@ -139,7 +139,7 @@ class Assistant:
                 except Exception as err:
                     print("receive:", chunk, file=sys.stderr, end="\n\n")
                     logger.error("Error while iterating response: %s, %s", err, str(chunk))
-                    raise err
+                    raise RuntimeError(f"Error while iterating response, {err}, {str(chunk)}")
             if not self._prompt.responses:
                 raise RuntimeError("No responses returned from the chat API")
             if self._need_store:
