@@ -6,9 +6,9 @@ from typing import Dict, List, Optional, Tuple
 from devchat._cli.utils import get_model_config
 from devchat.openai.openai_chat import OpenAIChat, OpenAIChatConfig, OpenAIPrompt
 from devchat.store import Store
+from devchat.workspace_util import USER_CHAT_DIR, get_workspace_chat_dir
 
 from .user_info import user_info
-from .util import USER_CHAT_DIR, get_workspace_chat_dir
 
 
 @dataclass
