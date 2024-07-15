@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 @router.post("/insert", response_model=response.InsertLog)
-async def insert(
+def insert(
     item: request.InsertLog,
 ):
     try:
@@ -20,7 +20,7 @@ async def insert(
 
 
 @router.post("/delete", response_model=response.DeleteLog)
-async def delete(
+def delete(
     item: request.DeleteLog,
 ):
     try:

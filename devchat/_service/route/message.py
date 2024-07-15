@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/msg")
-async def msg(
+def msg(
     message: request.UserMessage,
 ):
     if message.api_key:

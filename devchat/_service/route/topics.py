@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/{topic_root_hash}/logs", response_model=List[response.ShortLog])
-async def get_topic_logs(
+def get_topic_logs(
     topic_root_hash: str,
     limit: int = Query(1, gt=0, description="maximum number of records to return"),
     offset: int = Query(0, ge=0, description="offset of the first record to return"),

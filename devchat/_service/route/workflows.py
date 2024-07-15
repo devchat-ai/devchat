@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 @router.get("/list", response_model=List[WorkflowMeta])
-async def list_workflow():
+def list_workflow():
     namespace_paths = get_prioritized_namespace_path()
 
     workflows: List[WorkflowMeta] = []
@@ -39,7 +39,7 @@ async def list_workflow():
 
 
 @router.get("/config")
-async def get_config():
+def get_config():
     config_path = Path(WORKFLOWS_BASE) / WORKFLOWS_CONFIG_FILENAME
     config_content = {}
     if config_path.exists():
@@ -50,7 +50,7 @@ async def get_config():
 
 
 @router.post("/update", response_model=response.UpdateWorkflows)
-async def update_workflows():
+def update_workflows():
     base_path = Path(WORKFLOWS_BASE)
 
     if HAS_GIT:
