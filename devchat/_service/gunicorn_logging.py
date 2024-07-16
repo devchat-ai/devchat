@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 from gunicorn.app.base import BaseApplication
@@ -6,6 +7,7 @@ from gunicorn.glogging import Logger
 from loguru import logger
 
 from devchat._service.config import config
+from devchat.workspace_util import get_workspace_chat_dir
 
 
 class InterceptHandler(logging.Handler):
@@ -55,6 +57,54 @@ class StandaloneApplication(BaseApplication):
 
     def load(self):
         return self.application
+
+
+def run_with_gunicorn(app):
+    intercept_handler = InterceptHandler()
+    # logging.basicConfig(handlers=[intercept_handler], level=LOG_LEVEL)
+    # logging.root.handlers = [intercept_handler]
+    logging.root.setLevel(config.LOG_LEVEL)
+
+    seen = set()
+    for name in [
+        *logging.root.manager.loggerDict.keys(),
+        "gunicorn",
+        "gunicorn.access",
+        "gunicorn.error",
+        "uvicorn",
+        "uvicorn.access",
+        "uvicorn.error",
+    ]:
+        if name not in seen:
+            seen.add(name.split(".")[0])
+            logging.getLogger(name).handlers = [intercept_handler]
+
+    workspace_chat_dir = get_workspace_chat_dir(config.WORKSPACE)
+    log_file = os.path.join(workspace_chat_dir, config.LOG_FILE)
+
+    logger.configure(
+        handlers=[
+            {"sink": sys.stdout, "serialize": config.JSON_LOGS},
+            {
+                "sink": log_file,
+                "serialize": config.JSON_LOGS,
+                "rotation": "10 days",
+                "retention": "30 days",
+                "enqueue": True,
+            },
+        ]
+    )
+
+    options = {
+        "bind": f"0.0.0.0:{config.PORT}",
+        "workers": config.WORKERS,
+        "accesslog": "-",
+        "errorlog": "-",
+        "worker_class": "uvicorn.workers.UvicornWorker",
+        "logger_class": StubbedGunicornLogger,
+    }
+
+    StandaloneApplication(app, options).run()
 
 
 # https://pawamoy.github.io/posts/unify-logging-for-a-gunicorn-uvicorn-app/

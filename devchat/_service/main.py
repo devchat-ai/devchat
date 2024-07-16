@@ -1,18 +1,8 @@
-import logging
-import os
-import sys
-
 from fastapi import FastAPI
-from loguru import logger
 
 from devchat._service.config import config
-from devchat._service.custom_logging import (
-    InterceptHandler,
-    StandaloneApplication,
-    StubbedGunicornLogger,
-)
 from devchat._service.route import router
-from devchat.workspace_util import get_workspace_chat_dir
+from devchat._service.uvicorn_logging import setup_logging
 
 api_app = FastAPI(
     title="DevChat Local Service",
@@ -30,51 +20,21 @@ api_app.include_router(router)
 
 
 def main():
-    intercept_handler = InterceptHandler()
-    # logging.basicConfig(handlers=[intercept_handler], level=LOG_LEVEL)
-    # logging.root.handlers = [intercept_handler]
-    logging.root.setLevel(config.LOG_LEVEL)
+    # Use uvicorn to run the app because gunicorn doesn't support Windows
+    from uvicorn import Config, Server
 
-    seen = set()
-    for name in [
-        *logging.root.manager.loggerDict.keys(),
-        "gunicorn",
-        "gunicorn.access",
-        "gunicorn.error",
-        "uvicorn",
-        "uvicorn.access",
-        "uvicorn.error",
-    ]:
-        if name not in seen:
-            seen.add(name.split(".")[0])
-            logging.getLogger(name).handlers = [intercept_handler]
-
-    workspace_chat_dir = get_workspace_chat_dir(config.WORKSPACE)
-    log_file = os.path.join(workspace_chat_dir, config.LOG_FILE)
-
-    logger.configure(
-        handlers=[
-            {"sink": sys.stdout, "serialize": config.JSON_LOGS},
-            {
-                "sink": log_file,
-                "serialize": config.JSON_LOGS,
-                "rotation": "10 days",
-                "retention": "30 days",
-                "enqueue": True,
-            },
-        ]
+    server = Server(
+        Config(
+            api_app,
+            host="0.0.0.0",
+            port=config.PORT,
+        ),
     )
 
-    options = {
-        "bind": f"0.0.0.0:{config.PORT}",
-        "workers": config.WORKERS,
-        "accesslog": "-",
-        "errorlog": "-",
-        "worker_class": "uvicorn.workers.UvicornWorker",
-        "logger_class": StubbedGunicornLogger,
-    }
-
-    StandaloneApplication(api_app, options).run()
+    # setup logging last, to make sure no library overwrites it
+    # (they shouldn't, but it happens)
+    setup_logging()
+    server.run()
 
 
 if __name__ == "__main__":
