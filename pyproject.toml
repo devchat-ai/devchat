@@ -37,6 +37,7 @@ fastapi = "^0.111.0"
 uvicorn = {extras = ["standard"], version = "^0.30.1"}
 gunicorn = "^22.0.0"
 loguru = "^0.7.2"
+win32-setctime = "^1.1.0"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli.main:main"
