@@ -7,7 +7,6 @@ from devchat._service.uvicorn_logging import setup_logging
 api_app = FastAPI(
     title="DevChat Local Service",
 )
-api_app.mount("/devchat", router)
 api_app.include_router(router)
 
 
