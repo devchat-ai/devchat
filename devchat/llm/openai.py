@@ -74,10 +74,11 @@ def chat_completion_stream_raw(**kwargs):
 def stream_out_chunk(chunks):
     for chunk in chunks:
         chunk_dict = chunk.dict()
-        delta = chunk_dict["choices"][0]["delta"]
-        if delta.get("content", None):
-            print(delta["content"], end="", flush=True)
-        yield chunk
+        if len(chunk_dict["choices"]) > 0:
+            delta = chunk_dict["choices"][0]["delta"]
+            if delta.get("content", None):
+                print(delta["content"], end="", flush=True)
+            yield chunk
 
 
 def retry_timeout(chunks):
@@ -97,11 +98,12 @@ def chunks_content(chunks):
     content = None
     for chunk in chunks:
         chunk_dict = chunk.dict()
-        delta = chunk_dict["choices"][0]["delta"]
-        if delta.get("content", None):
-            if content is None:
-                content = ""
-            content += delta["content"]
+        if len(chunk_dict["choices"]) > 0:
+            delta = chunk_dict["choices"][0]["delta"]
+            if delta.get("content", None):
+                if content is None:
+                    content = ""
+                content += delta["content"]
     return content
 
 
@@ -110,17 +112,18 @@ def chunks_call(chunks):
 
     for chunk in chunks:
         chunk = chunk.dict()
-        delta = chunk["choices"][0]["delta"]
-        if "tool_calls" in delta and delta["tool_calls"]:
-            tool_call = delta["tool_calls"][0]["function"]
-            if delta["tool_calls"][0].get("index", None) is not None:
-                index = delta["tool_calls"][0]["index"]
-                if index >= len(tool_calls):
-                    tool_calls.append({"name": None, "arguments": ""})
-            if tool_call.get("name", None):
-                tool_calls[-1]["name"] = tool_call["name"]
-            if tool_call.get("arguments", None):
-                tool_calls[-1]["arguments"] += tool_call["arguments"]
+        if len(chunk["choices"]) > 0:
+            delta = chunk["choices"][0]["delta"]
+            if "tool_calls" in delta and delta["tool_calls"]:
+                tool_call = delta["tool_calls"][0]["function"]
+                if delta["tool_calls"][0].get("index", None) is not None:
+                    index = delta["tool_calls"][0]["index"]
+                    if index >= len(tool_calls):
+                        tool_calls.append({"name": None, "arguments": ""})
+                if tool_call.get("name", None):
+                    tool_calls[-1]["name"] = tool_call["name"]
+                if tool_call.get("arguments", None):
+                    tool_calls[-1]["arguments"] += tool_call["arguments"]
     return tool_calls
 
 
