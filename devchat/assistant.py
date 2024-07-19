@@ -117,25 +117,26 @@ class Assistant:
                 try:
                     if hasattr(chunk, "dict"):
                         chunk = chunk.dict()
-                    if (
-                        "function_call" in chunk["choices"][0]["delta"]
-                        and not chunk["choices"][0]["delta"]["function_call"]
-                    ):
-                        del chunk["choices"][0]["delta"]["function_call"]
-                        if not chunk["choices"][0]["delta"]["content"]:
-                            chunk["choices"][0]["delta"]["content"] = ""
-                    if "id" not in chunk or "index" not in chunk["choices"][0]:
-                        chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
-                        chunk["object"] = "chat.completion.chunk"
-                        chunk["created"] = created_time
-                        chunk["model"] = config_params["model"]
-                        chunk["choices"][0]["index"] = 0
-                        chunk["choices"][0]["finish_reason"] = "stop"
-                    if "role" not in chunk["choices"][0]["delta"]:
-                        chunk["choices"][0]["delta"]["role"] = "assistant"
+                    if len(chunk["choices"]) > 0:
+                        if (
+                            "function_call" in chunk["choices"][0]["delta"]
+                            and not chunk["choices"][0]["delta"]["function_call"]
+                        ):
+                            del chunk["choices"][0]["delta"]["function_call"]
+                            if not chunk["choices"][0]["delta"]["content"]:
+                                chunk["choices"][0]["delta"]["content"] = ""
+                        if "id" not in chunk or "index" not in chunk["choices"][0]:
+                            chunk["id"] = "chatcmpl-7vdfQI02x-" + str(created_time)
+                            chunk["object"] = "chat.completion.chunk"
+                            chunk["created"] = created_time
+                            chunk["model"] = config_params["model"]
+                            chunk["choices"][0]["index"] = 0
+                            chunk["choices"][0]["finish_reason"] = "stop"
+                        if "role" not in chunk["choices"][0]["delta"]:
+                            chunk["choices"][0]["delta"]["role"] = "assistant"
 
-                    delta = self._prompt.append_response(json.dumps(chunk))
-                    yield delta
+                        delta = self._prompt.append_response(json.dumps(chunk))
+                        yield delta
                 except Exception as err:
                     print("receive:", chunk, file=sys.stderr, end="\n\n")
                     logger.error("Error while iterating response: %s, %s", err, str(chunk))
