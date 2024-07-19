@@ -22,6 +22,16 @@ def setup_logger(file_path: Optional[str] = None):
     logging.root.handlers = [handler]
 
 
+def get_logging_file() -> Optional[str]:
+    """
+    Get the file path of the global file log handler.
+    """
+    for handler in logging.root.handlers:
+        if isinstance(handler, logging.FileHandler):
+            return handler.baseFilename
+    return None
+
+
 def get_logger(name: str = None, handler: logging.Handler = None) -> logging.Logger:
     local_logger = logging.getLogger(name)
 

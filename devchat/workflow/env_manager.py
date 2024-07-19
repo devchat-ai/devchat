@@ -4,7 +4,7 @@ import subprocess
 import sys
 from typing import Dict, Optional, Tuple
 
-from devchat.utils import get_logger
+from devchat.utils import get_logger, get_logging_file
 
 from .envs import MAMBA_BIN_PATH
 from .path import ENV_CACHE_DIR, MAMBA_PY_ENVS, MAMBA_ROOT
@@ -94,6 +94,7 @@ class PyEnvManager:
             if not should_remove_old:
                 return py
 
+        log_file = get_logging_file()
         print("\n```Step\n# Setting up workflow environment\n", flush=True)
         if should_remove_old:
             print(f"- Dependencies of {env_name} have been changed.", flush=True)
@@ -104,11 +105,11 @@ class PyEnvManager:
         print(f"- Creating {env_name} with {py_version}...", flush=True)
         create_ok, msg = self.create(env_name, py_version)
         if not create_ok:
-            print(f"- Failed to create {env_name}", flush=True)
+            print(f"- Failed to create {env_name}.", flush=True)
+            print(f"\nFor more details, check {log_file}.", flush=True)
             print("\n```", flush=True)
             print(
-                f"\n\nFailed to create {env_name}, the workflow will not run."
-                f"\n\nPlease try again later.",
+                f"\n\nFailed to create {env_name}, the workflow will not run.",
                 flush=True,
             )
             logger.warning(f"Failed to create {env_name}: {msg}")
@@ -121,11 +122,11 @@ class PyEnvManager:
             print(f"- Installing dependencies from {filename}...", flush=True)
             install_ok, msg = self.install(env_name, reqirements_file)
             if not install_ok:
-                print(f"- Failed to install dependencies from {filename}", flush=True)
+                print(f"- Failed to install dependencies from {filename}.", flush=True)
+                print(f"\nFor more details, check {log_file}.", flush=True)
                 print("\n```", flush=True)
                 print(
-                    "\n\nFailed to install dependencies, the workflow will not run."
-                    "\n\nPlease try again later.",
+                    "\n\nFailed to install dependencies, the workflow will not run.",
                     flush=True,
                 )
                 logger.warning(f"Failed to install dependencies: {msg}")
@@ -198,7 +199,7 @@ class PyEnvManager:
         """
         is_exist = os.path.exists(os.path.join(MAMBA_PY_ENVS, env_name))
         if is_exist:
-            return True
+            return True, ""
 
         # create the environment
         cmd = [
