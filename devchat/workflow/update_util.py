@@ -190,19 +190,21 @@ def update_by_zip(workflow_base: Path) -> Tuple[bool, str]:
         return True, msg
 
 
-def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
+def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = DEFAULT_BRANCH) -> Tuple[bool, str]:
     logger.info("Updating by git...")
     parent = workflow_base.parent
 
     if not workflow_base.exists():
         # No previous workflows, clone to the workflow_base directly
-        clone_ok = _clone_repo_to_dir(REPO_URLS, workflow_base)
+        clone_ok = _clone_repo_to_dir(repo_urls, workflow_base)
         if not clone_ok:
             msg = "Failed to clone from all git urls. Please Try again later."
             logger.info(msg)
             return False, msg
-
-        logger.info(f"Updated {workflow_base} by git.")
+        else:
+            msg = f"Updated {workflow_base} by git."
+            logger.info(msg)
+            return True, msg
 
     else:
         # Has previous workflows
@@ -223,7 +225,7 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             if tmp_new.exists():
                 shutil.rmtree(tmp_new)
 
-            clone_ok = _clone_repo_to_dir(REPO_URLS, tmp_new)
+            clone_ok = _clone_repo_to_dir(repo_urls, tmp_new)
             if not clone_ok:
                 msg = "Failed to clone from all git urls. Skip update."
                 logger.info(msg)
@@ -241,9 +243,9 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             return True, msg
 
         # current workflow base dir is a valid git repo
-        if head_name != DEFAULT_BRANCH:
+        if head_name != default_branch:
             msg = (
-                f"Current workflow branch is not the default one[{DEFAULT_BRANCH}]: "
+                f"Current workflow branch is not the default one[{default_branch}]: "
                 f"<{head_name}>. Skip update."
             )
             logger.info(msg)
@@ -257,10 +259,10 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             return False, msg
 
         local_main_hash = repo.head.commit.hexsha
-        remote_main_hash = repo.commit(f"origin/{DEFAULT_BRANCH}").hexsha
+        remote_main_hash = repo.commit(f"origin/{default_branch}").hexsha
 
         if local_main_hash == remote_main_hash:
-            msg = f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
+            msg = f"Local branch is up-to-date with remote {default_branch}. Skip update."
             logger.info(msg)
             return False, msg
 
@@ -272,7 +274,7 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             repo.git.reset("--hard", "HEAD")
             repo.git.clean("-df")
             repo.git.fetch("origin")
-            repo.git.reset("--hard", f"origin/{DEFAULT_BRANCH}")
+            repo.git.reset("--hard", f"origin/{default_branch}")
 
             msg = (
                 f"Updated {workflow_base} from <{local_main_hash[:8]}> to"

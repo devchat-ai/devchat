@@ -5,6 +5,7 @@ import os
 # -------------------------------
 USE_DIR = os.path.expanduser("~")
 CHAT_DIR = os.path.join(USE_DIR, ".chat")
+CHAT_CONFIG_FILENAME = "config.yml"
 
 
 # -------------------------------
