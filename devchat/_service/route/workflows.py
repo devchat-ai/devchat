@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List
+import shutil
 
 from devchat.utils import get_logger
 
@@ -26,6 +27,7 @@ from devchat.workflow.update_util import (
     copy_workflows_usr,
     update_by_git,
     update_by_zip,
+    custom_update_by_git
 )
 
 router = APIRouter()
@@ -90,11 +92,15 @@ def update_custom_workflows():
 
                 for url in custom_git_urls:
                     repo_name = url.split("/")[-1].replace(".git", "")  # 提取repo名称
-                    repo_path = base_path / repo_name  # 拼接出clone路径
+                    repo_path:Path = base_path / repo_name  # 拼接出clone路径
                     candidates_git_urls = [(url, 'main')]
-                    
+
+                    if repo_path.exists():
+                        logger.info(f"Repo path not empty {repo_path}, removing it.")    
+                        shutil.rmtree(repo_path)
+
                     logger.info(f"Starting update for {repo_name} at {repo_path} using Git URL on the main branch.")
-                    updated, message = update_by_git(repo_path, candidates_git_urls, "main")
+                    updated, message = custom_update_by_git(repo_path, candidates_git_urls)
                     update_messages.append(f"{repo_name}: {message}")
 
                     if updated:
