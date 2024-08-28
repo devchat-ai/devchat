@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from devchat._service.config import config
 from devchat._service.route import router
@@ -7,6 +8,15 @@ from devchat._service.uvicorn_logging import setup_logging
 api_app = FastAPI(
     title="DevChat Local Service",
 )
+# 配置 CORS
+api_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有源进行跨域请求
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有 HTTP 方法（如 GET、POST 等）
+    allow_headers=["*"],  # 允许所有请求头
+)
+
 api_app.include_router(router)
 
 

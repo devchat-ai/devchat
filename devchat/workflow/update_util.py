@@ -190,13 +190,13 @@ def update_by_zip(workflow_base: Path) -> Tuple[bool, str]:
         return True, msg
 
 
-def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = DEFAULT_BRANCH) -> Tuple[bool, str]:
+def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
     logger.info("Updating by git...")
     parent = workflow_base.parent
 
     if not workflow_base.exists():
         # No previous workflows, clone to the workflow_base directly
-        clone_ok = _clone_repo_to_dir(repo_urls, workflow_base)
+        clone_ok = _clone_repo_to_dir(REPO_URLS, workflow_base)
         if not clone_ok:
             msg = "Failed to clone from all git urls. Please Try again later."
             logger.info(msg)
@@ -225,7 +225,7 @@ def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = D
             if tmp_new.exists():
                 shutil.rmtree(tmp_new)
 
-            clone_ok = _clone_repo_to_dir(repo_urls, tmp_new)
+            clone_ok = _clone_repo_to_dir(REPO_URLS, tmp_new)
             if not clone_ok:
                 msg = "Failed to clone from all git urls. Skip update."
                 logger.info(msg)
@@ -243,9 +243,9 @@ def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = D
             return True, msg
 
         # current workflow base dir is a valid git repo
-        if head_name != default_branch:
+        if head_name != DEFAULT_BRANCH:
             msg = (
-                f"Current workflow branch is not the default one[{default_branch}]: "
+                f"Current workflow branch is not the default one[{DEFAULT_BRANCH}]: "
                 f"<{head_name}>. Skip update."
             )
             logger.info(msg)
@@ -259,10 +259,10 @@ def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = D
             return False, msg
 
         local_main_hash = repo.head.commit.hexsha
-        remote_main_hash = repo.commit(f"origin/{default_branch}").hexsha
+        remote_main_hash = repo.commit(f"origin/{DEFAULT_BRANCH}").hexsha
 
         if local_main_hash == remote_main_hash:
-            msg = f"Local branch is up-to-date with remote {default_branch}. Skip update."
+            msg = f"Local branch is up-to-date with remote {DEFAULT_BRANCH}. Skip update."
             logger.info(msg)
             return False, msg
 
@@ -274,7 +274,7 @@ def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = D
             repo.git.reset("--hard", "HEAD")
             repo.git.clean("-df")
             repo.git.fetch("origin")
-            repo.git.reset("--hard", f"origin/{default_branch}")
+            repo.git.reset("--hard", f"origin/{DEFAULT_BRANCH}")
 
             msg = (
                 f"Updated {workflow_base} from <{local_main_hash[:8]}> to"
@@ -288,6 +288,20 @@ def update_by_git(workflow_base: Path, repo_urls = REPO_URLS, default_branch = D
             msg = f"Failed to update to the latest main: {e}. Skip update."
             logger.info(msg)
             return False, msg
+
+
+def custom_update_by_git(workflow_base: Path, repo_urls=REPO_URLS) -> Tuple[bool, str]:
+    logger.info("Updating custom by git...")
+    # No previous workflows, clone to the workflow_base directly
+    clone_ok = _clone_repo_to_dir(repo_urls, workflow_base)
+    if not clone_ok:
+        msg = "Failed to clone from all git urls. Please Try again later."
+        logger.info(msg)
+        return False, msg
+    else:
+        msg = f"Updated {workflow_base} by git."
+        logger.info(msg)
+        return True, msg
 
 
 def copy_workflows_usr():
