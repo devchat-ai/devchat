@@ -115,7 +115,7 @@ def update_custom_workflows():
                             with open(custom_config_path, "w", encoding="utf-8") as file:
                                 yaml.safe_dump(custom_config_content, file)
                     else:
-                        updated_any = False if message.index("up-to-date") < 0 else True
+                        updated_any = False if "up-to-date" in message else True
                         logger.info(f"No updates made for repository: {repo_name}")
 
                 message_summary = " | ".join(update_messages)
