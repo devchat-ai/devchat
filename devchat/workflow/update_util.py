@@ -289,7 +289,8 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             logger.info(msg)
             return False, msg
 
-def custom_update_by_git(workflow_base: Path, repo_urls = REPO_URLS) -> Tuple[bool, str]:
+
+def custom_update_by_git(workflow_base: Path, repo_urls=REPO_URLS) -> Tuple[bool, str]:
     logger.info("Updating custom by git...")
     # No previous workflows, clone to the workflow_base directly
     clone_ok = _clone_repo_to_dir(repo_urls, workflow_base)
@@ -301,7 +302,6 @@ def custom_update_by_git(workflow_base: Path, repo_urls = REPO_URLS) -> Tuple[bo
         msg = f"Updated {workflow_base} by git."
         logger.info(msg)
         return True, msg
-
 
 
 def copy_workflows_usr():
