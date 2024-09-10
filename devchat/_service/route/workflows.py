@@ -132,7 +132,7 @@ def update_custom_workflows():
                 return response.UpdateWorkflows(updated=updated_any, message=message_summary)
             else:
                 return response.UpdateWorkflows(
-                    False, "No custom_git_urls found in .chat/config.yaml"
+                   updated=False, message="No custom_git_urls found in .chat/config.yaml"
                 )
     else:
-        return response.UpdateWorkflows(False, "No .chat config found")
+        return response.UpdateWorkflows(updated=False, message="No .chat config found")
