@@ -285,5 +285,5 @@ class PyEnvManager:
             return config.get("conda-forge-url", DEFAULT_CONDA_FORGE_URL)
         except Exception as e:
             # Log the exception if needed
-            print(f"An error occurred: {e}")
+            print(f"An error occurred when loading conda-forge-url from config file: {e}")
             return DEFAULT_CONDA_FORGE_URL
