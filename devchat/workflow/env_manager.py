@@ -15,6 +15,7 @@ PYPI_TUNA = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 logger = get_logger(__name__)
 
+
 def _get_external_envs() -> Dict[str, ExternalPyConf]:
     """
     Get the external python environments info from the user settings.
@@ -25,7 +26,9 @@ def _get_external_envs() -> Dict[str, ExternalPyConf]:
 
     return external_pythons
 
+
 EXTERNAL_ENVS = _get_external_envs()
+
 
 class PyEnvManager:
     mamba_bin = MAMBA_BIN_PATH
@@ -274,6 +277,7 @@ class PyEnvManager:
                 return default_url
 
             import yaml
+
             with open(config_file, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
 
