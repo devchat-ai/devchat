@@ -7,16 +7,13 @@ from typing import Dict, Optional, Tuple
 from devchat.utils import get_logger, get_logging_file
 
 from .envs import MAMBA_BIN_PATH
-from .path import ENV_CACHE_DIR, MAMBA_PY_ENVS, MAMBA_ROOT
+from .path import CHAT_CONFIG_FILENAME, CHAT_DIR, ENV_CACHE_DIR, MAMBA_PY_ENVS, MAMBA_ROOT
 from .schema import ExternalPyConf
 from .user_setting import USER_SETTINGS
 
-# CONDA_FORGE = [
-#     "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/",
-#     "conda-forge",
-# ]
-CONDA_FORGE_TUNA = "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/"
 PYPI_TUNA = "https://pypi.tuna.tsinghua.edu.cn/simple"
+DEFAULT_CONDA_FORGE_URL = "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/"
+
 
 logger = get_logger(__name__)
 
@@ -201,6 +198,9 @@ class PyEnvManager:
         if is_exist:
             return True, ""
 
+        # Get conda-forge URL from config file
+        conda_forge_url = self._get_conda_forge_url()
+
         # create the environment
         cmd = [
             self.mamba_bin,
@@ -208,7 +208,7 @@ class PyEnvManager:
             "-n",
             env_name,
             "-c",
-            CONDA_FORGE_TUNA,
+            conda_forge_url,
             "-r",
             self.mamba_root,
             f"python={py_version}",
@@ -264,3 +264,26 @@ class PyEnvManager:
             return env_path
 
         return None
+
+    def _get_conda_forge_url(self) -> str:
+        """
+        Read the conda-forge URL from the config file.
+        If the config file does not exist or does not contain the conda-forge URL,
+        use the default value.
+        """
+        config_file = os.path.join(CHAT_DIR, CHAT_CONFIG_FILENAME)
+
+        try:
+            if not os.path.exists(config_file):
+                return DEFAULT_CONDA_FORGE_URL
+
+            import yaml
+
+            with open(config_file, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+
+            return config.get("conda-forge-url", DEFAULT_CONDA_FORGE_URL)
+        except Exception as e:
+            # Log the exception if needed
+            print(f"An error occurred when loading conda-forge-url from config file: {e}")
+            return DEFAULT_CONDA_FORGE_URL
