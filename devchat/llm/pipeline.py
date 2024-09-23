@@ -52,8 +52,10 @@ def retry(func, times):
             except openai.APIError as err:
                 IDEService().ide_logging(
                     "info",
-                    f"OpenAI API Error: {err.code if err.code else ''} "
-                    f"{err.type if err.type else err}",
+                    (
+                        f"OpenAI API Error: {err.code if err.code else ''} "
+                        f"{err.type if err.type else err}"
+                    ),
                 )
                 raise err from err
             except Exception as err:
