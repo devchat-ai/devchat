@@ -1,3 +1,7 @@
+"""
+openai api call by PYTHON http client
+"""
+
 import http.client
 import json
 import os
@@ -7,6 +11,8 @@ from urllib.parse import urlparse
 
 
 class LineReader:
+    """read line from stream"""
+
     def __init__(self, response):
         self.response = response
 
@@ -35,21 +41,33 @@ class LineReader:
 
 
 def stream_response(connection: http.client.HTTPSConnection, data, headers):
+    """stream response from openai api"""
     connection.request("POST", "/v1/chat/completions", body=json.dumps(data), headers=headers)
     response = connection.getresponse()
 
     if response.status != 200:
+        response_body = response.read().decode("utf-8")
         print(
             f"received status code: {response.status} - reason: {response.reason}\n\n"
-            f"response: {response.read()}",
+            f"response: {response_body}",
             end="\n\n",
             file=sys.stderr,
         )
-        return None
+
+        try:
+            error_detail = json.loads(response_body).get("detail", "No detail provided")
+        except json.JSONDecodeError:
+            error_detail = "Failed to decode JSON response"
+
+        raise ValueError(
+            f"Received status code: {response.status} - reason: {response.reason}"
+            f" - detail: {error_detail}"
+        )
     return LineReader(response=response)
 
 
 def stream_request(api_key, api_base, data):
+    """stream request to openai api"""
     try:
         headers = {
             "Content-Type": "application/json",
@@ -92,4 +110,4 @@ def stream_request(api_key, api_base, data):
         return stream_response(connection, data, headers)
     except Exception as err:
         print(err, end="\n\n", file=sys.stderr)
-        return None
+        raise err from err
