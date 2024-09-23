@@ -132,7 +132,7 @@ def pipeline(*funcs):
                 args = (func(*args, **kwargs),)
         end_time = time.time()
         IDEService().ide_logging("debug", f"time on pipeline: {end_time-start_time}")
-        return args
+        return args[0]
 
     return wrapper
 

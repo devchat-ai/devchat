@@ -153,7 +153,7 @@ def content_to_json(content):
     """
     try:
         content_no_block = _try_remove_markdown_block_flag(content)
-        response_obj = json.loads(content_no_block)
+        response_obj = json.loads(content_no_block, strict=False)
         return response_obj
     except json.JSONDecodeError as err:
         IDEService().ide_logging("debug", f"Receive content: {content}")
