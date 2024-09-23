@@ -1,3 +1,7 @@
+"""
+openai api utils
+"""
+
 # flake8: noqa: E402
 # Import necessary libraries
 import json
@@ -18,6 +22,7 @@ from .pipeline import (
     retry,  # Function to retry a task
 )
 
+
 def _try_remove_markdown_block_flag(content):
     """
     If the content is a markdown block, this function removes the header ```xxx and footer ```
@@ -35,6 +40,7 @@ def _try_remove_markdown_block_flag(content):
         return markdown_content.strip()
     # If no match is found, return the original content
     return content
+
 
 def chat_completion_stream_commit(
     messages: List[Dict],  # [{"role": "user", "content": "hello"}]
@@ -59,6 +65,7 @@ def chat_completion_stream_commit(
     # Return chat completions
     return client.chat.completions.create(messages=messages, **llm_config)
 
+
 def chat_completion_stream_raw(**kwargs):
     """
     This function is used to get raw chat completion stream
@@ -79,6 +86,7 @@ def chat_completion_stream_raw(**kwargs):
     # Return chat completions
     return client.chat.completions.create(**kwargs)
 
+
 def stream_out_chunk(chunks):
     """
     This function is used to print out chunks of data
@@ -91,6 +99,7 @@ def stream_out_chunk(chunks):
                 print(delta["content"], end="", flush=True)
             yield chunk
 
+
 def retry_timeout(chunks):
     """
     This function is used to handle timeout errors
@@ -102,11 +111,13 @@ def retry_timeout(chunks):
         IDEService().ide_logging("info", f"in retry_timeout: err: {err}")
         raise RetryException(err) from err
 
+
 def chunk_list(chunks):
     """
     This function is used to convert chunks into a list
     """
     return [chunk for chunk in chunks]
+
 
 def chunks_content(chunks):
     """
@@ -147,6 +158,7 @@ def chunks_call(chunks):
                     tool_calls[-1]["arguments"] += tool_call["arguments"]
     return tool_calls
 
+
 def content_to_json(content):
     """
     This function is used to convert content to JSON
@@ -163,6 +175,7 @@ def content_to_json(content):
         IDEService().ide_logging("debug", f"in content_to_json: other error: {err}")
         raise err
 
+
 def to_dict_content_and_call(content, tool_calls=None):
     """
     This function is used to convert content and tool calls to a dictionary
@@ -176,15 +189,18 @@ def to_dict_content_and_call(content, tool_calls=None):
         "tool_calls": tool_calls,
     }
 
+
 # Define a pipeline function for chat completion content.
-# This pipeline first commits a chat completion stream, handles any timeout errors, and then extracts the content from the chunks.
+# This pipeline first commits a chat completion stream, handles any timeout errors,
+# and then extracts the content from the chunks.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
 chat_completion_content = retry(
     pipeline(chat_completion_stream_commit, retry_timeout, chunks_content), times=3
 )
 
 # Define a pipeline function for chat completion stream content.
-# This pipeline first commits a chat completion stream, handles any timeout errors, streams out the chunk, and then extracts the content from the chunks.
+# This pipeline first commits a chat completion stream, handles any timeout errors,
+# streams out the chunk, and then extracts the content from the chunks.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
 chat_completion_stream_content = retry(
     pipeline(chat_completion_stream_commit, retry_timeout, stream_out_chunk, chunks_content),
@@ -192,16 +208,19 @@ chat_completion_stream_content = retry(
 )
 
 # Define a pipeline function for chat completion call.
-# This pipeline first commits a chat completion stream, handles any timeout errors, and then extracts the tool calls from the chunks.
+# This pipeline first commits a chat completion stream, handles any timeout errors,
+#  and then extracts the tool calls from the chunks.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
 chat_completion_call = retry(
     pipeline(chat_completion_stream_commit, retry_timeout, chunks_call), times=3
 )
 
 # Define a pipeline function for chat completion without streaming and return a JSON object.
-# This pipeline first commits a chat completion stream, handles any timeout errors, extracts the content from the chunks and then converts the content to JSON.
+# This pipeline first commits a chat completion stream, handles any timeout errors, extracts
+#  the content from the chunks and then converts the content to JSON.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
-# If a JSONDecodeError is encountered during the content to JSON conversion, it will log the error and retry the pipeline.
+# If a JSONDecodeError is encountered during the content to JSON conversion, it will log the
+#  error and retry the pipeline.
 # If any other exception is encountered, it will log the error and raise it.
 chat_completion_no_stream_return_json_with_retry = exception_handle(
     retry(
@@ -210,6 +229,7 @@ chat_completion_no_stream_return_json_with_retry = exception_handle(
     ),
     None,
 )
+
 
 def chat_completion_no_stream_return_json(messages: List[Dict], llm_config: Dict):
     """
@@ -222,7 +242,9 @@ def chat_completion_no_stream_return_json(messages: List[Dict], llm_config: Dict
 
 
 # Define a pipeline function for chat completion stream.
-# This pipeline first commits a chat completion stream, handles any timeout errors, extracts the content from the chunks, and then converts the content and tool calls to a dictionary.
+# This pipeline first commits a chat completion stream, handles any timeout errors,
+#  extracts the content from the chunks, and then converts the content and tool calls
+#  to a dictionary.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
 # If an exception is encountered, it will return a dictionary with None values and the error.
 chat_completion_stream = exception_handle(
@@ -239,9 +261,12 @@ chat_completion_stream = exception_handle(
 )
 
 # Define a pipeline function for chat call completion stream.
-# This pipeline first commits a chat completion stream, handles any timeout errors, converts the chunks to a list, extracts the content and tool calls from the chunks in parallel, and then converts the content and tool calls to a dictionary.
+# This pipeline first commits a chat completion stream, handles any timeout errors,
+#  converts the chunks to a list, extracts the content and tool calls from the chunks
+#  in parallel, and then converts the content and tool calls to a dictionary.
 # If any step in the pipeline fails, it will retry the entire pipeline up to 3 times.
-# If an exception is encountered, it will return a dictionary with None values, an empty tool calls list, and the error.
+# If an exception is encountered, it will return a dictionary with None values, an empty
+#  tool calls list, and the error.
 chat_call_completion_stream = exception_handle(
     retry(
         pipeline(

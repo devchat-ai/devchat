@@ -1,13 +1,19 @@
+"""
+pipeline utils
+"""
+
 import sys
 import time
 from typing import Dict
 
 import openai
+
 from devchat.ide import IDEService
 
 
 class RetryException(Exception):
-    """ Custom exception class for retry mechanism """
+    """Custom exception class for retry mechanism"""
+
     def __init__(self, err):
         """
         Initialize RetryException with an error.
@@ -16,6 +22,7 @@ class RetryException(Exception):
             err: An error that needs to be handled.
         """
         self.error = err
+
 
 # Retry decorator for wrapping a function to enable retries on failure
 def retry(func, times):
@@ -26,6 +33,7 @@ def retry(func, times):
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
     """
+
     def wrapper(*args, **kwargs):
         for index in range(times):
             try:
@@ -36,16 +44,24 @@ def retry(func, times):
                 IDEService().ide_logging("debug", f"has retries: {index + 1}")
                 continue
             except openai.APIStatusError as err:
-                IDEService().ide_logging("info", f"OpenAI API Status Error: {err.status_code} {err.body.get('detail', '')}")
+                IDEService().ide_logging(
+                    "info",
+                    f"OpenAI API Status Error: {err.status_code} {err.body.get('detail', '')}",
+                )
                 raise err from err
             except openai.APIError as err:
-                IDEService().ide_logging("info", f"OpenAI API Error: {err.code if err.code else ''} {err.type if err.type else err}")
+                IDEService().ide_logging(
+                    "info",
+                    f"OpenAI API Error: {err.code if err.code else ''} "
+                    f"{err.type if err.type else err}",
+                )
                 raise err from err
             except Exception as err:
                 IDEService().ide_logging("info", f"exception: {err.__class__} {str(err)}")
                 raise err
 
     return wrapper
+
 
 # Exception handling decorator for wrapping a function to return error message on failure
 def exception_err(func):
@@ -56,6 +72,7 @@ def exception_err(func):
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
     """
+
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
@@ -66,6 +83,7 @@ def exception_err(func):
 
     return wrapper
 
+
 # Exception output handling decorator for wrapping a function to print error message on failure
 def exception_output_handle(func):
     """
@@ -74,11 +92,13 @@ def exception_output_handle(func):
     Args:
         err: An error that needs to be handled.
     """
+
     def wrapper(err):
         print(f"{err}", file=sys.stderr, flush=True)
         return func(err)
 
     return wrapper
+
 
 # Exception handling decorator for wrapping a function to handle specific error on failure
 def exception_handle(func, handler):
@@ -89,15 +109,21 @@ def exception_handle(func, handler):
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
     """
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         # pylint: disable=broad-except
         except (openai.APIStatusError, openai.APIError, Exception) as err:
             if isinstance(err, openai.APIStatusError):
-                error_msg = f"OpenAI API Status Error: {err.status_code} {err.body.get('detail', '')}"
+                error_msg = (
+                    f"OpenAI API Status Error: {err.status_code} {err.body.get('detail', '')}"
+                )
             elif isinstance(err, openai.APIError):
-                error_msg = f"OpenAI API Error: {err.code if err.code else ''} {err.type if err.type else err}"
+                error_msg = (
+                    f"OpenAI API Error: {err.code if err.code else ''} "
+                    f"{err.type if err.type else err}"
+                )
             else:
                 error_msg = f"Caught an exception of type {type(err)}: {err}"
 
@@ -110,6 +136,7 @@ def exception_handle(func, handler):
 
     return wrapper
 
+
 # Pipeline decorator for wrapping a function to execute multiple functions in sequence
 def pipeline(*funcs):
     """
@@ -119,6 +146,7 @@ def pipeline(*funcs):
         *args: Variable length argument list.
         **kwargs: Arbitrary keyword arguments.
     """
+
     def wrapper(*args, **kwargs):
         start_time = time.time()
 
@@ -136,6 +164,7 @@ def pipeline(*funcs):
 
     return wrapper
 
+
 # Parallel decorator for wrapping a function to execute multiple functions concurrently
 def parallel(*funcs):
     """
@@ -144,6 +173,7 @@ def parallel(*funcs):
     Args:
         args: A list of arguments for the functions.
     """
+
     def wrapper(args):
         results = {"__type__": "parallel", "value": []}
         for func in funcs:
