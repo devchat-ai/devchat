@@ -91,10 +91,12 @@ def update_custom_workflows():
                 updated_any = True
                 update_messages = []
 
-                for url in custom_git_urls:
-                    repo_name = url.split("/")[-1].replace(".git", "")  # 提取repo名称
+                for item in custom_git_urls:
+                    git_url = item["git_url"]
+                    branch = item["branch"]
+                    repo_name = git_url.split("/")[-1].replace(".git", "")  # 提取repo名称
                     repo_path: Path = base_path / repo_name  # 拼接出clone路径
-                    candidates_git_urls = [(url, "main")]
+                    candidates_git_urls = [(git_url, branch)]
 
                     if repo_path.exists():
                         logger.info(f"Repo path not empty {repo_path}, removing it.")
@@ -132,7 +134,7 @@ def update_custom_workflows():
                 return response.UpdateWorkflows(updated=updated_any, message=message_summary)
             else:
                 return response.UpdateWorkflows(
-                    False, "No custom_git_urls found in .chat/config.yaml"
+                    updated=False, message="No custom_git_urls found in .chat/config.yaml"
                 )
     else:
-        return response.UpdateWorkflows(False, "No .chat config found")
+        return response.UpdateWorkflows(updated=False, message="No .chat config found")
