@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from typing import Any, List, Optional, Tuple
 
 from devchat._cli.errors import MissContentInPromptException
-from devchat.utils import add_gitignore, find_root_dir, get_logger, setup_logger
+from devchat.utils import add_gitignore, find_root_dir, get_logger, rmtree, setup_logger
 
 logger = get_logger(__name__)
 
@@ -31,7 +31,7 @@ def download_and_extract_workflow(workflow_url, target_dir):
 
     # Delete target directory if exists
     if os.path.exists(target_dir):
-        shutil.rmtree(target_dir)
+        rmtree(target_dir)
 
     # Rename extracted directory to target directory
     extracted_dir = os.path.join(parent_dir, "workflows-main")

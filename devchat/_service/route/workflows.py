@@ -7,7 +7,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from devchat._service.schema import response
-from devchat.utils import get_logger
+from devchat.utils import get_logger, rmtree
 from devchat.workflow.namespace import (
     WorkflowMeta,
     get_prioritized_namespace_path,
@@ -100,7 +100,7 @@ def update_custom_workflows():
 
                     if repo_path.exists():
                         logger.info(f"Repo path not empty {repo_path}, removing it.")
-                        shutil.rmtree(repo_path)
+                        rmtree(repo_path)
 
                     logger.info(
                         f"Starting update for {repo_name} at {repo_path} "
