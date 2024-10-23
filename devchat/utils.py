@@ -244,6 +244,7 @@ def openai_response_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a response."""
     return openai_message_tokens(message, model)
 
+
 def rmtree(path: str) -> None:
     import shutil
 
