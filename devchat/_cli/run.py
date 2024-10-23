@@ -2,6 +2,8 @@ from typing import List, Optional, Tuple
 
 import click
 
+from devchat.utils import rmtree
+
 
 @click.command(
     help="The 'command' argument is the name of the command to run or get information about."
@@ -115,28 +117,6 @@ def run(
             return
 
 
-def __onerror(func, path, _1):
-    """
-    Error handler for shutil.rmtree.
-
-    If the error is due to an access error (read only file)
-    it attempts to add write permission and then retries.
-
-    If the error is for another reason it re-raises the error.
-
-    Usage : shutil.rmtree(path, onerror=onerror)
-    """
-    import os
-    import stat
-
-    # Check if file access issue
-    if not os.access(path, os.W_OK):
-        # Try to change the file to be writable (remove read-only flag)
-        os.chmod(path, stat.S_IWUSR)
-        # Retry the function that failed
-        func(path)
-
-
 def __make_files_writable(directory):
     """
     Recursively make all files in the directory writable.
@@ -180,9 +160,9 @@ def _clone_or_pull_git_repo(target_dir: str, repo_urls: List[Tuple[str, str]], z
         bak_dir = target_dir + "_bak"
         new_dir = target_dir + "_old"
         if os.path.exists(new_dir):
-            shutil.rmtree(new_dir, onerror=__onerror)
+            rmtree(new_dir)
         if os.path.exists(bak_dir):
-            shutil.rmtree(bak_dir, onerror=__onerror)
+            rmtree(bak_dir)
         print(f"{target_dir} is already exists. Moved to {new_dir}")
         clone_git_repo(bak_dir, repo_urls)
         try:

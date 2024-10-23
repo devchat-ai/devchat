@@ -243,3 +243,30 @@ def openai_message_tokens(messages: dict, model: str) -> int:
 def openai_response_tokens(message: dict, model: str) -> int:
     """Returns the number of tokens used by a response."""
     return openai_message_tokens(message, model)
+
+
+def rmtree(path: str) -> None:
+    import shutil
+
+    def __onerror(func, path, _1):
+        """
+        Error handler for shutil.rmtree.
+
+        If the error is due to an access error (read only file)
+        it attempts to add write permission and then retries.
+
+        If the error is for another reason it re-raises the error.
+
+        Usage : shutil.rmtree(path, onerror=onerror)
+        """
+        import os
+        import stat
+
+        # Check if file access issue
+        if not os.access(path, os.W_OK):
+            # Try to change the file to be writable (remove read-only flag)
+            os.chmod(path, stat.S_IWUSR)
+            # Retry the function that failed
+            func(path)
+
+    shutil.rmtree(path, onerror=__onerror)

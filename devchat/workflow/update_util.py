@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple
 
 import requests
 
-from devchat.utils import get_logger
+from devchat.utils import get_logger, rmtree
 from devchat.workflow.path import (
     CHAT_DIR,
     CUSTOM_BASE,
@@ -167,7 +167,7 @@ def update_by_zip(workflow_base: Path) -> Tuple[bool, str]:
         # Has previous workflows, download as tmp_new
         tmp_new = parent / f"{WORKFLOWS_BASE_NAME}_new"
         if tmp_new.exists():
-            shutil.rmtree(tmp_new)
+            rmtree(tmp_new)
             # TODO: handle error?
             # shutil.rmtree(tmp_new, onerror=__onerror)
 
@@ -182,7 +182,7 @@ def update_by_zip(workflow_base: Path) -> Tuple[bool, str]:
         backup_zip = _backup(workflow_base)
 
         # rename the new dir to the workflow_base
-        shutil.rmtree(workflow_base)
+        rmtree(workflow_base)
         shutil.move(tmp_new, workflow_base)
 
         msg = f"Updated {workflow_base} by zip. (backup: {backup_zip})"
@@ -223,7 +223,7 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             # try to clone the new repo to tmp_new
             tmp_new = parent / f"{WORKFLOWS_BASE_NAME}_new"
             if tmp_new.exists():
-                shutil.rmtree(tmp_new)
+                rmtree(tmp_new)
 
             clone_ok = _clone_repo_to_dir(REPO_URLS, tmp_new)
             if not clone_ok:
@@ -235,7 +235,7 @@ def update_by_git(workflow_base: Path) -> Tuple[bool, str]:
             backup_zip = _backup(workflow_base)
 
             # rename the new dir to the workflow_base
-            shutil.rmtree(workflow_base)
+            rmtree(workflow_base)
             shutil.move(tmp_new, workflow_base)
 
             msg = f"Updated {workflow_base} by git. (backup: {backup_zip})"
