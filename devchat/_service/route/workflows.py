@@ -59,16 +59,43 @@ def get_config():
 
 @router.post("/update", response_model=response.UpdateWorkflows)
 def update_workflows():
-    base_path = Path(WORKFLOWS_BASE)
+    chat_config_path = Path(CHAT_DIR) / CHAT_CONFIG_FILENAME
 
-    if HAS_GIT:
-        updated, message = update_by_git(base_path)
+    if chat_config_path.exists():
+        with open(chat_config_path, "r", encoding="utf-8") as file:
+            chat_config = yaml.safe_load(file)
+
+        providers = chat_config.get("providers", {})
+        devchat_api_key = providers.get("devchat", {}).get("api_key", "")
+        openai_api_key = providers.get("openai", {}).get("api_key", "")
+
+        if devchat_api_key or openai_api_key:
+            update_public_workflow = chat_config.get("update_public_workflow", True)
+
+            if update_public_workflow:
+                base_path = Path(WORKFLOWS_BASE)
+
+                if HAS_GIT:
+                    updated, message = update_by_git(base_path)
+                else:
+                    updated, message = update_by_zip(base_path)
+
+                copy_workflows_usr()
+
+                return response.UpdateWorkflows(updated=updated, message=message)
+            else:
+                return response.UpdateWorkflows(
+                    updated=False,
+                    message="Workflow update has been ignored due to configuration settings.",
+                )
+        else:
+            return response.UpdateWorkflows(
+                updated=False, message="No valid API key found, workflow update ignored."
+            )
     else:
-        updated, message = update_by_zip(base_path)
-
-    copy_workflows_usr()
-
-    return response.UpdateWorkflows(updated=updated, message=message)
+        return response.UpdateWorkflows(
+            updated=False, message="Configuration file not found, workflow update ignored."
+        )
 
 
 @router.post("/custom_update", response_model=response.UpdateWorkflows)
