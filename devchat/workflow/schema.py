@@ -5,7 +5,7 @@ from pydantic import BaseModel, Extra, ValidationError, validator
 
 
 class WorkflowPyConf(BaseModel):
-    version: str  # python version
+    version: Optional[str]  # python version
     dependencies: str  # absolute path to the requirements file
     env_name: Optional[str]  # python env name, will use the workflow name if not set
 

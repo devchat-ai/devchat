@@ -4,6 +4,8 @@ import subprocess
 import sys
 from typing import Dict, Optional, Tuple
 
+import virtualenv
+
 from devchat.utils import get_logger, get_logging_file
 
 from .envs import MAMBA_BIN_PATH
@@ -66,7 +68,10 @@ class PyEnvManager:
             return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def ensure(
-        self, env_name: str, py_version: str, reqirements_file: Optional[str] = None
+        self,
+        env_name: str,
+        py_version: Optional[str] = None,
+        reqirements_file: Optional[str] = None,
     ) -> Optional[str]:
         """
         Ensure the python environment exists with the given name and version.
@@ -82,7 +87,7 @@ class PyEnvManager:
             # check the version of the python executable
             current_version = self.get_py_version(py)
 
-            if current_version != py_version:
+            if py_version and current_version != py_version:
                 should_remove_old = True
 
             if reqirements_file and self.should_reinstall(env_name, reqirements_file):
@@ -99,8 +104,13 @@ class PyEnvManager:
             self.remove(env_name)
 
         # create the environment
-        print(f"- Creating {env_name} with {py_version}...", flush=True)
-        create_ok, msg = self.create(env_name, py_version)
+        if py_version:
+            print(f"- Creating {env_name} with {py_version}...", flush=True)
+            create_ok, msg = self.create(env_name, py_version)
+        else:
+            print(f"- Creating {env_name} with current Python version...", flush=True)
+            create_ok, msg = self.create_with_virtualenv(env_name)
+
         if not create_ok:
             print(f"- Failed to create {env_name}.", flush=True)
             print(f"\nFor more details, check {log_file}.", flush=True)
@@ -138,6 +148,21 @@ class PyEnvManager:
 
         print("\n```", flush=True)
         return self.get_py(env_name)
+
+    def create_with_virtualenv(self, env_name: str) -> Tuple[bool, str]:
+        """
+        Create a new python environment using virtualenv with the current Python interpreter.
+        """
+        env_path = os.path.join(MAMBA_PY_ENVS, env_name)
+        if os.path.exists(env_path):
+            return True, ""
+
+        try:
+            # Use virtualenv.cli_run to create a virtual environment
+            virtualenv.cli_run([env_path, "--python", sys.executable])
+            return True, ""
+        except Exception as e:
+            return False, str(e)
 
     def install(self, env_name: str, requirements_file: str) -> Tuple[bool, str]:
         """
@@ -256,7 +281,8 @@ class PyEnvManager:
         env_path = None
         if sys.platform == "win32":
             env_path = os.path.join(MAMBA_PY_ENVS, env_name, "python.exe")
-            # env_path = os.path.join(MAMBA_PY_ENVS, env_name, "Scripts", "python.exe")
+            if not os.path.exists(env_path):
+                env_path = os.path.join(MAMBA_PY_ENVS, env_name, "Scripts", "python.exe")
         else:
             env_path = os.path.join(MAMBA_PY_ENVS, env_name, "bin", "python")
 
