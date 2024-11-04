@@ -38,6 +38,7 @@ uvicorn = {extras = ["standard"], version = "^0.30.1"}
 gunicorn = "^22.0.0"
 loguru = "^0.7.2"
 win32-setctime = "^1.1.0"
+virtualenv = "^20.27.1"
 
 [tool.poetry.scripts]
 devchat = "devchat._cli.main:main"
