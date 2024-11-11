@@ -136,7 +136,8 @@ class PyEnvManager:
                 print(f"\nFor more details, check {log_file}.", flush=True)
                 print("\n```", flush=True)
                 print(
-                    f"\n\nFailed to {action.lower()} dependencies, the workflow may not run correctly.",
+                    f"\n\nFailed to {action.lower()} dependencies, "
+                    "the workflow may not run correctly.",
                     flush=True,
                 )
                 logger.warning(f"Failed to {action.lower()} dependencies: {msg}")
@@ -162,15 +163,15 @@ class PyEnvManager:
         try:
             # Use virtualenv.cli_run to create a virtual environment
             virtualenv.cli_run([env_path, "--python", sys.executable])
-            
+
             # Create sitecustomize.py in the lib/site-packages directory
             site_packages_dir = os.path.join(env_path, "Lib", "site-packages")
             if os.path.exists(site_packages_dir):
                 sitecustomize_path = os.path.join(site_packages_dir, "sitecustomize.py")
                 with open(sitecustomize_path, "w") as f:
                     f.write("import sys\n")
-                    f.write("sys.path = [path for path in sys.path if path.find(\"conda\") == -1]")
-            
+                    f.write('sys.path = [path for path in sys.path if path.find("conda") == -1]')
+
             return True, ""
         except Exception as e:
             return False, str(e)
@@ -224,7 +225,7 @@ class PyEnvManager:
             if proc.returncode != 0:
                 return False, f"Installation failed: {err.decode('utf-8')}"
 
-            return True, f"Installation successful"
+            return True, "Installation successful"
 
     def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
         """
@@ -276,7 +277,7 @@ class PyEnvManager:
         if py_version:
             return self.remove_by_mamba(env_name)
         return self.remove_by_del(env_name)
-    
+
     def remove_by_del(self, env_name: str) -> bool:
         """
         Remove the python environment.
@@ -290,8 +291,6 @@ class PyEnvManager:
         except Exception as e:
             print(f"Failed to remove environment {env_name}: {e}")
             return False
-
-
 
     def remove_by_mamba(self, env_name: str) -> bool:
         """
