@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 import subprocess
 import sys
 from typing import Dict, Optional, Tuple
@@ -82,6 +83,7 @@ class PyEnvManager:
         py = self.get_py(env_name)
 
         should_remove_old = False
+        should_install_deps = False
 
         if py:
             # check the version of the python executable
@@ -91,60 +93,60 @@ class PyEnvManager:
                 should_remove_old = True
 
             if reqirements_file and self.should_reinstall(env_name, reqirements_file):
-                should_remove_old = True
+                should_install_deps = True
 
-            if not should_remove_old:
+            if not should_remove_old and not should_install_deps:
                 return py
 
         log_file = get_logging_file()
         print("\n```Step\n# Setting up workflow environment\n", flush=True)
         if should_remove_old:
-            print(f"- Dependencies of {env_name} have been changed.", flush=True)
+            print(f"- Python version of {env_name} needs to be updated.", flush=True)
             print(f"- Removing the old {env_name}...", flush=True)
-            self.remove(env_name)
+            self.remove(env_name, py_version)
 
-        # create the environment
-        if py_version:
-            print(f"- Creating {env_name} with {py_version}...", flush=True)
-            create_ok, msg = self.create(env_name, py_version)
-        else:
-            print(f"- Creating {env_name} with current Python version...", flush=True)
-            create_ok, msg = self.create_with_virtualenv(env_name)
+        # create the environment if it doesn't exist or needs to be recreated
+        if should_remove_old or not py:
+            if py_version:
+                print(f"- Creating {env_name} with {py_version}...", flush=True)
+                create_ok, msg = self.create(env_name, py_version)
+            else:
+                print(f"- Creating {env_name} with current Python version...", flush=True)
+                create_ok, msg = self.create_with_virtualenv(env_name)
 
-        if not create_ok:
-            print(f"- Failed to create {env_name}.", flush=True)
-            print(f"\nFor more details, check {log_file}.", flush=True)
-            print("\n```", flush=True)
-            print(
-                f"\n\nFailed to create {env_name}, the workflow will not run.",
-                flush=True,
-            )
-            logger.warning(f"Failed to create {env_name}: {msg}")
-            sys.exit(0)
-            # return None
-
-        # install the requirements
-        if reqirements_file:
-            filename = os.path.basename(reqirements_file)
-            print(f"- Installing dependencies from {filename}...", flush=True)
-            install_ok, msg = self.install(env_name, reqirements_file)
-            if not install_ok:
-                print(f"- Failed to install dependencies from {filename}.", flush=True)
+            if not create_ok:
+                print(f"- Failed to create {env_name}.", flush=True)
                 print(f"\nFor more details, check {log_file}.", flush=True)
                 print("\n```", flush=True)
                 print(
-                    "\n\nFailed to install dependencies, the workflow will not run.",
+                    f"\n\nFailed to create {env_name}, the workflow will not run.",
                     flush=True,
                 )
-                logger.warning(f"Failed to install dependencies: {msg}")
+                logger.warning(f"Failed to create {env_name}: {msg}")
                 sys.exit(0)
-                # return None
 
-            # save the hash of the requirements file content
-            dep_hash = self.get_dep_hash(reqirements_file)
-            cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
-            with open(cache_file, "w", encoding="utf-8") as f:
-                f.write(dep_hash)
+        # install or update the requirements
+        if reqirements_file:
+            filename = os.path.basename(reqirements_file)
+            action = "Updating" if should_install_deps else "Installing"
+            print(f"- {action} dependencies from {filename}...", flush=True)
+            install_ok, msg = self.install(env_name, reqirements_file)
+            if not install_ok:
+                print(f"- Failed to {action.lower()} dependencies from {filename}.", flush=True)
+                print(f"\nFor more details, check {log_file}.", flush=True)
+                print("\n```", flush=True)
+                print(
+                    f"\n\nFailed to {action.lower()} dependencies, the workflow may not run correctly.",
+                    flush=True,
+                )
+                logger.warning(f"Failed to {action.lower()} dependencies: {msg}")
+                sys.exit(0)
+            else:
+                # save the hash of the requirements file content
+                dep_hash = self.get_dep_hash(reqirements_file)
+                cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    f.write(dep_hash)
 
         print("\n```", flush=True)
         return self.get_py(env_name)
@@ -160,16 +162,31 @@ class PyEnvManager:
         try:
             # Use virtualenv.cli_run to create a virtual environment
             virtualenv.cli_run([env_path, "--python", sys.executable])
+            
+            # Create sitecustomize.py in the lib/site-packages directory
+            site_packages_dir = os.path.join(env_path, "Lib", "site-packages")
+            if os.path.exists(site_packages_dir):
+                sitecustomize_path = os.path.join(site_packages_dir, "sitecustomize.py")
+                with open(sitecustomize_path, "w") as f:
+                    f.write("import sys\n")
+                    f.write("sys.path = [path for path in sys.path if path.find(\"conda\") == -1]")
+            
             return True, ""
         except Exception as e:
             return False, str(e)
 
     def install(self, env_name: str, requirements_file: str) -> Tuple[bool, str]:
         """
-        Install requirements into the python environment.
+        Install or update requirements in the python environment.
 
         Args:
-            requirements: the absolute path to the requirements file.
+            env_name: the name of the python environment
+            requirements_file: the absolute path to the requirements file.
+
+        Returns:
+            A tuple (success, message), where success is a boolean indicating
+            whether the installation was successful, and message is a string
+            containing output or error information.
         """
         py = self.get_py(env_name)
         if not py:
@@ -178,6 +195,7 @@ class PyEnvManager:
         if not os.path.exists(requirements_file):
             return False, "Dependencies file not found."
 
+        # Base command
         cmd = [
             py,
             "-m",
@@ -189,17 +207,24 @@ class PyEnvManager:
             PYPI_TUNA,
             "--no-warn-script-location",
         ]
+
+        # Check if this is an update or a fresh install
+        cache_file = os.path.join(ENV_CACHE_DIR, f"{env_name}")
+        if os.path.exists(cache_file):
+            # This is an update, add --upgrade flag
+            cmd.append("--upgrade")
+
         env = os.environ.copy()
-        env.pop("PYTHONPATH")
+        env.pop("PYTHONPATH", None)
         with subprocess.Popen(
             cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env
         ) as proc:
             _, err = proc.communicate()
 
             if proc.returncode != 0:
-                return False, err.decode("utf-8")
+                return False, f"Installation failed: {err.decode('utf-8')}"
 
-            return True, ""
+            return True, f"Installation successful"
 
     def should_reinstall(self, env_name: str, requirements_file: str) -> bool:
         """
@@ -247,7 +272,28 @@ class PyEnvManager:
                 return False, msg
             return True, ""
 
-    def remove(self, env_name: str) -> bool:
+    def remove(self, env_name: str, py_version: Optional[str] = None) -> bool:
+        if py_version:
+            return self.remove_by_mamba(env_name)
+        return self.remove_by_del(env_name)
+    
+    def remove_by_del(self, env_name: str) -> bool:
+        """
+        Remove the python environment.
+        """
+        env_path = os.path.join(MAMBA_PY_ENVS, env_name)
+        try:
+            # Remove the environment directory
+            if os.path.exists(env_path):
+                shutil.rmtree(env_path)
+                return True
+        except Exception as e:
+            print(f"Failed to remove environment {env_name}: {e}")
+            return False
+
+
+
+    def remove_by_mamba(self, env_name: str) -> bool:
         """
         Remove the python environment.
         """
