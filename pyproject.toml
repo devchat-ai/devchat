@@ -19,7 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pydantic = "1.10.14"
+pydantic = "1.10.16"
 networkx = "^3.1"
 openai = "1.35.15"
 rich_click = "^1.6.1"
