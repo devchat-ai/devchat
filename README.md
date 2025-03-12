@@ -19,6 +19,8 @@
 
 </div>
 
+***
+
 While tools like GitHub Copilot, Cursor, and Cline are making coding increasingly intelligent, and platforms like Dify, Flowise, and Coze enable drag-and-drop workflows, we developers still find ourselves wading through vast AI-less seas daily, wearied by the myriad tedious processes in development.
 
 While some complex customization demands of enterprises have turned tool adaptation into tar pits, hands-on enthusiasts are busily engaged in various personalized tasks.
