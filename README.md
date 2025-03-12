@@ -9,7 +9,7 @@
 [![GitHub license](https://img.shields.io/github/license/devchat-ai/devchat.svg)](https://github.com/devchat-ai/devchat/blob/main/LICENSE)
 [![Downloads](https://pepy.tech/badge/devchat)](https://pepy.tech/project/devchat)
 [![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
-[![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/9t3yrbBUXD)
+[![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/JNyVGz8y)
 
 #### 🪄 Without leaving the IDE, direct AI to perform tasks using natural language.
 
