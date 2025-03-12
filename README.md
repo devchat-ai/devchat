@@ -2,7 +2,7 @@
 
 ![devchat](https://github.com/devchat-ai/devchat/assets/592493/f39979fe-fe32-410b-bf9d-2118ac8ea3d5)
 
-# DevChat: Intelligent Workflows Generated with Natural Language
+# DevChat: AI Workflows Generated with Natural Language
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![CircleCI](https://circleci.com/gh/devchat-ai/devchat/tree/main.svg?style=shield)](https://circleci.com/gh/devchat-ai/devchat/tree/main)
@@ -24,7 +24,7 @@ While tools like GitHub Copilot, Cursor, and Cline are making coding increasingl
 While some complex customization demands of enterprises have turned tool adaptation into tar pits, hands-on enthusiasts are busily engaged in various personalized tasks.
 Every dev team has its own character and deserves tailored AI services, and implementing these shouldn’t be arduous.
 
-We’ve built the DevChat open-source community to help every developer effortlessly cross the last mile of AI productivity!
+We’ve built the DevChat open-source community to help every developer effortlessly cross the last mile of LLM productivity!
 
 ## Core Features
 
