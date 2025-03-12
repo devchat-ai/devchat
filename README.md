@@ -19,54 +19,29 @@
 
 </div>
 
-## What is DevChat?
+While tools like GitHub Copilot, Cursor, and Cline are making coding increasingly intelligent, and platforms like Dify, Flowise, and Coze enable drag-and-drop workflows, we developers still find ourselves wading through vast AI-less seas daily, wearied by the myriad tedious processes in development.
 
-DevChat is an open-source workflow engine that enables developers to craft scripts for:
-- Engaging with users through a chat panel within their IDEs, facilitating the completion of development tasks.
-- Creating intelligent, automated workflows for these tasks, utilizing the full potential of various large language models (LLMs).
+While some complex customization demands of enterprises have turned tool adaptation into tar pits, hands-on enthusiasts are busily engaged in various personalized tasks.
+Every dev team has its own character and deserves tailored AI services, and implementing these shouldn’t be arduous.
 
-DevChat combines the flexibility of script writing, the cutting-edge capabilities of latest AI models, and an enriched user experience through intuitive chat GUI.
-
-## Why DevChat?
-
-While numerous AI coding tools exist, many still struggle to adeptly handle nuanced scenarios inherent in bespoke development processes. For instance, your team might adhere to a specific coding format that existing products don't support configuration for. Or, you desire an automated workflow to run tests and, upon encountering an error, allow AI to attempt a fix, but only once to avoid likely subsequent failures. Such specific functionalities are often not fully realized in available products.
-
-At its core, we believe that the creativity and productivity of developers are yet to be fully unleashed. Our aim with DevChat is to simplify the integration of AI in software development to the level of writing a script, thereby unlocking new possibilities for developers.
-
-## Showcase
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=ucHdcEwp1E0" target="_blank">
- <img src="http://img.youtube.com/vi/ucHdcEwp1E0/mqdefault.jpg" alt="Watch the video" width="320" height="180" border="10" />
-</a>
-
-Source code of the intelligent scripts in the above video:
-- Generate unit tests of a function: [/unit_tests](https://github.com/devchat-ai/workflows/tree/main/unit_tests).
-- Write a well-formatted commit message: [/commit](https://github.com/devchat-ai/workflows/tree/main/commit).
-- Automatically rename poorly-named local variables for improved readability: [/refactor.names](https://github.com/devchat-ai/workflows/tree/main/refactor/names).
+We’ve built the DevChat open-source community to help every developer effortlessly cross the last mile of AI productivity!
 
 ## Core Features
 
-### IDE Chat Panels
+### ❤️ Simplified Personalization: Create Custom Workflows with a Few Sentences
+- Say goodbye to the rigid and learning-intensive “drag-and-drop” workflow frameworks. With just a few sentences, you can easily generate intelligent workflows that assist or handle various tasks for you — whether it’s submitting a standardized GitLab MR, generating API automated API test cases, or having the AI provide progress updates via voice notifications.
+- Through the open-source community, we aim to build a rich collection of intelligent workflows, ranging from plugins that access rich IDE context to various autonomous agents, ensuring there’s always a “magical tool” that suits you.
 
-- [Visual Studio Code extension](https://github.com/devchat-ai/devchat-vscode) from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat).
-
-- [IntelliJ Platform plugin](https://github.com/devchat-ai/devchat-intellij) from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/23258-devchat).
-
-### ChatMark
-
-Documentation: https://docs.devchat.ai/chatmark-markdown-spec.
-
-### IDE Services
+### ❤️ Deep Understanding of Private Knowledge Through Knowledge Engineering
+- Integrated knowledge graph capabilities support diverse semantic queries, combining static pre-construction before queries with dynamic construction during queries to balance optimal effectiveness and performance.
+- Classify knowledge for specific scenarios to enhance AI generations.
+  - For example, by analyzing all interfaces, parameters, and relationships in API documents, our AI autonomous testing tool can use multiple APIs to generate test cases, reducing exploratory steps and improving the quality of test scripts.
 
 ## Quick Start
 
-For GUI, install our [IDE extension or plugin](https://docs.devchat.ai/quick-start/installation).
+- [Visual Studio Code extension](https://github.com/devchat-ai/devchat-vscode): Install from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=merico.devchat).
 
-For CLI:
-- Install Python 3.8+ and [pip](https://pip.pypa.io/en/stable/installation/).
-- Install DevChat by running: `pip install devchat`.
-- Set your [OpenAI API Key](https://platform.openai.com/account/api-keys) by running `export OPENAI_API_KEY="[sk-...]"` (or DevChat access key).
-- To access help, use the command: `devchat --help` or `devchat prompt --help`.
+- [IntelliJ Platform plugin](https://github.com/devchat-ai/devchat-intellij): Install from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/23258-devchat).
 
 ## Contributing
 
@@ -76,9 +51,9 @@ For CLI:
   - Visual Studio Code extension: https://github.com/devchat-ai/devchat-vscode
   - IntelliJ Platform plugin: https://github.com/devchat-ai/devchat-intellij
 
-- Issues and pull request are welcome: https://github.com/devchat-ai/devchat/issues
+- Issues and pull requests are welcome: https://github.com/devchat-ai/devchat/issues
 
-- Join our [Discord](https://discord.gg/9t3yrbBUXD)!
+- Join our [Discord](https://discord.gg/JNyVGz8y)!
 
 ## What is Prompt-Centric Software Development (PCSD)?
 
