@@ -2,7 +2,7 @@
 
 ![devchat](https://github.com/devchat-ai/devchat/assets/592493/f39979fe-fe32-410b-bf9d-2118ac8ea3d5)
 
-# DevChat: Intelligent Scripts that Streamline Your Dev Workflows
+# DevChat: Intelligent Workflows Generated with Natural Language
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![CircleCI](https://circleci.com/gh/devchat-ai/devchat/tree/main.svg?style=shield)](https://circleci.com/gh/devchat-ai/devchat/tree/main)
@@ -11,13 +11,11 @@
 [![PyPI version](https://badge.fury.io/py/devchat.svg)](https://badge.fury.io/py/devchat)
 [![Discord Chat](https://img.shields.io/discord/1106908489114206309?logo=discord)](https://discord.gg/9t3yrbBUXD)
 
-### Harness AI-Powered Scripts in Your IDE with a Dynamic Chat GUI
+#### 🪄 Without leaving the IDE, direct AI to perform tasks using natural language.
 
-#### 🧩 Develop AI-powered scripts in a unified framework with minmized efforts to handle IDEs and LLMs.
+#### 🧩 Bridge the last mile of AI productivity through knowledge engineering.
 
 #### 🛠️ Tailor the AI coding assistant to align perfectly with your specific needs.
-
-#### ✨ Elevate your text chats with a dynamic, Markdown-rendered GUI for enhanced interaction.
 
 </div>
 
